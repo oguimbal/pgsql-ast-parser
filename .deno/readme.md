@@ -1,4 +1,4 @@
-🏃‍♀️ `pg-sql-parser` is a Postgres SQL syntax parser. It produces a typed AST tree, covering the most common syntaxes of pgsql.
+🏃‍♀️ `pgsql-ast-parser` is a Postgres SQL syntax parser. It produces a typed AST tree, covering the most common syntaxes of pgsql.
 
 **⚠** This parser does not support (yet) PL/pgSQL. It might not even cover some funky syntaxes.
 
@@ -12,7 +12,7 @@
 ## With NodeJS
 
 ```bash
-npm i pg-sql-parser
+npm i pgsql-ast-parser
 ```
 
 ## With Deno
@@ -20,7 +20,7 @@ npm i pg-sql-parser
 Just reference it like that:
 
 ```typescript
-import { /* imports here */ } from 'https://deno.land/x/pg_sql_parser/mod.ts';
+import { /* imports here */ } from 'https://deno.land/x/pgsql_ast_parser/mod.ts';
 ```
 
 # 📖 Parsing SQL
@@ -30,7 +30,7 @@ import { /* imports here */ } from 'https://deno.land/x/pg_sql_parser/mod.ts';
 Parse sql to an AST (Abstract Syntax Tree) like this:
 
 ```typescript
-import { parse, Statement } from 'pg-sql-parser;
+import { parse, Statement } from 'pgsql-ast-parser;
 
 // parse multiple statements
 const ast: Statement[] = parse(`BEGIN TRANSACTION;
@@ -51,7 +51,7 @@ Here is an example
 
 ```typescript
 
-import { astVisitor, parse } from 'pg-sql-parser';
+import { astVisitor, parse } from 'pgsql-ast-parser';
 
 const tables = new Set();
 let joins = 0;
@@ -87,7 +87,7 @@ You'll find that AST visitors (that's the name of this pattern) are quite flexib
 That's super easy:
 
 ```typescript
-import { toSql } from 'pg-sql-parser';
+import { toSql } from 'pgsql-ast-parser';
 
 const sql: string = toSql.statement(myAst);
 
@@ -104,7 +104,7 @@ There is a special kind of visitor, which I called `astMapper`, which allows you
 For instance, you could rename a table in a request like this:
 
 ```typescript
-import { toSql, parseFirst, astMapper } from 'pg-sql-parser';
+import { toSql, parseFirst, astMapper } from 'pgsql-ast-parser';
 
 // create a mapper
 const mapper = astMapper(map => ({
@@ -178,3 +178,18 @@ if (newArray === array) {
     // transform() has not changed any element in the array !
 }
 ```
+
+# Development
+
+Pull requests are welcome :)
+
+To start hacking this lib, you'll have to:
+- Use vscode
+- Install [mocha test explorer with HMR support](https://marketplace.visualstudio.com/items?itemName=oguimbal.vscode-mocha-test-adapter) extension
+- `npm start`
+- Reload unit tests in vscode
+
+... once done, tests should appear. HMR is on, which means that changes in your code are instantly propagated to unit tests.
+This allows for ultra fast development cycles (running tests takes less than 1 sec).
+
+To debug tests: Just hit "run" (F5, or whatever)... vscode should attach the mocha worker. Then run the test you want to debug.
