@@ -16,7 +16,7 @@ const caseInsensitiveKeywords = (map: any) => {
 // build lexer
 export const lexer = compile({
     word: {
-        match: /[a-zA-Z][A-Za-z0-9_]*(?!')/,
+        match: /[eE](?!')[A-Za-z0-9_]*|[a-df-zA-DF-Z][A-Za-z0-9_]*/,
         type: caseInsensitiveKeywords(keywodsMap),
     },
     wordQuoted: {
@@ -32,7 +32,7 @@ export const lexer = compile({
         },
     },
     eString: {
-        match: /(?:e|E)'(?:[^'\\]|[\r\n\s]|(?:\\\s)|(?:\\\n)|(?:\\.)|(?:\'\'))+'/,
+        match: /\b(?:e|E)'(?:[^'\\]|[\r\n\s]|(?:\\\s)|(?:\\\n)|(?:\\.)|(?:\'\'))+'/,
         value: x => {
             return x.substr(2, x.length - 3)
                 .replace(/''/g, '\'')
