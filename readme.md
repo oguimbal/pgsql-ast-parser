@@ -2,9 +2,12 @@
 
 **⚠** This parser does not support (yet) PL/pgSQL. It might not even cover some funky syntaxes.
 
-💓 Open an issue if you find an bug or unsupported syntax !
+❤ Open an issue if you find an bug or unsupported syntax !
 
 🔗 This parser has been created to implement [pg-mem](https://github.com/oguimbal/pg-mem), an in-memory postgres db emulator. 👉 [Play with it here](https://oguimbal.github.io/pg-mem-playground/)
+
+
+👉 Dont forget to ⭐ this repo if you like this package :)
 
 
 # 📐 Installation
