@@ -739,11 +739,15 @@ const grammar: Grammar = {
     {"name": "ops_member$subexpression$1", "symbols": [(lexerAny.has("op_member") ? {type: "op_member"} : op_member)]},
     {"name": "ops_member$subexpression$1", "symbols": [(lexerAny.has("op_membertext") ? {type: "op_membertext"} : op_membertext)]},
     {"name": "ops_member", "symbols": ["ops_member$subexpression$1"], "postprocess": x => unwrap(x)?.value},
+    {"name": "expr_list_raw$subexpression$1", "symbols": ["expr_or_select"]},
+    {"name": "expr_list_raw$subexpression$1", "symbols": ["expr_star"]},
     {"name": "expr_list_raw$ebnf$1", "symbols": []},
-    {"name": "expr_list_raw$ebnf$1$subexpression$1", "symbols": ["comma", "expr_or_select"], "postprocess": last},
+    {"name": "expr_list_raw$ebnf$1$subexpression$1$subexpression$1", "symbols": ["expr_or_select"]},
+    {"name": "expr_list_raw$ebnf$1$subexpression$1$subexpression$1", "symbols": ["expr_star"]},
+    {"name": "expr_list_raw$ebnf$1$subexpression$1", "symbols": ["comma", "expr_list_raw$ebnf$1$subexpression$1$subexpression$1"], "postprocess": last},
     {"name": "expr_list_raw$ebnf$1", "symbols": ["expr_list_raw$ebnf$1", "expr_list_raw$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "expr_list_raw", "symbols": ["expr_or_select", "expr_list_raw$ebnf$1"], "postprocess":  ([head, tail]) => {
-            return [head, ...(tail || [])];
+    {"name": "expr_list_raw", "symbols": ["expr_list_raw$subexpression$1", "expr_list_raw$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [head[0], ...(tail[0] || [])];
         } },
     {"name": "expr_list_raw_many$ebnf$1$subexpression$1", "symbols": ["comma", "expr_or_select"], "postprocess": last},
     {"name": "expr_list_raw_many$ebnf$1", "symbols": ["expr_list_raw_many$ebnf$1$subexpression$1"]},

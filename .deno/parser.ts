@@ -35,12 +35,12 @@ export function parse(sql: string, entry?: string): any {
         }
     }
     let ret = _parse(sql, sqlCompiled, entry);
-    ret = !Array.isArray(ret)
-        ? [ret]
-        : ret;
 
     // cache result
     if (!entry) {
+        ret = !Array.isArray(ret)
+            ? [ret]
+            : ret;
         astCache.set(key, ret);
     }
     return ret;
