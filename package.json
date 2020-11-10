@@ -1,8 +1,9 @@
 {
   "name": "pgsql-ast-parser",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Yet another simple Postgres SQL parser",
   "main": "index.js",
+  "repository": "https://github.com/oguimbal/pgsql-ast-parser",
   "scripts": {
     "start": "webpack --config webpack.config.js",
     "build": "rimraf lib && webpack --config webpack.config.js --prod",
