@@ -465,13 +465,13 @@ line`,
     // =============== UNARIES ============
     // ====================================
     describe('Unaries', () => {
-        checkTreeExpr(['not a and b', 'NOT"a"and"b"'], {
+        checkTreeExpr(['not e and b', 'NOT"e"and"b"'], {
             type: 'binary',
             op: 'AND',
             left: {
                 type: 'unary',
                 op: 'NOT',
-                operand: { type: 'ref', name: 'a' },
+                operand: { type: 'ref', name: 'e' },
             },
             right: { type: 'ref', name: 'b' },
         });
@@ -750,6 +750,19 @@ line`,
             type: 'case',
             whens: [{ when: { type: 'ref', name: 'b' }, value: { type: 'integer', value: 1 } }],
             else: { type: 'integer', value: 2 },
+        });
+
+        // bugfix (was taking E'FALSE' as an escaped string)
+        checkTreeExpr([`case when b then 1 ELSE'FALSE' end`], {
+            type: 'case',
+            whens: [{
+                when: { type: 'ref', name: 'b' },
+                value: { type: 'integer', value: 1 }
+            }],
+            else: {
+                type: 'string',
+                value: 'FALSE',
+            }
         });
     });
 
