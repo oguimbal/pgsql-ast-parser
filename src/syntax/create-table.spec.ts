@@ -146,4 +146,40 @@ describe('[PG syntax] Create table', () => {
             columns: ['a'],
         }]
     });
+
+
+    // bugifx
+    checkCreateTable(['CREATE TABLE "a" ("id" character varying NOT NULL, "b" text NOT NULL, "c" character varying NOT NULL, "d" jsonb array NOT NULL, "e" jsonb NOT NULL, CONSTRAINT "PK_17c3a89f58a2997276084e706e8" PRIMARY KEY ("id"));'], {
+        type: 'create table',
+        name: 'a',
+        columns: [{
+            name: 'id',
+            dataType: { type: 'character varying' },
+            constraint: { type: 'not null' },
+        }, {
+            name: 'b',
+            dataType: { type: 'text' },
+            constraint: { type: 'not null' },
+        }, {
+            name: 'c',
+            dataType: { type: 'character varying' },
+            constraint: { type: 'not null' },
+        }, {
+            name: 'd',
+            dataType: {
+                type: 'array',
+                arrayOf: { type: 'jsonb' }
+            },
+            constraint: { type: 'not null' },
+        }, {
+            name: 'e',
+            dataType: { type: 'jsonb' },
+            constraint: { type: 'not null' },
+        }],
+        constraints: [{
+            constraintName: 'PK_17c3a89f58a2997276084e706e8',
+            columns: ['id'],
+            type: 'primary key',
+        }]
+    })
 });

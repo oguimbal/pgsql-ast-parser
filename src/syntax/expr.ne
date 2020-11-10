@@ -124,8 +124,8 @@ ops_between -> %kw_not:? kw_between # {% x => x[0] ? `${x[0][0].value} ${x[1].va
 ops_member -> (%op_member | %op_membertext) {% x => unwrap(x)?.value %}
 
 # x,y,z
-expr_list_raw -> expr_or_select (comma expr_or_select {% last %}):* {% ([head, tail]) => {
-    return [head, ...(tail || [])];
+expr_list_raw -> (expr_or_select | expr_star) (comma (expr_or_select | expr_star) {% last %}):* {% ([head, tail]) => {
+    return [head[0], ...(tail[0] || [])];
 } %}
 expr_list_raw_many -> expr_or_select (comma expr_or_select {% last %}):+ {% ([head, tail]) => {
     return [unwrap(head), ...(tail || []).map(unwrap)];

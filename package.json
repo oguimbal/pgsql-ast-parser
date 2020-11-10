@@ -1,12 +1,13 @@
 {
   "name": "pgsql-ast-parser",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Yet another simple Postgres SQL parser",
   "main": "index.js",
   "scripts": {
     "start": "webpack --config webpack.config.js",
     "build": "rimraf lib && webpack --config webpack.config.js --prod",
-    "release": "npm run test && npm run build && cp -r src lib/src && npm publish lib",
+    "release": "git diff --exit-code && npm run test && npm run build && cp -r src lib/src && npm run build:deno && deno run deno-test.ts && npm publish lib && npm run && npm run release-deno",
+    "release-deno": "PACKAGE_VERSION=$(cat package.json | grep \\\"version\\\" | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && git tag $PACKAGE_VERSION && git push --tags",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "deno:gen": "nearleyc src/syntax/main.ne -o .deno/syntax/main.ne.ts && nearleyc src/literal-syntaxes/array.ne -o .deno/literal-syntaxes/array.ne.ts",
     "build:deno": "node ./deno-transpile.js --copy && npm run deno:gen && node ./deno-transpile.js --process",

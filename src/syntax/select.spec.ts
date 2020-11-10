@@ -18,6 +18,15 @@ describe('[PG syntax] Select statements', () => {
         }]),
     });
 
+    checkSelect(['select count(*)'], {
+        type: 'select',
+        columns: noAlias([{
+            type: 'call',
+            function: 'count',
+            args: [{ type: 'ref', name: '*' }],
+        }])
+    });
+
     checkSelect(['select 42, 53', 'select 42,53', 'select(42),53'], {
         type: 'select',
         columns: noAlias([{
