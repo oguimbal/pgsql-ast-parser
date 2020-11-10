@@ -30,7 +30,7 @@ import { /* imports here */ } from 'https://deno.land/x/pgsql_ast_parser/mod.ts'
 Parse sql to an AST (Abstract Syntax Tree) like this:
 
 ```typescript
-import { parse, Statement } from 'pgsql-ast-parser;
+import { parse, Statement } from 'pgsql-ast-parser';
 
 // parse multiple statements
 const ast: Statement[] = parse(`BEGIN TRANSACTION;
