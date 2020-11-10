@@ -1,4 +1,4 @@
-🏃‍♀️ `pgsql-ast-parser` is a Postgres SQL syntax parser. It produces a typed AST tree, covering the most common syntaxes of pgsql.
+🏃‍♀️ `pgsql-ast-parser` is a Postgres SQL syntax parser. It produces a typed AST (Abstract Syntax Tree), covering the most common syntaxes of pgsql.
 
 **⚠** This parser does not support (yet) PL/pgSQL. It might not even cover some funky syntaxes.
 
@@ -30,7 +30,7 @@ import { /* imports here */ } from 'https://deno.land/x/pgsql_ast_parser/mod.ts'
 
 ⚠ I strongly recommand NOT using this parser without Typescript. It will work, but types are awesome.
 
-Parse sql to an AST (Abstract Syntax Tree) like this:
+Parse sql to an AST like this:
 
 ```typescript
 import { parse, Statement } from 'pgsql-ast-parser';
@@ -48,7 +48,7 @@ const ast: Statement = parseFirst(`SELECT * FROM "my_table";`);
 
 Once you have parsed an AST, you might want to traverse it easily to know what's in it.
 
-There is a helper for that: `astVisitor`.
+There is a helper for that: [astVisitor](/src/ast-visitor.ts).
 
 Here is an example which lists all the tables used in a request, and which counts how many joins it contains:
 
@@ -96,13 +96,14 @@ const sql: string = toSql.statement(myAst);
 
 ```
 
-ℹ Like with visitor, you can also convert subparts of AST to SQL (not necessarily a whole statement) by calling other methods of toSql.
+Like with `astVisitor()` or `astModifier()`, you can also convert subparts of AST to SQL (not necessarily a whole statement) by calling other methods of toSql.
+
 
 
 # 📝 Modifying SQL AST
 
 
-There is a special kind of visitor, which I called `astMapper`, which allows you to traverse & modify ASTs on the fly.
+There is a special kind of visitor, which I called [astMapper](/src/ast-mapper.ts), which allows you to traverse & modify ASTs on the fly.
 
 For instance, you could rename a table in a request like this:
 
@@ -133,6 +134,25 @@ const modified = mapper.statement(parseFirst('select * from foo'));
 console.log(toSql.statement(modified!)); //  =>  SELECT * FROM "bar"
 
 ```
+
+Good to know: If you use Typescript, return types will force  you to return something compatible with a valid AST.
+
+However, if you wish to remove a node from a tree, you can return null. For instance, this sample removes all references to column `'foo'`:
+
+```typescript
+// create a mapper
+const mapper = astMapper(map => ({
+    ref: c => c.name === 'foo' ? null : c,
+}))
+
+// process sql
+const result = mapper.statement(parseFirst('select foo, bar from test'));
+
+// Prints: SELECT "bar" FROM "test"
+console.log(toSql.statement(result!));
+```
+
+If no valid AST can be produced after having removed it, `result` will be null.
 
 
 ## A note on `astMapper` performance:

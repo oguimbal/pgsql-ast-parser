@@ -1,7 +1,7 @@
 {
   "name": "pgsql-ast-parser",
-  "version": "1.0.5",
-  "description": "Yet another simple Postgres SQL parser",
+  "version": "1.0.6",
+  "description": "Yet another simple Postgres SQL parser/modifier",
   "main": "index.js",
   "repository": "https://github.com/oguimbal/pgsql-ast-parser",
   "scripts": {
@@ -24,7 +24,10 @@
     "pg",
     "sql",
     "pgsql",
-    "postgresql"
+    "postgresql",
+    "node",
+    "parser",
+    "ast"
   ],
   "dependencies": {
     "lru-cache": "^6.0.0",

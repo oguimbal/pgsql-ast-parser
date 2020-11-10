@@ -169,4 +169,17 @@ describe('Ast mapper', () => {
         expect(toSql.statement(modified!)).to.equal('SELECT *  FROM "bar"');
     })
 
+    it('removes node', () => {
+        // create a mapper
+        const mapper = astMapper(map => ({
+            ref: c => c.name === 'foo' ? null : c,
+        }))
+
+        // process sql
+        const result = mapper.statement(parseFirst('select foo, bar from test'));
+
+        expect(toSql.statement(result!)).to.deep.equal('SELECT "bar"  FROM "test"');
+
+    })
+
 });
