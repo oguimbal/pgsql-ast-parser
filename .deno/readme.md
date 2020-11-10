@@ -50,7 +50,7 @@ Once you have parsed an AST, you might want to traverse it easily to know what's
 
 There is a helper for that: `astVisitor`.
 
-Here is an example
+Here is an example which lists all the tables used in a request, and which counts how many joins it contains:
 
 ```typescript
 
@@ -81,7 +81,7 @@ console.log(`Used tables ${[...tables].join(', ')} with ${joins} joins !`)
 
 You'll find that AST visitors (that's the name of this pattern) are quite flexible and powerful once you get used to them !
 
-👉 Here is the implementation of [toSql](./src/to-sql.ts) which uses an astVisitor to reconstitude SQL from an AST (see below).
+👉 Here is the implementation of [toSql](/src/to-sql.ts) which uses an astVisitor to reconstitude SQL from an AST (see below).
 
 
 
