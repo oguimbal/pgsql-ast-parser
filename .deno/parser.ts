@@ -20,7 +20,14 @@ export function parse(sql: string, entry?: string): any {
         sqlCompiled = Grammar.fromCompiled(sqlGrammar);
     }
 
-    return _parse(sql, sqlCompiled, entry);
+    // parse sql
+    let parsed = _parse(sql, sqlCompiled, entry);
+
+    // always return an array of statements.
+    if (!entry && !Array.isArray(parsed))  {
+        parsed = [parsed]
+    }
+    return parsed;
 }
 
 export function parseArrayLiteral(sql: string): string[] {
