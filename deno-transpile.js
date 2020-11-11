@@ -70,15 +70,6 @@ if (process.argv.includes('--copy')) {
     const bindings = {
         'moo': 'https://deno.land/x/moo@0.5.1-deno.2/mod.ts',
         'nearley': 'https://deno.land/x/nearley@2.19.7-deno/mod.ts',
-        'lru-cache': 'https://deno.land/x/lru_cache@6.0.0-deno.4/mod.ts',
-        // 'lru-cache': {
-        //     what: x => `{${x}}`,
-        //     where: 'https://deno.land/x/lru_cache@6.0.0-deno.3/mod.ts',
-        // },
-        'object-hash': 'https://deno.land/x/object_hash@2.0.3.1/mod.ts',
-        'immutable': 'https://deno.land/x/immutable@4.0.0-rc.12-deno.1/mod.ts',
-        'moment': 'https://deno.land/x/momentjs@2.29.1-deno/mod.ts',
-        'functional-red-black-tree': 'https://deno.land/x/functional_red_black_tree@1.0.1-deno/mod.ts',
     }
     function handleTs(ipath, rpath) {
         const content = fs.readFileSync(ipath, 'utf-8');

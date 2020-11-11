@@ -2,14 +2,9 @@ import { Statement, Expr, LOCATION } from './syntax/ast';
 import { Parser, Grammar } from 'nearley';
 import sqlGrammar from './syntax/main.ne';
 import arrayGrammar from './literal-syntaxes/array.ne';
-import LRUCache from 'lru-cache';
-import hash from 'object-hash';
 
 let sqlCompiled: Grammar;
 let arrayCompiled: Grammar;
-const astCache: LRUCache<any, any> = new LRUCache({
-    max: 1000,
-});
 
 /** Parse the first SQL statement in the given text (discards the rest), and return its AST */
 export function parseFirst(sql: string): Statement {
@@ -25,33 +20,21 @@ export function parse(sql: string, entry?: string): any {
         sqlCompiled = Grammar.fromCompiled(sqlGrammar);
     }
 
-    // when 'entry' is not specified, lets cache parsings
-    // => better perf on repetitive requests
-    const key = !entry && hash(sql);
-    if (!entry) {
-        const cached = astCache.get(key);
-        if (cached) {
-            return cached;
-        }
-    }
-    let ret = _parse(sql, sqlCompiled, entry);
+    // parse sql
+    let parsed = _parse(sql, sqlCompiled, entry);
 
-    // cache result
-    if (!entry) {
-        ret = !Array.isArray(ret)
-            ? [ret]
-            : ret;
-        astCache.set(key, ret);
+    // always return an array of statements.
+    if (!entry && !Array.isArray(parsed))  {
+        parsed = [parsed]
     }
-    return ret;
+    return parsed;
 }
 
 export function parseArrayLiteral(sql: string): string[] {
     if (!arrayCompiled) {
         arrayCompiled = Grammar.fromCompiled(arrayGrammar);
     }
-    const val = _parse(sql, arrayCompiled);
-    return val;
+    return _parse(sql, arrayCompiled);
 }
 
 function _parse(sql: string, grammar: Grammar, entry?: string): any {

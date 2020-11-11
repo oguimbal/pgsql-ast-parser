@@ -2,14 +2,9 @@ import { Statement, Expr, LOCATION } from './syntax/ast.ts';
 import { Parser, Grammar } from 'https://deno.land/x/nearley@2.19.7-deno/mod.ts';
 import sqlGrammar from './syntax/main.ne.ts';
 import arrayGrammar from './literal-syntaxes/array.ne.ts';
-import LRUCache from 'https://deno.land/x/lru_cache@6.0.0-deno.4/mod.ts';
-import hash from 'https://deno.land/x/object_hash@2.0.3.1/mod.ts';
 
 let sqlCompiled: Grammar;
 let arrayCompiled: Grammar;
-const astCache: LRUCache<any, any> = new LRUCache({
-    max: 1000,
-});
 
 /** Parse the first SQL statement in the given text (discards the rest), and return its AST */
 export function parseFirst(sql: string): Statement {
@@ -25,33 +20,14 @@ export function parse(sql: string, entry?: string): any {
         sqlCompiled = Grammar.fromCompiled(sqlGrammar);
     }
 
-    // when 'entry' is not specified, lets cache parsings
-    // => better perf on repetitive requests
-    const key = !entry && hash(sql);
-    if (!entry) {
-        const cached = astCache.get(key);
-        if (cached) {
-            return cached;
-        }
-    }
-    let ret = _parse(sql, sqlCompiled, entry);
-
-    // cache result
-    if (!entry) {
-        ret = !Array.isArray(ret)
-            ? [ret]
-            : ret;
-        astCache.set(key, ret);
-    }
-    return ret;
+    return _parse(sql, sqlCompiled, entry);
 }
 
 export function parseArrayLiteral(sql: string): string[] {
     if (!arrayCompiled) {
         arrayCompiled = Grammar.fromCompiled(arrayGrammar);
     }
-    const val = _parse(sql, arrayCompiled);
-    return val;
+    return _parse(sql, arrayCompiled);
 }
 
 function _parse(sql: string, grammar: Grammar, entry?: string): any {

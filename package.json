@@ -1,6 +1,6 @@
 {
   "name": "pgsql-ast-parser",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Yet another simple Postgres SQL parser/modifier",
   "main": "index.js",
   "repository": "https://github.com/oguimbal/pgsql-ast-parser",
@@ -30,10 +30,8 @@
     "ast"
   ],
   "dependencies": {
-    "lru-cache": "^6.0.0",
     "moo": "^0.5.1",
-    "nearley": "^2.19.5",
-    "object-hash": "^2.0.3"
+    "nearley": "^2.19.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
@@ -42,7 +40,6 @@
     "@hot-loader/react-dom": "^16.13.0",
     "@oguimbal/pg-promise": "^10.5.8",
     "@types/chai": "^4.2.11",
-    "@types/lru-cache": "^5.1.0",
     "@types/mocha": "^8.0.0",
     "@types/moo": "^0.5.3",
     "@types/nearley": "^2.11.1",
