@@ -1,5 +1,6 @@
 import * as a from './syntax/ast';
 import { nil, NotSupported, trimNullish } from './utils';
+import { IAstFullVisitor } from 'ast-visitor';
 
 
 export interface IAstPartialMapper {
@@ -8,6 +9,7 @@ export interface IAstPartialMapper {
     insert?: (val: a.InsertStatement) => a.Statement | nil
     delete?: (val: a.DeleteStatement) => a.Statement | nil
     createTable?: (val: a.CreateTableStatement) => a.Statement | nil
+    createExtension?: (val: a.CreateExtensionStatement) => a.Statement | nil
     set?: (st: a.SetStatement) => a.SetStatement | nil
     dataType?: (dataType: a.DataTypeDef) => a.DataTypeDef
     tableRef?: (st: a.TableRefAliased) => a.TableRefAliased | nil
@@ -45,9 +47,7 @@ export interface IAstPartialMapper {
     join?(join: a.JoinClause): a.JoinClause | nil
 }
 
-export type IAstMapper = {
-    [key in keyof IAstPartialMapper]-?: IAstPartialMapper[key];
-} & {
+export type IAstMapper = IAstFullVisitor & {
     /** Forces the next call to use the default implementation, not yours */
     super(): IAstMapper;
 }
@@ -166,11 +166,12 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.selection(val);
             case 'update':
                 return this.update(val);
+            case 'create extension':
+                return this.createExtension(val);
             default:
                 throw NotSupported.never(val);
         }
     }
-
 
 
     update(val: a.UpdateStatement): a.Statement | nil {
@@ -311,6 +312,9 @@ export class AstDefaultMapper implements IAstMapper {
         return val;
     }
 
+    createExtension(val: a.CreateExtensionStatement): a.Statement | nil {
+        return val;
+    }
 
     createIndex(val: a.CreateIndexStatement): a.Statement | nil {
         const expressions = arrayNilMap(val.expressions, e => {

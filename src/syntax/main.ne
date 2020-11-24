@@ -9,6 +9,7 @@ import {lexerAny, LOCATION} from '../lexer';
 @include "select.ne"
 @include "create-table.ne"
 @include "create-index.ne"
+@include "create-extension.ne"
 @include "simple-statements.ne"
 @include "insert.ne"
 @include "update.ne"
@@ -46,6 +47,7 @@ statement_separator -> %semicolon
 statement
     -> select_statement
     | createtable_statement
+    | createextension_statement
     | createindex_statement
     | simplestatements_all
     | insert_statement

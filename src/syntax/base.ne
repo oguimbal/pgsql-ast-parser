@@ -87,6 +87,8 @@ kw_if -> %word {% notReservedKw('if')  %}
 kw_exists -> %word {% notReservedKw('exists')  %}
 kw_key -> %word {% notReservedKw('key')  %}
 kw_index -> %word {% notReservedKw('index')  %}
+kw_extension -> %word {% notReservedKw('extension')  %}
+kw_schema -> %word {% notReservedKw('schema')  %}
 kw_nulls -> %word {% notReservedKw('nulls')  %}
 kw_first -> %word {% notReservedKw('first')  %}
 kw_last -> %word {% notReservedKw('last')  %}
@@ -98,6 +100,7 @@ kw_insert -> %word {% notReservedKw('insert')  %}
 kw_values -> %word {% notReservedKw('values')  %}
 kw_update -> %word {% notReservedKw('update')  %}
 kw_set -> %word {% notReservedKw('set')  %}
+kw_version -> %word {% notReservedKw('version')  %}
 kw_alter -> %word {% notReservedKw('alter')  %}
 kw_rename -> %word {% notReservedKw('rename')  %}
 kw_add -> %word {% notReservedKw('add')  %}

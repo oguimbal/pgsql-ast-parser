@@ -1,5 +1,5 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper';
-import { astVisitor, IAstVisitor } from './ast-visitor';
+import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor';
 import { NotSupported, nil, ReplaceReturnType } from './utils';
 import { ConstraintDef, TableConstraint, JoinClause } from './syntax/ast';
 import { literal } from './pg-escape';
@@ -81,7 +81,7 @@ function join(m: IAstVisitor, j: JoinClause | nil, tbl: () => void) {
     ret.push(' ');
 }
 
-const visitor = astVisitor(m => ({
+const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     addColumn: (...args) => {
         ret.push(' ADD COLUMN ');
@@ -89,6 +89,27 @@ const visitor = astVisitor(m => ({
             ret.push('IF NOT EXISTS ');
         }
         m.super().addColumn(...args);
+    },
+
+    createExtension: e   => {
+        ret.push('CREATE EXTENSION ');
+        if (e.ifNotExists) {
+            ret.push(' IF NOT EXISTS ');
+        }
+        ret.push(name(e.extension));
+        if (!e.from && !e.version && !e.schema) {
+            return;
+        }
+        ret.push(' WITH');
+        if (e.schema) {
+            ret.push(' SCHEMA ', name(e.schema));
+        }
+        if (e.version) {
+            ret.push(' VERSION ', literal(e.version));
+        }
+        if (e.from) {
+            ret.push(' FROM ', literal(e.from));
+        }
     },
 
     addConstraint: c => {
