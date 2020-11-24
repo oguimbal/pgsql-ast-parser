@@ -86,6 +86,9 @@ declare var kw_unique: any;
 declare var kw_on: any;
 declare var kw_asc: any;
 declare var kw_desc: any;
+declare var kw_create: any;
+declare var kw_with: any;
+declare var kw_from: any;
 declare var kw_into: any;
 declare var kw_on: any;
 declare var kw_returning: any;
@@ -226,6 +229,8 @@ const grammar: Grammar = {
     {"name": "kw_exists", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('exists')},
     {"name": "kw_key", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('key')},
     {"name": "kw_index", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('index')},
+    {"name": "kw_extension", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('extension')},
+    {"name": "kw_schema", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('schema')},
     {"name": "kw_nulls", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('nulls')},
     {"name": "kw_first", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('first')},
     {"name": "kw_last", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('last')},
@@ -237,6 +242,7 @@ const grammar: Grammar = {
     {"name": "kw_values", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('values')},
     {"name": "kw_update", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('update')},
     {"name": "kw_set", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('set')},
+    {"name": "kw_version", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('version')},
     {"name": "kw_alter", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('alter')},
     {"name": "kw_rename", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('rename')},
     {"name": "kw_add", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('add')},
@@ -706,7 +712,7 @@ const grammar: Grammar = {
     {"name": "expr_call$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "expr_call", "symbols": ["expr_fn_name", "lparen", "expr_call$ebnf$1", "rparen"], "postprocess":  x => ({
             type: 'call',
-            function: flattenStr(x[0]).join('').toLowerCase(),
+            ...unwrap(x[0]),
             args: x[2] || [],
         }) },
     {"name": "expr_primary", "symbols": ["float"], "postprocess": ([value]) => ({ type: 'numeric', value: value })},
@@ -780,8 +786,18 @@ const grammar: Grammar = {
             value: x[3],
         }) },
     {"name": "expr_case_else", "symbols": [(lexerAny.has("kw_else") ? {type: "kw_else"} : kw_else), "expr_nostar"], "postprocess": last},
-    {"name": "expr_fn_name", "symbols": ["word"]},
-    {"name": "expr_fn_name", "symbols": [(lexerAny.has("kw_any") ? {type: "kw_any"} : kw_any)]},
+    {"name": "expr_fn_name$subexpression$1$ebnf$1$subexpression$1", "symbols": ["word", (lexerAny.has("dot") ? {type: "dot"} : dot)]},
+    {"name": "expr_fn_name$subexpression$1$ebnf$1", "symbols": ["expr_fn_name$subexpression$1$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "expr_fn_name$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "expr_fn_name$subexpression$1", "symbols": ["expr_fn_name$subexpression$1$ebnf$1", "word"], "postprocess":  ([ns, fn]) => ({
+            function: fn.toLowerCase(),
+            ...ns && { namespace: ns[0] },
+        })},
+    {"name": "expr_fn_name", "symbols": ["expr_fn_name$subexpression$1"]},
+    {"name": "expr_fn_name$subexpression$2", "symbols": [(lexerAny.has("kw_any") ? {type: "kw_any"} : kw_any)], "postprocess":  () => ({
+            function: 'any',
+        })},
+    {"name": "expr_fn_name", "symbols": ["expr_fn_name$subexpression$2"]},
     {"name": "createtable_statement$ebnf$1", "symbols": ["kw_ifnotexists"], "postprocess": id},
     {"name": "createtable_statement$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "createtable_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), (lexerAny.has("kw_table") ? {type: "kw_table"} : kw_table), "createtable_statement$ebnf$1", "word", "lparen", "createtable_declarationlist", "rparen"], "postprocess":  x => {
@@ -883,6 +899,27 @@ const grammar: Grammar = {
             expression: unwrap(x[0]),
             ... !!x[1] ? { order: unwrap(x[1]).value.toLowerCase() } : {},
             ... !!x[2] ? { nulls: unwrap(x[2]) } : {},
+        }) },
+    {"name": "createextension_statement$ebnf$1", "symbols": ["kw_ifnotexists"], "postprocess": id},
+    {"name": "createextension_statement$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "createextension_statement$ebnf$2", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with)], "postprocess": id},
+    {"name": "createextension_statement$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "createextension_statement$ebnf$3$subexpression$1", "symbols": ["kw_schema", "word"], "postprocess": last},
+    {"name": "createextension_statement$ebnf$3", "symbols": ["createextension_statement$ebnf$3$subexpression$1"], "postprocess": id},
+    {"name": "createextension_statement$ebnf$3", "symbols": [], "postprocess": () => null},
+    {"name": "createextension_statement$ebnf$4$subexpression$1", "symbols": ["kw_version", "string"], "postprocess": last},
+    {"name": "createextension_statement$ebnf$4", "symbols": ["createextension_statement$ebnf$4$subexpression$1"], "postprocess": id},
+    {"name": "createextension_statement$ebnf$4", "symbols": [], "postprocess": () => null},
+    {"name": "createextension_statement$ebnf$5$subexpression$1", "symbols": [(lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "string"], "postprocess": last},
+    {"name": "createextension_statement$ebnf$5", "symbols": ["createextension_statement$ebnf$5$subexpression$1"], "postprocess": id},
+    {"name": "createextension_statement$ebnf$5", "symbols": [], "postprocess": () => null},
+    {"name": "createextension_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "kw_extension", "createextension_statement$ebnf$1", "word", "createextension_statement$ebnf$2", "createextension_statement$ebnf$3", "createextension_statement$ebnf$4", "createextension_statement$ebnf$5"], "postprocess":  x => ({
+            type: 'create extension',
+            ... !!x[2] ? { ifNotExists: true } : {},
+            extension: x[3],
+            ... !!x[5] ? { schema: x[5] } : {},
+            ... !!x[6] ? { version: x[6] } : {},
+            ... !!x[7] ? { from: x[7] } : {},
         }) },
     {"name": "simplestatements_all", "symbols": ["simplestatements_start_transaction"]},
     {"name": "simplestatements_all", "symbols": ["simplestatements_commit"]},
@@ -1161,6 +1198,7 @@ const grammar: Grammar = {
     {"name": "statement_separator", "symbols": [(lexerAny.has("semicolon") ? {type: "semicolon"} : semicolon)]},
     {"name": "statement", "symbols": ["select_statement"]},
     {"name": "statement", "symbols": ["createtable_statement"]},
+    {"name": "statement", "symbols": ["createextension_statement"]},
     {"name": "statement", "symbols": ["createindex_statement"]},
     {"name": "statement", "symbols": ["simplestatements_all"]},
     {"name": "statement", "symbols": ["insert_statement"]},

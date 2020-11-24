@@ -6,6 +6,7 @@ export const LOCATION = Symbol('_location_');
 export type Statement = (SelectStatement
     | CreateTableStatement
     | CreateIndexStatement
+    | CreateExtensionStatement
     | CommitStatement
     | InsertStatement
     | UpdateStatement
@@ -183,6 +184,15 @@ export interface CreateIndexStatement {
     unique?: true;
     ifNotExists?: true;
     indexName?: string;
+}
+
+export interface CreateExtensionStatement {
+    type: 'create extension';
+    extension: string;
+    ifNotExists?: true;
+    schema?: string;
+    version?: string;
+    from?: string;
 }
 
 export interface IndexExpression {
@@ -392,7 +402,10 @@ export interface ExprMember {
 
 export interface ExprCall {
     type: 'call';
+    /** Function name */
     function: string;
+    /** Function namespace (ex: pg_catalog) */
+    namespace?: string;
     args: Expr[];
 }
 

@@ -5,10 +5,11 @@ import { ReplaceReturnType } from './utils.ts';
 
 
 export type IAstPartialVisitor = { [key in keyof IAstPartialMapper]: ReplaceReturnType<IAstPartialMapper[key], any> }
-
-export type IAstVisitor = {
+export type IAstFullVisitor = {
     [key in keyof IAstPartialVisitor]-?: IAstPartialVisitor[key];
-} & {
+}
+
+export type IAstVisitor = IAstFullVisitor & {
     super(): IAstVisitor;
 }
 
@@ -90,7 +91,7 @@ for (const k of Object.getOwnPropertyNames(mapperProto)) {
  * console.log(`${cnt} references to foo !`);
  * ```
  */
-export function astVisitor(visitorBuilder: (defaultImplem: IAstVisitor) => IAstPartialVisitor): IAstVisitor {
+export function astVisitor<T extends IAstPartialVisitor = IAstPartialVisitor>(visitorBuilder: (defaultImplem: IAstVisitor) => T): IAstVisitor {
     return astMapper(m => {
         const ret = new Visitor();
         ret.mapper = m;
