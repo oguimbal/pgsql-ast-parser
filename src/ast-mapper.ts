@@ -1,6 +1,6 @@
 import * as a from './syntax/ast';
 import { nil, NotSupported, trimNullish } from './utils';
-import { IAstFullVisitor } from 'ast-visitor';
+
 
 
 export interface IAstPartialMapper {
@@ -47,7 +47,11 @@ export interface IAstPartialMapper {
     join?(join: a.JoinClause): a.JoinClause | nil
 }
 
-export type IAstMapper = IAstFullVisitor & {
+export type IAstFullMapper = {
+    [key in keyof IAstPartialMapper]-?: IAstPartialMapper[key];
+};
+
+export type IAstMapper = IAstFullMapper & {
     /** Forces the next call to use the default implementation, not yours */
     super(): IAstMapper;
 }
