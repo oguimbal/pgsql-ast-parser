@@ -725,6 +725,19 @@ line`,
             function: 'now',
             args: [],
         });
+
+        checkTreeExpr([`pg_catalog.col_description(23208,4)`], {
+            type: 'call',
+            function: 'col_description',
+            namespace: 'pg_catalog',
+            args: [{
+                type: 'integer',
+                value: 23208,
+            }, {
+                type: 'integer',
+                value: 4,
+            }]
+        })
     });
 
 

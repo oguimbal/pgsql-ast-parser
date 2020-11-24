@@ -96,7 +96,7 @@ expr_basic
 
 expr_call -> expr_fn_name lparen expr_list_raw:? rparen {% x => ({
         type: 'call',
-        function: flattenStr(x[0]).join('').toLowerCase(),
+        ...unwrap(x[0]),
         args: x[2] || [],
     }) %}
 
@@ -151,4 +151,10 @@ expr_case_whens -> %kw_when expr_nostar %kw_then expr_nostar {% x => ({
 
 expr_case_else -> %kw_else expr_nostar {% last %}
 
-expr_fn_name -> word | %kw_any
+expr_fn_name -> ((word %dot):?  word {% ([ns, fn]) => ({
+            function: fn.toLowerCase(),
+            ...ns && { namespace: ns[0] },
+        })%})
+    | (%kw_any {% () => ({
+            function: 'any',
+        })%})

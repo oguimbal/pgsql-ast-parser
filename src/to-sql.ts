@@ -173,7 +173,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     call: v => {
-        ret.push(v.function);
+        if (v.namespace) {
+            ret.push(name(v.namespace), '.')
+        }
+        ret.push(name(v.function));
         list(v.args, e => m.expr(e));
     },
 

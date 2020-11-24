@@ -402,7 +402,10 @@ export interface ExprMember {
 
 export interface ExprCall {
     type: 'call';
+    /** Function name */
     function: string;
+    /** Function namespace (ex: pg_catalog) */
+    namespace?: string;
     args: Expr[];
 }
 
