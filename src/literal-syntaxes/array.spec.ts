@@ -6,7 +6,7 @@ import { parseArrayLiteral } from '../parser';
 import { Optional } from 'utils';
 import { Token } from 'moo';
 
-describe('[PG syntax] Array literals', () => {
+describe('Array literals', () => {
 
     const hasContent = [
         /^value$/,

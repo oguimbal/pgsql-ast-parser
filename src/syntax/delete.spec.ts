@@ -2,7 +2,7 @@ import 'mocha';
 import 'chai';
 import { checkDelete } from './spec-utils';
 
-describe('[PG syntax] Delete', () => {
+describe('Delete', () => {
 
     checkDelete([`delete from test where a = b`], {
         type: 'delete',

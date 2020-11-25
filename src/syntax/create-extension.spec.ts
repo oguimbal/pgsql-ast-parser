@@ -2,7 +2,7 @@ import 'mocha';
 import 'chai';
 import { checkCreateExtension } from './spec-utils';
 
-describe('[PG syntax] Create extension', () => {
+describe('Create extension', () => {
 
     checkCreateExtension(['create extension blah', 'create extension"blah"'], {
         type: 'create extension',

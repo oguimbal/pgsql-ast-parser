@@ -5,7 +5,7 @@ import { expect, assert } from 'chai';
 import { Optional } from './utils';
 import { Token } from 'moo';
 
-describe('[PG syntax] Lexer', () => {
+describe('Lexer', () => {
 
     const hasContent = [
         /^word$/,

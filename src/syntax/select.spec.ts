@@ -3,7 +3,7 @@ import 'chai';
 import { checkSelect, checkInvalid } from './spec-utils';
 import { SelectedColumn, Expr, ExprBinary, JoinType, SelectStatement, Statement, LOCATION } from './ast';
 
-describe('[PG syntax] Select statements', () => {
+describe('Select statements', () => {
 
 
     function noAlias(x: Expr[]): SelectedColumn[] {
