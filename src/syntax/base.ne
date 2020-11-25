@@ -155,25 +155,26 @@ data_type_simple
     -> data_type_text
     | data_type_numeric
     | data_type_date
-    | word {% anyKw('json', 'jsonb', 'boolean', 'bool', 'money', 'bytea', 'regtype') %}
+    | word
+    # | word {% anyKw('json', 'jsonb', 'boolean', 'bool', 'money', 'bytea', 'regtype') %}
 
 
 # https://www.postgresql.org/docs/9.5/datatype-numeric.html
-data_type_numeric -> word {% anyKw('smallint', 'int', 'float', 'integer', 'bigint', 'bigint', 'decimal', 'numeric', 'real', 'smallserial', 'serial', 'bigserial') %}
-                    | (%word {% kw('double') %}) (%word {% kw('precision') %})
+data_type_numeric -> (%word {% kw('double') %}) (%word {% kw('precision') %})
+            # | word {% anyKw('smallint', 'int', 'float', 'integer', 'bigint', 'bigint', 'decimal', 'numeric', 'real', 'smallserial', 'serial', 'bigserial') %}
 
 # https://www.postgresql.org/docs/9.5/datatype-character.html
 data_type_text
-            -> word  {% anyKw('character', 'varchar', 'char', 'text') %}
-            | word {% kw('character') %}
-            | (%word {% kw('character') %}) (%word {% kw('varying') %})
+             -> (%word {% kw('character') %}) (%word {% kw('varying') %})
+            # | word  {% anyKw('character', 'varchar', 'char', 'text') %}
+            # | word {% kw('character') %}
 
 #https://www.postgresql.org/docs/9.5/datatype-datetime.html
 data_type_date
-    -> word {% kw('date') %}
-    | word {% kw('interval') %}
-    | word {% kw('timestamp') %}
-    | (%word {% anyKw('timestamp', 'time') %}) (%kw_with | %word {% kw('without') %}) (%word {% kw('time') %}) (%word {% kw('zone') %})
+     ->  (%word {% anyKw('timestamp', 'time') %}) (%kw_with | %word {% kw('without') %}) (%word {% kw('time') %}) (%word {% kw('zone') %})
+    # | word {% kw('date') %}
+    # | word {% kw('interval') %}
+    # | word {% kw('timestamp') %}
 
 
 
