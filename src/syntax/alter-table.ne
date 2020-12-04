@@ -68,39 +68,7 @@ altercol
     | (kw_set | kw_drop) kw_not_null {% x => ({type: flattenStr(x).join(' ').toLowerCase() }) %}
 
 altertable_add_constraint
-    -> kw_add %kw_constraint ident:? altertable_add_constraint_kind {% x => ({
+    -> kw_add createtable_constraint {% x => ({
         type: 'add constraint',
-        ...x[2] ? { constraintName: unwrap(x[2]) } : {},
         constraint: unwrap(last(x)),
     }) %}
-
-altertable_add_constraint_kind
-    -> altertable_add_constraint_foreignkey
-    | altertable_add_constraint_primarykey
-
-altertable_add_constraint_primarykey
-    -> %kw_primary kw_key collist_paren {% x => ({
-            type: 'primary key',
-            columns: x[2],
-        }) %}
-
-altertable_add_constraint_foreignkey
-    -> %kw_foreign kw_key collist_paren
-            %kw_references ident collist_paren
-            (%kw_on kw_delete altertable_on_action {% last %}):?
-            (%kw_on kw_update altertable_on_action {% last %}):?
-        {% x => ({
-            type: 'foreign key',
-            localColumns: x[2],
-            foreignTable: unwrap(x[4]),
-            foreignColumns: x[5],
-            onDelete: x[6] || 'no action',
-            onUpdate: x[7] || 'no action',
-        }) %}
-
-altertable_on_action
-    -> (kw_cascade
-    | (kw_no kw_action)
-    | kw_restrict
-    | kw_set (%kw_null | %kw_default))
-    {% x => flattenStr(x).join(' ').toLowerCase() %}

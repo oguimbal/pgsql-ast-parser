@@ -103,8 +103,7 @@ export interface TableAlterationAlterColumn {
 
 export interface TableAlterationAddConstraint {
     type: 'add constraint',
-    constraintName?: string;
-    constraint: ConstraintDef;
+    constraint: TableConstraint;
 }
 
 export type TableAlteration = TableAlterationRename
@@ -134,27 +133,6 @@ export type AlterColumn = AlterColumnSetType
     | AlterColumnSetDefault
     | AlterColumnSimple;
 
-
-export type ConstraintDef
-    = ConstraintForeignKeyDef
-    | ConstraintPrimaryKeyDef
-    | {
-        type: never;
-    }
-
-export interface ConstraintPrimaryKeyDef {
-    type: 'primary key';
-    columns: string[];
-}
-
-export interface ConstraintForeignKeyDef {
-    type: 'foreign key';
-    localColumns: string[];
-    foreignTable: string;
-    foreignColumns: string[];
-    onDelete: ConstraintAction
-    onUpdate: ConstraintAction
-}
 
 /**
  * FROM https://www.postgresql.org/docs/12/ddl-constraints.html
@@ -203,6 +181,7 @@ export interface IndexExpression {
 
 export interface CreateTableStatement {
     type: 'create table';
+    schema?: string;
     name: string;
     ifNotExists?: true;
     columns: CreateColumnDef[];
@@ -213,9 +192,14 @@ export interface CreateTableStatement {
 export interface CreateColumnDef {
     name: string;
     dataType: DataTypeDef;
-    // collate?: string; (todo)
-    constraint?: ColumnConstraint;
-    default?: Expr | nil;
+    constraints?: ColumnConstraint[];
+    collate?: CollateDef;
+}
+
+
+export interface CollateDef {
+    schema?: string;
+    collation: string;
 }
 
 export interface DataTypeDef {
@@ -224,24 +208,57 @@ export interface DataTypeDef {
     arrayOf?: DataTypeDef;
 }
 
-export type ColumnConstraint = UniqueConstraint | PrimaryConstraint | NotNullConstraint;
+export type ColumnConstraint
+    = ColumnConstraintSimple
+    | ColumnConstraintDefault
+    | ColumnConstraintCheck;
 
-export interface NotNullConstraint {
-    type: 'not null';
+export interface ColumnConstraintSimple {
+    type: 'unique'
+        | 'primary key'
+        | 'not null'
+        | 'null';
+    constraintName?: string;
 }
 
-export interface PrimaryConstraint {
-    type: 'primary key';
+export interface ColumnConstraintDefault {
+    type: 'default';
+    default: Expr;
+    constraintName?: string;
 }
 
-export interface UniqueConstraint {
-    type: 'unique';
-    notNull?: boolean;
+export interface ColumnConstraintForeignKey {
+    type: 'foreign key';
+    constraintName?: string;
+    foreignTable: string;
+    foreignColumns: string[];
+    onDelete: ConstraintAction
+    onUpdate: ConstraintAction
 }
 
-export type TableConstraint = (PrimaryConstraint | UniqueConstraint) & {
+
+
+// todo: add EXECLUDE
+export type TableConstraint
+    = TableConstraintUnique
+    | TableConstraintForeignKey
+    | TableConstraintCheck;
+
+export type TableConstraintCheck = ColumnConstraintCheck;
+export interface TableConstraintUnique {
+    type: 'primary key' | 'unique';
     constraintName?: string;
     columns: string[];
+}
+
+export interface TableConstraintForeignKey extends ColumnConstraintForeignKey {
+    localColumns: string[];
+}
+
+export interface ColumnConstraintCheck {
+    type: 'check';
+    constraintName?: string;
+    expr: Expr;
 }
 
 
@@ -323,6 +340,7 @@ export type Expr = ExprRef
     | ExprNull
     | ExprInteger
     | ExprMember
+    | ExprValueKeyword
     | ExprArrayIndex
     | ExprNumeric
     | ExprString
@@ -400,10 +418,27 @@ export interface ExprMember {
     member: string | number;
 }
 
+export interface ExprValueKeyword {
+    type: 'keyword',
+    keyword: ValueKeyword;
+}
+
+export type ValueKeyword = 'current_catalog'
+    | 'current_date'
+    | 'current_role'
+    | 'current_schema'
+    | 'current_timestamp'
+    | 'current_time'
+    | 'localtimestamp'
+    | 'localtime'
+    | 'session_user'
+    | 'user'
+    | 'current_user';
+
 export interface ExprCall {
     type: 'call';
     /** Function name */
-    function: string;
+    function: string | ExprValueKeyword;
     /** Function namespace (ex: pg_catalog) */
     namespace?: string;
     args: Expr[];

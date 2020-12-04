@@ -45,6 +45,8 @@ export interface IAstPartialMapper {
     unary?: (val: a.ExprUnary) => a.Expr | nil
     binary?: (val: a.ExprBinary) => a.Expr | nil
     join?(join: a.JoinClause): a.JoinClause | nil
+    constraint?: (constraint: a.ColumnConstraint) => a.ColumnConstraint | nil
+    valueKeyword?(val: a.ExprValueKeyword): a.Expr | nil
 }
 
 export type IAstFullMapper = {
@@ -271,10 +273,11 @@ export class AstDefaultMapper implements IAstMapper {
             if (!dataType) {
                 return null; // no data type => remove column
             }
-            const def = col.default && this.expr(col.default);
+            const constraints = arrayNilMap(col.constraints, m => this.constraint(m))
+                ?? undefined;
             return assignChanged(col, {
                 dataType,
-                default: def,
+                constraints,
             });
         })
         if (!columns?.length) {
@@ -283,6 +286,36 @@ export class AstDefaultMapper implements IAstMapper {
         return assignChanged(val, {
             columns,
         });
+    }
+
+    constraint(c: a.ColumnConstraint): a.ColumnConstraint | nil {
+        switch (c.type) {
+            case 'not null':
+            case 'null':
+            case 'primary key':
+            case 'unique':
+                return c;
+            case 'default': {
+                const def = this.expr(c.default);
+                if (!def) {
+                    return null;
+                }
+                return assignChanged(c, {
+                    default: def,
+                });
+            }
+            case 'check': {
+                const def = this.expr(c.expr);
+                if (!def) {
+                    return null;
+                }
+                return assignChanged(c, {
+                    expr: def,
+                });
+            }
+            default:
+                throw NotSupported.never(c);
+        }
     }
 
     set(st: a.SetStatement): a.SetStatement | nil {
@@ -479,10 +512,11 @@ export class AstDefaultMapper implements IAstMapper {
     createColumn(col: a.CreateColumnDef): a.CreateColumnDef | nil {
         // to be overriden
         const dataType = this.dataType(col.dataType);
-        const def = col.default && this.expr(col.default);
+        const constraints = arrayNilMap(col.constraints, m => this.constraint(m))
+            ?? undefined;
         return assignChanged(col, {
             dataType,
-            default: def,
+            constraints,
         });
     }
 
@@ -607,9 +641,16 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.ternary(val);
             case 'select':
                 return this.selection(val);
+            case 'keyword':
+                return this.valueKeyword(val);
             default:
                 throw NotSupported.never(val);
         }
+    }
+
+
+    valueKeyword(val: a.ExprValueKeyword): a.Expr | nil {
+        return val;
     }
 
     ternary(val: a.ExprTernary): a.Expr | nil {
@@ -684,11 +725,18 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     call(val: a.ExprCall): a.Expr | nil {
+        const fn: string | a.Expr | nil = val.function && typeof val.function !== 'string'
+            ? this.expr(val.function)
+            : val.function
         const args = arrayNilMap(val.args, a => this.expr(a));
-        if (!args) {
+        if (!args || !fn) {
             return null;
         }
+        if (typeof fn !== 'string' && fn.type !== 'keyword') {
+            throw new Error('Only support calling embeded functions (keywords), or named functions');
+        }
         return assignChanged(val, {
+            function: fn,
             args,
         });
     }

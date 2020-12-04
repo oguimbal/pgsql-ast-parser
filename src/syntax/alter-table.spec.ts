@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkAlterTable } from './spec-utils';
+import { checkAlterTable, checkInvalid } from './spec-utils';
 
 describe('Alter table', () => {
 
@@ -41,7 +41,7 @@ describe('Alter table', () => {
             column: {
                 name: 'a',
                 dataType: { type: 'jsonb' },
-                constraint: { type: 'not null' },
+                constraints: [{ type: 'not null' }],
             },
         }
     });
@@ -55,7 +55,7 @@ describe('Alter table', () => {
             column: {
                 name: 'a',
                 dataType: { type: 'jsonb' },
-                constraint: { type: 'not null' },
+                constraints: [{ type: 'not null' }],
             },
         }
     });
@@ -127,6 +127,29 @@ describe('Alter table', () => {
     });
 
 
+    // "check" constraint must be surounded by parenthesis
+    checkInvalid(`ALTER TABLE tbl ADD CONSTRAINT "cname" check a > 0`);
+
+    checkAlterTable(`ALTER TABLE tbl ADD CONSTRAINT "cname" check (a > 0)`, {
+        type: 'alter table',
+        table: { table: 'tbl' },
+        change: {
+            type: 'add constraint',
+            constraint: {
+                type: 'check',
+                constraintName: 'cname',
+                expr: {
+                    type: 'binary',
+                    left: { type: 'ref', name: 'a' },
+                    op: '>',
+                    right: { type: 'integer', value: 0 },
+                }
+            },
+        }
+    });
+
+
+
     checkAlterTable(`ALTER TABLE "photo" ADD CONSTRAINT "FK_4494006ff358f754d07df5ccc87"
                  FOREIGN KEY ("userId")
                 REFERENCES "user"("id")
@@ -135,9 +158,9 @@ describe('Alter table', () => {
         table: { table: 'photo' },
         change: {
             type: 'add constraint',
-            constraintName: 'FK_4494006ff358f754d07df5ccc87',
             constraint: {
                 type: 'foreign key',
+                constraintName: 'FK_4494006ff358f754d07df5ccc87',
                 localColumns: ['userId'],
                 foreignTable: 'user',
                 foreignColumns: ['id'],
@@ -154,9 +177,9 @@ describe('Alter table', () => {
         table: { table: 'test' },
         change: {
             type: 'add constraint',
-            constraintName: 'cname',
             constraint: {
                 type: 'primary key',
+                constraintName: 'cname',
                 columns: ['a', 'b'],
             }
         }

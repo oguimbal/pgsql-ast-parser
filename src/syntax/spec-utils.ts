@@ -70,11 +70,40 @@ function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T,
             const modified = mapper(parsed, astMapper(() => ({})));
             expect(modified).to.equal(parsed, 'It is not stable when passing through a neutral AST mapper');
 
-            // check that it procuces sql
-            const newSql = mapper(parsed, toSql);
-            assert.isString(newSql);
-            const reparsed = doParse(newSql);
-            expect(reparsed).to.deep.equal(expected, 'REPARSING of the AST converted to SQL is not stable');
+
+                // check that it procuces sql
+            let newSql: string;
+            try {
+                newSql = mapper(parsed, toSql);
+                assert.isString(newSql);
+            } catch (e) {
+                e.message = `⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
+        Failed to generate SQL from the parsed AST
+            => There should be something wrong in to-sql.ts
+⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
+            ${e.message}`;
+                throw e;
+            }
+
+            // reparse the generated sql...
+            let reparsed: any;
+            try {
+                reparsed = doParse(newSql);
+                assert.isString(newSql);
+            } catch (e) {
+                e.message = `⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
+        The parsed AST converted-back to SQL generated invalid SQL.
+            => There should be something wrong in to-sql.ts
+⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
+            ${e.message}`;
+                throw e;
+            }
+
+            // ...and check it still produces the same ast.
+            expect(reparsed).to.deep.equal(expected, `⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
+    SQL  -> AST  -> SQL transformation is not stable !
+             => This means that the parser is OK, but you might have forgotten to implement something in to-sql.ts
+⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔  `);
         });
     }
 }
@@ -91,6 +120,10 @@ export function checkInvalid(sql: string, start?: string) {
             expect(parser.results).not.to.deep.equal([]);
         });
     });
+}
+
+export function checkInvalidExpr(sql: string) {
+    return checkInvalid(sql, 'expr');
 }
 
 export function checkTreeExpr(value: string | string[], expected: Expr) {

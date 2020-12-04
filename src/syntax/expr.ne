@@ -107,6 +107,7 @@ expr_primary
     | %kw_true {% () => ({ type: 'boolean', value: true }) %}
     | %kw_false {% () => ({ type: 'boolean', value: false }) %}
     | %kw_null {% ([value]) => ({ type: 'null' }) %}
+    | value_keyword
 
 
 # LIKE-kind operators
@@ -151,10 +152,32 @@ expr_case_whens -> %kw_when expr_nostar %kw_then expr_nostar {% x => ({
 
 expr_case_else -> %kw_else expr_nostar {% last %}
 
-expr_fn_name -> ((word %dot):?  word {% ([ns, fn]) => ({
-            function: fn.toLowerCase(),
+expr_fn_name -> ((word %dot):?  word_or_keyword {% ([ns, fn]) => ({
+            function: unwrap(fn),
             ...ns && { namespace: ns[0] },
         })%})
     | (%kw_any {% () => ({
             function: 'any',
         })%})
+
+word_or_keyword
+    -> word {% ([x]) => x.toLowerCase() %}
+    | value_keyword
+
+value_keyword -> _value_keyword {% x => ({
+    type: 'keyword',
+    keyword: unwrap(x).value.toLowerCase(),
+}) %}
+
+_value_keyword
+        ->  %kw_current_catalog
+        |   %kw_current_date
+        |   %kw_current_role
+        |   %kw_current_schema
+        |   %kw_current_timestamp
+        |   %kw_current_time
+        |   %kw_localtimestamp
+        |   %kw_localtime
+        |   %kw_session_user
+        |   %kw_user
+        |   %kw_current_user

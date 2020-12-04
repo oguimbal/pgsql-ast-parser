@@ -1,6 +1,7 @@
 import 'mocha';
 import 'chai';
-import { checkTreeExpr, checkInvalid } from './spec-utils';
+import { checkTreeExpr, checkInvalidExpr } from './spec-utils';
+
 
 describe('Expressions', () => {
 
@@ -476,10 +477,8 @@ line`,
             right: { type: 'ref', name: 'b' },
         });
 
-        checkInvalid('not not a');
-
-        checkInvalid('"*"', 'expr');
-        checkInvalid('(*)', 'expr');
+        checkInvalidExpr('"*"');
+        checkInvalidExpr('(*)');
 
         checkTreeExpr(['not a is null', 'not"a"is null', 'not a isnull', 'not"a"isnull'], {
             type: 'unary',
@@ -812,6 +811,26 @@ line`,
                 columns: [{ expr: { type: 'ref', name: '*' } }],
                 from: [{ type: 'table', table: 'tb' }],
             }
+        });
+    });
+
+
+    describe('Value keywords', () => {
+        checkTreeExpr(['LOCALTIMESTAMP'], {
+            type: 'keyword',
+            keyword: 'localtimestamp',
+        });
+
+        checkTreeExpr(['LOCALTIMESTAMP(5)'], {
+            type: 'call',
+            function: {
+                type: 'keyword',
+                keyword: 'localtimestamp',
+            },
+            args: [{
+                type: 'integer',
+                value: 5,
+            }],
         });
     })
 });
