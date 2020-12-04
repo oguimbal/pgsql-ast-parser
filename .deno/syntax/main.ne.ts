@@ -76,11 +76,28 @@ declare var kw_when: any;
 declare var kw_then: any;
 declare var kw_else: any;
 declare var kw_any: any;
+declare var kw_current_catalog: any;
+declare var kw_current_date: any;
+declare var kw_current_role: any;
+declare var kw_current_schema: any;
+declare var kw_current_timestamp: any;
+declare var kw_current_time: any;
+declare var kw_localtimestamp: any;
+declare var kw_localtime: any;
+declare var kw_session_user: any;
+declare var kw_user: any;
+declare var kw_current_user: any;
 declare var kw_create: any;
 declare var kw_table: any;
 declare var kw_constraint: any;
 declare var kw_unique: any;
+declare var kw_check: any;
+declare var kw_foreign: any;
+declare var kw_references: any;
+declare var kw_on: any;
+declare var kw_null: any;
 declare var kw_default: any;
+declare var kw_collate: any;
 declare var kw_create: any;
 declare var kw_unique: any;
 declare var kw_on: any;
@@ -102,11 +119,6 @@ declare var kw_to: any;
 declare var kw_column: any;
 declare var kw_constraint: any;
 declare var kw_default: any;
-declare var kw_primary: any;
-declare var kw_foreign: any;
-declare var kw_references: any;
-declare var kw_on: any;
-declare var kw_null: any;
 declare var kw_from: any;
 declare var kw_returning: any;
 declare var kw_table: any;
@@ -715,6 +727,7 @@ const grammar: Grammar = {
     {"name": "expr_primary", "symbols": [(lexerAny.has("kw_true") ? {type: "kw_true"} : kw_true)], "postprocess": () => ({ type: 'boolean', value: true })},
     {"name": "expr_primary", "symbols": [(lexerAny.has("kw_false") ? {type: "kw_false"} : kw_false)], "postprocess": () => ({ type: 'boolean', value: false })},
     {"name": "expr_primary", "symbols": [(lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)], "postprocess": ([value]) => ({ type: 'null' })},
+    {"name": "expr_primary", "symbols": ["value_keyword"]},
     {"name": "ops_like", "symbols": ["ops_like_keywors"]},
     {"name": "ops_like", "symbols": ["ops_like_operators"]},
     {"name": "ops_like_keywors$ebnf$1", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not)], "postprocess": id},
@@ -783,8 +796,8 @@ const grammar: Grammar = {
     {"name": "expr_fn_name$subexpression$1$ebnf$1$subexpression$1", "symbols": ["word", (lexerAny.has("dot") ? {type: "dot"} : dot)]},
     {"name": "expr_fn_name$subexpression$1$ebnf$1", "symbols": ["expr_fn_name$subexpression$1$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "expr_fn_name$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "expr_fn_name$subexpression$1", "symbols": ["expr_fn_name$subexpression$1$ebnf$1", "word"], "postprocess":  ([ns, fn]) => ({
-            function: fn.toLowerCase(),
+    {"name": "expr_fn_name$subexpression$1", "symbols": ["expr_fn_name$subexpression$1$ebnf$1", "word_or_keyword"], "postprocess":  ([ns, fn]) => ({
+            function: unwrap(fn),
             ...ns && { namespace: ns[0] },
         })},
     {"name": "expr_fn_name", "symbols": ["expr_fn_name$subexpression$1"]},
@@ -792,17 +805,38 @@ const grammar: Grammar = {
             function: 'any',
         })},
     {"name": "expr_fn_name", "symbols": ["expr_fn_name$subexpression$2"]},
+    {"name": "word_or_keyword", "symbols": ["word"], "postprocess": ([x]) => x.toLowerCase()},
+    {"name": "word_or_keyword", "symbols": ["value_keyword"]},
+    {"name": "value_keyword", "symbols": ["_value_keyword"], "postprocess":  x => ({
+            type: 'keyword',
+            keyword: unwrap(x).value.toLowerCase(),
+        }) },
+    {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_current_catalog") ? {type: "kw_current_catalog"} : kw_current_catalog)]},
+    {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_current_date") ? {type: "kw_current_date"} : kw_current_date)]},
+    {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_current_role") ? {type: "kw_current_role"} : kw_current_role)]},
+    {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_current_schema") ? {type: "kw_current_schema"} : kw_current_schema)]},
+    {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_current_timestamp") ? {type: "kw_current_timestamp"} : kw_current_timestamp)]},
+    {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_current_time") ? {type: "kw_current_time"} : kw_current_time)]},
+    {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_localtimestamp") ? {type: "kw_localtimestamp"} : kw_localtimestamp)]},
+    {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_localtime") ? {type: "kw_localtime"} : kw_localtime)]},
+    {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_session_user") ? {type: "kw_session_user"} : kw_session_user)]},
+    {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_user") ? {type: "kw_user"} : kw_user)]},
+    {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_current_user") ? {type: "kw_current_user"} : kw_current_user)]},
     {"name": "createtable_statement$ebnf$1", "symbols": ["kw_ifnotexists"], "postprocess": id},
     {"name": "createtable_statement$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "createtable_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), (lexerAny.has("kw_table") ? {type: "kw_table"} : kw_table), "createtable_statement$ebnf$1", "word", "lparen", "createtable_declarationlist", "rparen"], "postprocess":  x => {
+    {"name": "createtable_statement$ebnf$2$subexpression$1", "symbols": ["ident", "dot"], "postprocess": get(0)},
+    {"name": "createtable_statement$ebnf$2", "symbols": ["createtable_statement$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "createtable_statement$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "createtable_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), (lexerAny.has("kw_table") ? {type: "kw_table"} : kw_table), "createtable_statement$ebnf$1", "createtable_statement$ebnf$2", "word", "lparen", "createtable_declarationlist", "rparen"], "postprocess":  x => {
         
-            const cols = x[5].filter((v: any) => 'dataType' in v);
-            const constraints = x[5].filter((v: any) => !('dataType' in v));
+            const cols = x[6].filter((v: any) => 'dataType' in v);
+            const constraints = x[6].filter((v: any) => !('dataType' in v));
         
             return {
                 type: 'create table',
                 ... !!x[2] ? { ifNotExists: true } : {},
-                name: x[3],
+                ... !!x[3] ? { schema: x[3] } : {},
+                name: x[4],
                 columns: cols,
                 ...constraints.length ? { constraints } : {},
             }
@@ -816,10 +850,11 @@ const grammar: Grammar = {
     {"name": "createtable_declaration$subexpression$1", "symbols": ["createtable_constraint"]},
     {"name": "createtable_declaration$subexpression$1", "symbols": ["createtable_column"]},
     {"name": "createtable_declaration", "symbols": ["createtable_declaration$subexpression$1"], "postprocess": unwrap},
-    {"name": "createtable_constraint$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_constraint") ? {type: "kw_constraint"} : kw_constraint), "word"], "postprocess": last},
-    {"name": "createtable_constraint$ebnf$1", "symbols": ["createtable_constraint$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "createtable_constraint$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "createtable_constraint", "symbols": ["createtable_constraint$ebnf$1", "createtable_constraint_def"], "postprocess":  x => {
+    {"name": "createtable_constraint$macrocall$2", "symbols": ["createtable_constraint_def"]},
+    {"name": "createtable_constraint$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_constraint") ? {type: "kw_constraint"} : kw_constraint), "word"], "postprocess": last},
+    {"name": "createtable_constraint$macrocall$1$ebnf$1", "symbols": ["createtable_constraint$macrocall$1$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "createtable_constraint$macrocall$1$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "createtable_constraint$macrocall$1", "symbols": ["createtable_constraint$macrocall$1$ebnf$1", "createtable_constraint$macrocall$2"], "postprocess":  x => {
             const name = unwrap(x[0]);
             if (!name) {
                 return unwrap(x[1]);
@@ -829,35 +864,90 @@ const grammar: Grammar = {
                 ...unwrap(x[1]),
             }
         } },
-    {"name": "createtable_constraint_def", "symbols": ["kw_not_null"], "postprocess": ()=> ({ type: 'not null' })},
-    {"name": "createtable_constraint_def$subexpression$1", "symbols": [(lexerAny.has("kw_unique") ? {type: "kw_unique"} : kw_unique)]},
-    {"name": "createtable_constraint_def$subexpression$1", "symbols": ["kw_primary_key"]},
-    {"name": "createtable_constraint_def", "symbols": ["createtable_constraint_def$subexpression$1", "lparen", "createtable_collist", "rparen"], "postprocess":  x => ({
+    {"name": "createtable_constraint", "symbols": ["createtable_constraint$macrocall$1"], "postprocess": unwrap},
+    {"name": "createtable_constraint_def", "symbols": ["createtable_constraint_def_unique"]},
+    {"name": "createtable_constraint_def", "symbols": ["createtable_constraint_def_check"]},
+    {"name": "createtable_constraint_def", "symbols": ["createtable_constraint_foreignkey"]},
+    {"name": "createtable_constraint_def_unique$subexpression$1", "symbols": [(lexerAny.has("kw_unique") ? {type: "kw_unique"} : kw_unique)]},
+    {"name": "createtable_constraint_def_unique$subexpression$1", "symbols": ["kw_primary_key"]},
+    {"name": "createtable_constraint_def_unique", "symbols": ["createtable_constraint_def_unique$subexpression$1", "lparen", "createtable_collist", "rparen"], "postprocess":  x => ({
             type: flattenStr(x[0]).join(' ').toLowerCase(),
             columns: x[2],
         }) },
+    {"name": "createtable_constraint_def_check", "symbols": [(lexerAny.has("kw_check") ? {type: "kw_check"} : kw_check), "expr_paren"], "postprocess":  ([_, expr]) => ({
+            type: 'check',
+            expr: unwrap(expr),
+        }) },
+    {"name": "createtable_constraint_foreignkey$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_delete", "createtable_constraint_on_action"], "postprocess": last},
+    {"name": "createtable_constraint_foreignkey$ebnf$1", "symbols": ["createtable_constraint_foreignkey$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "createtable_constraint_foreignkey$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "createtable_constraint_foreignkey$ebnf$2$subexpression$1", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_update", "createtable_constraint_on_action"], "postprocess": last},
+    {"name": "createtable_constraint_foreignkey$ebnf$2", "symbols": ["createtable_constraint_foreignkey$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "createtable_constraint_foreignkey$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "createtable_constraint_foreignkey", "symbols": [(lexerAny.has("kw_foreign") ? {type: "kw_foreign"} : kw_foreign), "kw_key", "collist_paren", (lexerAny.has("kw_references") ? {type: "kw_references"} : kw_references), "ident", "collist_paren", "createtable_constraint_foreignkey$ebnf$1", "createtable_constraint_foreignkey$ebnf$2"], "postprocess":  x => ({
+            type: 'foreign key',
+            localColumns: x[2],
+            foreignTable: unwrap(x[4]),
+            foreignColumns: x[5],
+            onDelete: x[6] || 'no action',
+            onUpdate: x[7] || 'no action',
+        }) },
+    {"name": "createtable_constraint_on_action$subexpression$1", "symbols": ["kw_cascade"]},
+    {"name": "createtable_constraint_on_action$subexpression$1$subexpression$1", "symbols": ["kw_no", "kw_action"]},
+    {"name": "createtable_constraint_on_action$subexpression$1", "symbols": ["createtable_constraint_on_action$subexpression$1$subexpression$1"]},
+    {"name": "createtable_constraint_on_action$subexpression$1", "symbols": ["kw_restrict"]},
+    {"name": "createtable_constraint_on_action$subexpression$1$subexpression$2", "symbols": [(lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
+    {"name": "createtable_constraint_on_action$subexpression$1$subexpression$2", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default)]},
+    {"name": "createtable_constraint_on_action$subexpression$1", "symbols": ["kw_set", "createtable_constraint_on_action$subexpression$1$subexpression$2"]},
+    {"name": "createtable_constraint_on_action", "symbols": ["createtable_constraint_on_action$subexpression$1"], "postprocess": x => flattenStr(x).join(' ').toLowerCase()},
     {"name": "createtable_collist$ebnf$1", "symbols": []},
     {"name": "createtable_collist$ebnf$1$subexpression$1", "symbols": ["comma", "ident"], "postprocess": last},
     {"name": "createtable_collist$ebnf$1", "symbols": ["createtable_collist$ebnf$1", "createtable_collist$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "createtable_collist", "symbols": ["ident", "createtable_collist$ebnf$1"], "postprocess":  ([head, tail]) => {
             return [head, ...(tail || [])];
         } },
-    {"name": "createtable_column$ebnf$1", "symbols": ["createtable_column_constraint"], "postprocess": id},
+    {"name": "createtable_column$ebnf$1", "symbols": ["createtable_collate"], "postprocess": id},
     {"name": "createtable_column$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "createtable_column$ebnf$2$subexpression$1", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default), "expr"], "postprocess": last},
-    {"name": "createtable_column$ebnf$2", "symbols": ["createtable_column$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "createtable_column$ebnf$2", "symbols": [], "postprocess": () => null},
-    {"name": "createtable_column", "symbols": ["word", "data_type", "createtable_column$ebnf$1", "createtable_column$ebnf$2"], "postprocess":  x => ({
-            name: x[0],
-            dataType: x[1],
-            ...x[2] ? { constraint: x[2] }: {},
-            ...x[3] ? { default: unwrap(x[3]) } : {}
-        }) },
-    {"name": "createtable_column_constraint$ebnf$1", "symbols": ["kw_not_null"], "postprocess": id},
-    {"name": "createtable_column_constraint$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "createtable_column_constraint", "symbols": [(lexerAny.has("kw_unique") ? {type: "kw_unique"} : kw_unique), "createtable_column_constraint$ebnf$1"], "postprocess": ([_, nn]) => ({ type: 'unique', ...!!nn ? {notNull: !!nn} : {}})},
-    {"name": "createtable_column_constraint", "symbols": ["kw_primary_key"], "postprocess": () => ({ type: 'primary key' })},
-    {"name": "createtable_column_constraint", "symbols": ["kw_not_null"], "postprocess": () => ({ type: 'not null' })},
+    {"name": "createtable_column$ebnf$2", "symbols": []},
+    {"name": "createtable_column$ebnf$2", "symbols": ["createtable_column$ebnf$2", "createtable_column_constraint"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "createtable_column", "symbols": ["word", "data_type", "createtable_column$ebnf$1", "createtable_column$ebnf$2"], "postprocess":  x => {
+            return {
+                name: x[0],
+                dataType: x[1],
+                ...x[2] ? { collate: x[2] }: {},
+                ...x[3] && x[3].length ? { constraints: x[3] }: {},
+            }
+        } },
+    {"name": "createtable_column_constraint$macrocall$2", "symbols": ["createtable_column_constraint_def"]},
+    {"name": "createtable_column_constraint$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_constraint") ? {type: "kw_constraint"} : kw_constraint), "word"], "postprocess": last},
+    {"name": "createtable_column_constraint$macrocall$1$ebnf$1", "symbols": ["createtable_column_constraint$macrocall$1$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "createtable_column_constraint$macrocall$1$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "createtable_column_constraint$macrocall$1", "symbols": ["createtable_column_constraint$macrocall$1$ebnf$1", "createtable_column_constraint$macrocall$2"], "postprocess":  x => {
+            const name = unwrap(x[0]);
+            if (!name) {
+                return unwrap(x[1]);
+            }
+            return {
+                constraintName: name,
+                ...unwrap(x[1]),
+            }
+        } },
+    {"name": "createtable_column_constraint", "symbols": ["createtable_column_constraint$macrocall$1"], "postprocess": unwrap},
+    {"name": "createtable_column_constraint_def", "symbols": [(lexerAny.has("kw_unique") ? {type: "kw_unique"} : kw_unique)], "postprocess": () => ({ type: 'unique' })},
+    {"name": "createtable_column_constraint_def", "symbols": ["kw_primary_key"], "postprocess": () => ({ type: 'primary key' })},
+    {"name": "createtable_column_constraint_def", "symbols": ["kw_not_null"], "postprocess": () => ({ type: 'not null' })},
+    {"name": "createtable_column_constraint_def", "symbols": [(lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)], "postprocess": () => ({ type: 'null' })},
+    {"name": "createtable_column_constraint_def", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default), "expr"], "postprocess": ([_, e]) => ({ type: 'default', default: unwrap(e) })},
+    {"name": "createtable_column_constraint_def", "symbols": [(lexerAny.has("kw_check") ? {type: "kw_check"} : kw_check), "expr_paren"], "postprocess": ([_, e]) => ({ type: 'check', expr: unwrap(e) })},
+    {"name": "createtable_collate$ebnf$1$subexpression$1", "symbols": ["ident", "dot"], "postprocess": get(0)},
+    {"name": "createtable_collate$ebnf$1", "symbols": ["createtable_collate$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "createtable_collate$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "createtable_collate", "symbols": [(lexerAny.has("kw_collate") ? {type: "kw_collate"} : kw_collate), "createtable_collate$ebnf$1", "ident"], "postprocess":  ([_, schema, collation]) => {
+            return {
+                schema,
+                collation,
+            };
+        }},
     {"name": "createindex_statement$ebnf$1", "symbols": [(lexerAny.has("kw_unique") ? {type: "kw_unique"} : kw_unique)], "postprocess": id},
     {"name": "createindex_statement$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "createindex_statement$ebnf$2", "symbols": ["kw_ifnotexists"], "postprocess": id},
@@ -1097,41 +1187,10 @@ const grammar: Grammar = {
     {"name": "altercol$subexpression$1", "symbols": ["kw_set"]},
     {"name": "altercol$subexpression$1", "symbols": ["kw_drop"]},
     {"name": "altercol", "symbols": ["altercol$subexpression$1", "kw_not_null"], "postprocess": x => ({type: flattenStr(x).join(' ').toLowerCase() })},
-    {"name": "altertable_add_constraint$ebnf$1", "symbols": ["ident"], "postprocess": id},
-    {"name": "altertable_add_constraint$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "altertable_add_constraint", "symbols": ["kw_add", (lexerAny.has("kw_constraint") ? {type: "kw_constraint"} : kw_constraint), "altertable_add_constraint$ebnf$1", "altertable_add_constraint_kind"], "postprocess":  x => ({
+    {"name": "altertable_add_constraint", "symbols": ["kw_add", "createtable_constraint"], "postprocess":  x => ({
             type: 'add constraint',
-            ...x[2] ? { constraintName: unwrap(x[2]) } : {},
             constraint: unwrap(last(x)),
         }) },
-    {"name": "altertable_add_constraint_kind", "symbols": ["altertable_add_constraint_foreignkey"]},
-    {"name": "altertable_add_constraint_kind", "symbols": ["altertable_add_constraint_primarykey"]},
-    {"name": "altertable_add_constraint_primarykey", "symbols": [(lexerAny.has("kw_primary") ? {type: "kw_primary"} : kw_primary), "kw_key", "collist_paren"], "postprocess":  x => ({
-            type: 'primary key',
-            columns: x[2],
-        }) },
-    {"name": "altertable_add_constraint_foreignkey$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_delete", "altertable_on_action"], "postprocess": last},
-    {"name": "altertable_add_constraint_foreignkey$ebnf$1", "symbols": ["altertable_add_constraint_foreignkey$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "altertable_add_constraint_foreignkey$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "altertable_add_constraint_foreignkey$ebnf$2$subexpression$1", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_update", "altertable_on_action"], "postprocess": last},
-    {"name": "altertable_add_constraint_foreignkey$ebnf$2", "symbols": ["altertable_add_constraint_foreignkey$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "altertable_add_constraint_foreignkey$ebnf$2", "symbols": [], "postprocess": () => null},
-    {"name": "altertable_add_constraint_foreignkey", "symbols": [(lexerAny.has("kw_foreign") ? {type: "kw_foreign"} : kw_foreign), "kw_key", "collist_paren", (lexerAny.has("kw_references") ? {type: "kw_references"} : kw_references), "ident", "collist_paren", "altertable_add_constraint_foreignkey$ebnf$1", "altertable_add_constraint_foreignkey$ebnf$2"], "postprocess":  x => ({
-            type: 'foreign key',
-            localColumns: x[2],
-            foreignTable: unwrap(x[4]),
-            foreignColumns: x[5],
-            onDelete: x[6] || 'no action',
-            onUpdate: x[7] || 'no action',
-        }) },
-    {"name": "altertable_on_action$subexpression$1", "symbols": ["kw_cascade"]},
-    {"name": "altertable_on_action$subexpression$1$subexpression$1", "symbols": ["kw_no", "kw_action"]},
-    {"name": "altertable_on_action$subexpression$1", "symbols": ["altertable_on_action$subexpression$1$subexpression$1"]},
-    {"name": "altertable_on_action$subexpression$1", "symbols": ["kw_restrict"]},
-    {"name": "altertable_on_action$subexpression$1$subexpression$2", "symbols": [(lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
-    {"name": "altertable_on_action$subexpression$1$subexpression$2", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default)]},
-    {"name": "altertable_on_action$subexpression$1", "symbols": ["kw_set", "altertable_on_action$subexpression$1$subexpression$2"]},
-    {"name": "altertable_on_action", "symbols": ["altertable_on_action$subexpression$1"], "postprocess": x => flattenStr(x).join(' ').toLowerCase()},
     {"name": "delete_statement", "symbols": ["delete_delete"]},
     {"name": "delete_statement", "symbols": ["delete_truncate"]},
     {"name": "delete_delete$subexpression$1", "symbols": ["kw_delete", (lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from)]},

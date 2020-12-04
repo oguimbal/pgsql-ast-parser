@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper.ts';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor.ts';
 import { NotSupported, nil, ReplaceReturnType } from './utils.ts';
-import { ConstraintDef, TableConstraint, JoinClause } from './syntax/ast.ts';
+import { TableConstraint, JoinClause, ColumnConstraint } from './syntax/ast.ts';
 import { literal } from './pg-escape.ts';
 
 
@@ -33,11 +33,7 @@ function list<T>(elems: T[], act: (e: T) => any, addParen = true) {
 }
 
 
-function addConstraint(cname: string | nil, c: ConstraintDef | TableConstraint) {
-
-    if (cname) {
-        ret.push(name(cname), ' ');
-    }
+function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
     ret.push(c.type);
     switch (c.type) {
         case 'foreign key':
@@ -57,11 +53,22 @@ function addConstraint(cname: string | nil, c: ConstraintDef | TableConstraint) 
             break;
         case 'primary key':
         case 'unique':
-            ret.push('('
-                , ...c.columns.map(name).join(', ')
-                , ') ');
+            if ('columns' in c) {
+                ret.push('('
+                    , ...c.columns.map(name).join(', ')
+                    , ') ');
+            }
             break;
-
+        case 'check':
+            m.expr(c.expr);
+            break;
+        case 'not null':
+        case 'null':
+            break;
+        case 'default':
+            ret.push(' DEFAULT ');
+            m.expr(c.default);
+            break;
         default:
             throw NotSupported.never(c)
     }
@@ -91,7 +98,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         m.super().addColumn(...args);
     },
 
-    createExtension: e   => {
+    createExtension: e => {
         ret.push('CREATE EXTENSION ');
         if (e.ifNotExists) {
             ret.push(' IF NOT EXISTS ');
@@ -114,7 +121,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     addConstraint: c => {
         ret.push(' ADD CONSTRAINT ');
-        addConstraint(c.constraintName, c.constraint);
+        const cname = c.constraint.constraintName;
+        if (cname) {
+            ret.push(name(cname));
+        }
+        addConstraint(c.constraint, m);
     },
 
     alterColumn: (c, t) => {
@@ -176,7 +187,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (v.namespace) {
             ret.push(name(v.namespace), '.')
         }
-        ret.push(name(v.function));
+        if (typeof v.function === 'string') {
+            ret.push(name(v.function));
+        } else {
+            ret.push(v.function.keyword);
+        }
         list(v.args, e => m.expr(e));
     },
 
@@ -233,19 +248,47 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    valueKeyword: v => {
+        ret.push(v.keyword, ' ');
+    },
+
     createColumn: c => {
         ret.push(name(c.name), ' ');
         m.dataType(c.dataType);
         ret.push(' ');
-        if (c.constraint) {
-            ret.push(c.constraint.type);
-            if (c.constraint.type === 'unique' && c.constraint.notNull) {
-                ret.push(' not null ');
+        if (c.collate) {
+            ret.push('COLLATE ');
+            if (c.collate.schema) {
+                ret.push(name(c.collate.schema), '.');
             }
+            ret.push(name(c.collate.collation), ' ');
         }
-        if (c.default) {
-            ret.push(' DEFAULT ');
-            m.expr(c.default);
+        for (const cst of c.constraints ?? []) {
+            m.constraint(cst);
+        }
+    },
+
+    constraint: cst => {
+        if (cst.constraintName) {
+            ret.push(' CONSTRAINT ', name(cst.constraintName), ' ');
+        }
+        switch (cst.type) {
+            case 'not null':
+            case 'null':
+            case 'primary key':
+            case 'unique':
+                ret.push(' ', cst.type, ' ');
+                return;
+            case 'default':
+                ret.push(' DEFAULT ');
+                m.expr(cst.default);
+                break;
+            case 'check':
+                ret.push(' CHECK ');
+                m.expr(cst.expr);
+                break;
+            default:
+                throw NotSupported.never(cst);
         }
     },
 
@@ -287,13 +330,19 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     createTable: t => {
         ret.push(t.ifNotExists ? 'CREATE TABLE IF NOT EXISTS ' : 'CREATE TABLE ');
+        if (t.schema) {
+            ret.push(name(t.schema), '.');
+        }
         ret.push(name(t.name), '(');
         list(t.columns, c => m.createColumn(c), false);
         if (t.constraints) {
             ret.push(', ');
             list(t.constraints, c => {
-                ret.push('CONSTRAINT ');
-                addConstraint(c.constraintName, c);
+                const cname = c.constraintName;
+                if (cname) {
+                    ret.push('CONSTRAINT ', name(cname), ' ');
+                }
+                addConstraint(c, m);
             }, false)
         }
         ret.push(')');
