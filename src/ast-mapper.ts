@@ -18,6 +18,7 @@ export interface IAstPartialMapper {
     alterTable?: (st: a.AlterTableStatement) => a.Statement | nil
     dropColumn?: (change: a.TableAlterationDropColumn, table: a.TableRefAliased) => a.TableAlteration | nil
     renameConstraint?: (change: a.TableAlterationRenameConstraint, table: a.TableRefAliased) => a.TableAlteration | nil
+    setTableOwner?: (change: a.TableAlterationOwner, table: a.TableRefAliased) => a.TableAlteration | nil
     renameColumn?: (change: a.TableAlterationRenameColumn, table: a.TableRefAliased) => a.TableAlteration | nil
     renameTable?: (change: a.TableAlterationRename, table: a.TableRefAliased) => a.TableAlteration | nil
     alterColumn?: (change: a.TableAlterationAlterColumn, inTable: a.TableRefAliased) => a.TableAlteration | nil
@@ -423,6 +424,10 @@ export class AstDefaultMapper implements IAstMapper {
                 change = this.dropColumn(st.change, st.table);
                 break;
             }
+            case 'owner': {
+                change = this.setTableOwner(st.change, st.table);
+                break;
+            }
             default:
                 throw NotSupported.never(st.change);
         }
@@ -439,6 +444,10 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     dropColumn(change: a.TableAlterationDropColumn, table: a.TableRefAliased): a.TableAlteration | nil {
+        return change;
+    }
+
+    setTableOwner(change: a.TableAlterationOwner, table: a.TableRefAliased): a.TableAlteration | nil {
         return change;
     }
 

@@ -119,6 +119,13 @@ export type TableAlteration = TableAlterationRename
     | TableAlterationDropColumn
     | TableAlterationAlterColumn
     | TableAlterationAddConstraint
+    | TableAlterationOwner
+
+
+export interface TableAlterationOwner {
+    type: 'owner';
+    to: string;
+}
 
 export interface AlterColumnSetType {
     type: 'set type';

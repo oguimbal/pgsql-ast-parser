@@ -105,6 +105,7 @@ kw_version -> %word {% notReservedKw('version')  %}
 kw_alter -> %word {% notReservedKw('alter')  %}
 kw_rename -> %word {% notReservedKw('rename')  %}
 kw_add -> %word {% notReservedKw('add')  %}
+kw_owner -> %word {% notReservedKw('owner')  %}
 kw_drop -> %word {% notReservedKw('drop')  %}
 kw_data -> %word {% notReservedKw('data')  %}
 kw_type -> %word {% notReservedKw('type')  %}

@@ -145,6 +145,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    setTableOwner: o => {
+        ret.push(' OWNER TO ', name(o.to));
+    },
+
     alterColumnSimple: c => ret.push(c.type),
 
     setColumnType: t => {

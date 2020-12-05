@@ -21,6 +21,7 @@ altertable_action
     | altertable_drop_column
     | altertable_alter_column
     | altertable_add_constraint
+    | altertable_owner
 
 
 altertable_rename_table -> kw_rename %kw_to word {% x => ({
@@ -72,3 +73,7 @@ altertable_add_constraint
         type: 'add constraint',
         constraint: unwrap(last(x)),
     }) %}
+
+
+altertable_owner
+     -> kw_owner %kw_to ident {% x => ({ type:'owner', to: last(x) }) %}

@@ -201,4 +201,14 @@ describe('Alter table', () => {
             }
         }
     })
+
+
+    checkAlterTable(`ALTER TABLE public.tbl OWNER to postgres;`, {
+        type: 'alter table',
+        table: { table: 'tbl', db: 'public'},
+        change: {
+            type: 'owner',
+            to: 'postgres',
+        }
+    })
 });
