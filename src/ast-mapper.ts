@@ -47,6 +47,7 @@ export interface IAstPartialMapper {
     join?(join: a.JoinClause): a.JoinClause | nil
     constraint?: (constraint: a.ColumnConstraint) => a.ColumnConstraint | nil
     valueKeyword?(val: a.ExprValueKeyword): a.Expr | nil
+    tablespace?(val: a.TablespaceStatement): a.Statement | nil
 }
 
 export type IAstFullMapper = {
@@ -174,9 +175,16 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.update(val);
             case 'create extension':
                 return this.createExtension(val);
+            case 'tablespace':
+                return this.tablespace(val);
             default:
                 throw NotSupported.never(val);
         }
+    }
+
+
+    tablespace(val: a.TablespaceStatement): a.Statement | nil {
+        return val;
     }
 
 

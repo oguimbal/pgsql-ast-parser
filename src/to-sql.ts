@@ -119,6 +119,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    tablespace: t => {
+        ret.push('TABLESPACE ', name(t.tablespace));
+    },
+
     addConstraint: c => {
         ret.push(' ADD ');
         const cname = c.constraint.constraintName;

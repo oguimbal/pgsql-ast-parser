@@ -16,4 +16,11 @@ describe('Simple statements', () => {
     checkStatement(['rollback'], {
         type: 'rollback',
     });
+
+
+
+    checkStatement(['tablespace abc'], {
+        type: 'tablespace',
+        tablespace: 'abc',
+    });
 });

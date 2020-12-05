@@ -94,6 +94,7 @@ kw_first -> %word {% notReservedKw('first')  %}
 kw_last -> %word {% notReservedKw('last')  %}
 kw_start -> %word {% notReservedKw('start')  %}
 kw_commit -> %word {% notReservedKw('commit')  %}
+kw_tablespace -> %word {% notReservedKw('tablespace')  %}
 kw_transaction -> %word {% notReservedKw('transaction')  %}
 kw_rollback -> %word {% notReservedKw('rollback')  %}
 kw_insert -> %word {% notReservedKw('insert')  %}

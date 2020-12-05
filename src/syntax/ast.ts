@@ -12,6 +12,7 @@ export type Statement = (SelectStatement
     | UpdateStatement
     | DeleteStatement
     | RollbackStatement
+    | TablespaceStatement
     | AlterTableStatement
     | StartTransactionStatement) & {
         [LOCATION]?: StatementLocation;
@@ -32,6 +33,11 @@ export interface CommitStatement {
 }
 export interface RollbackStatement {
     type: 'rollback';
+}
+
+export interface TablespaceStatement {
+    type: 'tablespace';
+    tablespace: string;
 }
 
 
