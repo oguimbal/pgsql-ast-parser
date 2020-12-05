@@ -712,7 +712,6 @@ const grammar: Grammar = {
     {"name": "expr_final", "symbols": ["expr_primary"]},
     {"name": "expr_basic", "symbols": ["expr_call"]},
     {"name": "expr_basic", "symbols": ["expr_case"]},
-    {"name": "expr_basic", "symbols": ["current_schema"], "postprocess": () => ({ type: 'call', function: 'current_schema', args: [] })},
     {"name": "expr_basic", "symbols": ["word"], "postprocess": ([value]) => ({ type: 'ref', name: unwrap(value) })},
     {"name": "expr_call$ebnf$1", "symbols": ["expr_list_raw"], "postprocess": id},
     {"name": "expr_call$ebnf$1", "symbols": [], "postprocess": () => null},
