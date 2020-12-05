@@ -120,10 +120,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     addConstraint: c => {
-        ret.push(' ADD CONSTRAINT ');
+        ret.push(' ADD ');
         const cname = c.constraint.constraintName;
         if (cname) {
-            ret.push(name(cname));
+            ret.push(' CONSTRAINT ', name(cname));
         }
         addConstraint(c.constraint, m);
     },
