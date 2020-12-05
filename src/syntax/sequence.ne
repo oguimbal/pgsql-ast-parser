@@ -3,7 +3,7 @@
 @include "expr.ne"
 
 @{%
-function setSeqOpts(ret, opts) {
+function setSeqOpts(ret: any, opts: any) {
     const defs = new Set();
     for (const [k, v] of opts) {
         if (defs.has(k)) {
