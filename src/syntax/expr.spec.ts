@@ -832,5 +832,19 @@ line`,
                 value: 5,
             }],
         });
+
+        checkTreeExpr(['current_schema'], {
+            type: 'keyword',
+            keyword: 'current_schema',
+        });
+
+        checkTreeExpr(['current_schema()'], {
+            type: 'call',
+            function: {
+                type: 'keyword',
+                keyword: 'current_schema',
+            },
+            args: [],
+        });
     })
 });

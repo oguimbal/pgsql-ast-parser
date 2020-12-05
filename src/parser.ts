@@ -45,7 +45,11 @@ function _parse(sql: string, grammar: Grammar, entry?: string): any {
     if (!asts.length) {
         throw new Error('Unexpected end of input');
     } else if (asts.length !== 1) {
-        throw new Error('Ambiguous syntax: Please file an issue stating the request that has failed:\n' + sql);
+        throw new Error(`💀 Ambiguous SQL syntax: Please file an issue stating the request that has failed at https://github.com/oguimbal/pgsql-ast-parser:
+
+        ${sql}
+
+        `);
     }
     return asts[0];
 }

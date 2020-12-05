@@ -257,4 +257,18 @@ describe('Select statements', () => {
         , buildJoin('FULL JOIN'));
 
 
+    checkSelect(['select current_schema()'], {
+        type: 'select',
+        columns: [{
+            expr: {
+                type: 'call',
+                function: {
+                    type: 'keyword',
+                    keyword: 'current_schema',
+                },
+                args: [],
+            }
+        }]
+    })
+
 });
