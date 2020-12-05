@@ -114,9 +114,4 @@ createtable_column_constraint_def
     | %kw_check expr_paren {% ([_, e]) => ({ type: 'check', expr: unwrap(e) }) %}
 
 createtable_collate
-    -> %kw_collate (ident dot {% get(0) %}):? ident {% ([_, schema, collation]) => {
-        return {
-            schema,
-            collation,
-        };
-    }%}
+    -> %kw_collate qualified_name {% last %}

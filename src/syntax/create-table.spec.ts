@@ -264,7 +264,7 @@ describe('Create table', () => {
             constraints: [{ type: 'not null' }],
             collate: {
                 schema: 'pg_catalog',
-                collation: 'default',
+                name: 'default',
             },
         }, {
             name: 'b',
@@ -272,7 +272,7 @@ describe('Create table', () => {
             constraints: [{ type: 'not null' }],
             collate: {
                 schema: 'pg_catalog',
-                collation: 'default',
+                name: 'default',
             },
         }],
     })

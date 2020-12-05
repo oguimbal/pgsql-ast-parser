@@ -269,10 +269,59 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             if (c.collate.schema) {
                 ret.push(name(c.collate.schema), '.');
             }
-            ret.push(name(c.collate.collation), ' ');
+            ret.push(name(c.collate.name), ' ');
         }
         for (const cst of c.constraints ?? []) {
             m.constraint(cst);
+        }
+    },
+
+    createSequence: cs => {
+        ret.push('CREATE ');
+        if (cs.temp) {
+            ret.push('TEMPORARY ');
+        }
+        ret.push('SEQUENCE ');
+        if (cs.ifNotExists) {
+            ret.push('IF NOT EXISTS ');
+        }
+        if (cs.schema) {
+            ret.push(name(cs.schema), '.');
+        }
+        ret.push(name(cs.name), ' ');
+        if (cs.as) {
+            ret.push('AS ');
+            m.dataType(cs.as);
+            ret.push(' ');
+        }
+        if (typeof cs.incrementBy === 'number') {
+            ret.push('INCREMENT BY ', cs.incrementBy.toString(), ' ');
+        }
+        if (cs.minValue === 'no minvalue') {
+            ret.push('NO MINVALUE ');
+        }
+        if (typeof cs.minValue === 'number') {
+            ret.push('MINVALUE ', cs.minValue.toString(), ' ');
+        }
+        if (cs.maxValue === 'no maxvalue') {
+            ret.push('NO MAXVALUE ');
+        }
+        if (typeof cs.maxValue === 'number') {
+            ret.push('MAXVALUE ', cs.maxValue.toString(), ' ');
+        }
+        if (typeof cs.startWith === 'number') {
+            ret.push('START WITH ', cs.startWith.toString(), ' ');
+        }
+        if (typeof cs.cache === 'number') {
+            ret.push('CACHE ', cs.cache.toString(), ' ');
+        }
+        if (cs.cycle) {
+            ret.push(cs.cycle, ' ');
+        }
+        if (cs.ownedBy === 'none') {
+            ret.push('OWNED BY NONE ');
+        } else if (cs.ownedBy) {
+            ret.push('OWNED BY ', name(cs.ownedBy.table), '.', name(cs.ownedBy.column));
         }
     },
 
@@ -394,7 +443,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             m.selection(s.statement);
             ret.push(') ');
             if (s.alias) {
-                ret.push(' AS ', name(s.alias));
+                ret.push(' AS ', name(s.alias), ' ');
             }
         });
 

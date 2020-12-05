@@ -5,6 +5,7 @@ export const LOCATION = Symbol('_location_');
 
 export type Statement = (SelectStatement
     | CreateTableStatement
+    | CreateSequenceStatement
     | CreateIndexStatement
     | CreateExtensionStatement
     | CommitStatement
@@ -207,13 +208,13 @@ export interface CreateColumnDef {
     name: string;
     dataType: DataTypeDef;
     constraints?: ColumnConstraint[];
-    collate?: CollateDef;
+    collate?: QualifiedName;
 }
 
 
-export interface CollateDef {
+export interface QualifiedName {
+    name: string;
     schema?: string;
-    collation: string;
 }
 
 export interface DataTypeDef {
@@ -509,4 +510,21 @@ export interface SetGlobalStatement {
     type: 'set';
     variable: string;
     value: Expr;
+}
+
+export interface CreateSequenceStatement extends QualifiedName {
+    type: 'create sequence';
+    temp?: boolean;
+    ifNotExists?: boolean;
+    as?: DataTypeDef;
+    incrementBy?: number;
+    minValue?: 'no minvalue' | number;
+    maxValue?: 'no maxvalue' | number;
+    startWith?: number;
+    cache?: number;
+    cycle?: 'cycle' | 'no cycle';
+    ownedBy?: 'none' | {
+        table: string;
+        column: string;
+    };
 }

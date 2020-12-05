@@ -104,17 +104,27 @@ kw_set -> %word {% notReservedKw('set')  %}
 kw_version -> %word {% notReservedKw('version')  %}
 kw_alter -> %word {% notReservedKw('alter')  %}
 kw_rename -> %word {% notReservedKw('rename')  %}
+kw_sequence -> %word {% notReservedKw('sequence')  %}
+kw_temp -> %word {% notReservedKw('temp')  %}
+kw_temporary -> %word {% notReservedKw('temporary')  %}
 kw_add -> %word {% notReservedKw('add')  %}
 kw_owner -> %word {% notReservedKw('owner')  %}
+kw_owned -> %word {% notReservedKw('owned')  %}
+kw_none -> %word {% notReservedKw('none')  %}
 kw_drop -> %word {% notReservedKw('drop')  %}
+kw_minvalue -> %word {% notReservedKw('minvalue')  %}
+kw_maxvalue -> %word {% notReservedKw('maxvalue')  %}
 kw_data -> %word {% notReservedKw('data')  %}
 kw_type -> %word {% notReservedKw('type')  %}
 kw_delete -> %word {% notReservedKw('delete')  %}
+kw_cache -> %word {% notReservedKw('cache')  %}
 kw_cascade -> %word {% notReservedKw('cascade')  %}
 kw_no -> %word {% notReservedKw('no')  %}
+kw_cycle -> %word {% notReservedKw('cycle')  %}
 kw_action -> %word {% notReservedKw('action')  %}
 kw_restrict -> %word {% notReservedKw('restrict')  %}
 kw_truncate -> %word {% notReservedKw('truncate')  %}
+kw_increment -> %word {% notReservedKw('increment')  %}
 kw_by -> %word {% notReservedKw('by')  %}
 kw_row -> %word {% notReservedKw('row')  %}
 kw_rows -> %word {% notReservedKw('rows')  %}
@@ -201,3 +211,10 @@ table_ref_aliased -> table_ref ident_aliased:? {% x => {
         ...alias ? { alias } : {},
     }
 } %}
+
+qualified_name -> (ident dot {% get(0) %}):? ident {% ([schema, name]) => {
+        if (schema) {
+            return { name, schema }
+        }
+        return {name};
+    }%}

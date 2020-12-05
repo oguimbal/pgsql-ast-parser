@@ -15,6 +15,7 @@ import {lexerAny, LOCATION} from '../lexer';
 @include "update.ne"
 @include "alter-table.ne"
 @include "delete.ne"
+@include "sequence.ne"
 
 # list of statements, separated by ";"
 main -> statement_separator:* statement (statement_separator:+ statement):* statement_separator:*  {% ([_, head, _tail]) => {
@@ -54,3 +55,4 @@ statement
     | update_statement
     | altertable_statement
     | delete_statement
+    | create_sequence_statement
