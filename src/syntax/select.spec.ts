@@ -64,7 +64,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from db.test'], {
         type: 'select',
-        from: [{ type: 'table', table: 'test', db: 'db' }],
+        from: [{ type: 'table', table: 'test', schema: 'db' }],
         columns: noAlias([{ type: 'ref', name: '*' }]),
     });
 

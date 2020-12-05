@@ -26,8 +26,8 @@ describe('Simple statements', () => {
     checkStatement(`SET statement_timeout = 0`, {
         type: 'set',
         variable: 'statement_timeout',
-        value: {
-            type: 'integer',
+        set: {
+            type: 'value',
             value: 0,
         }
     });
@@ -35,10 +35,19 @@ describe('Simple statements', () => {
     checkStatement(`SET client_min_messages = warning`, {
         type: 'set',
         variable: 'client_min_messages',
-        value: {
-            type: 'ref',
+        set: {
+            type: 'identifier',
             name: 'warning',
         }
     });
+
+    checkStatement(`SET standard_conforming_strings = on`, {
+        type: 'set',
+        variable: 'standard_conforming_strings',
+        set: {
+            type: 'identifier',
+            name: 'on',
+        }
+    })
 
 });

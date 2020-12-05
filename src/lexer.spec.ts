@@ -12,7 +12,7 @@ describe('Lexer', () => {
         /^int$/,
     ]
     function next(expected: any) {
-        const result = lexer.next()  as Optional<Token>;
+        const result = lexer.next() as Optional<Token>;
         delete result.toString;
         delete result.col;
         delete result.line;
@@ -96,4 +96,22 @@ describe('Lexer', () => {
         next({ type: 'op_membertext' });
         next({ type: 'word', value: 'b' });
     });
+
+    it('tokenises empty string', () => {
+        lexer.reset(`''`)
+        next({ type: 'string' });
+    })
+
+    it(`tokenizes SELECT pg_catalog.set_config('search_path', '', false);`, () => {
+        lexer.reset(`SELECT pg_catalog.set_config('search_path', '', false);`);
+        next({ type: 'kw_select' });
+        next({ type: 'word', value: 'pg_catalog' });
+        next({ type: 'dot' });
+        next({ type: 'word', value: 'set_config' });
+        next({ type: 'lparen' });
+        next({ type: 'string' });
+        next({ type: 'comma' });
+        next({ type: 'string' });
+        next({ type: 'comma' });
+    })
 });

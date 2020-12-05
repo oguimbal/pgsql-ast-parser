@@ -1,6 +1,7 @@
 import 'mocha';
 import 'chai';
-import { checkCreateSequence, checkInvalidExpr, checkStatement } from './spec-utils';
+import { checkCreateSequence, checkInvalidExpr, checkAlterSequence } from './spec-utils';
+import { parse } from '../parser';
 
 
 describe('Sequence', () => {
@@ -50,7 +51,7 @@ describe('Sequence', () => {
     });
 
 
-    checkStatement(`ALTER SEQUENCE myseq owned by none`, {
+    checkAlterSequence(`ALTER SEQUENCE myseq owned by none`, {
         type: 'alter sequence',
         name: 'myseq',
         change: {
@@ -59,7 +60,7 @@ describe('Sequence', () => {
         }
     });
 
-    checkStatement(`ALTER SEQUENCE if exists myseq RESTART`, {
+    checkAlterSequence(`ALTER SEQUENCE if exists myseq RESTART`, {
         type: 'alter sequence',
         name: 'myseq',
         ifExists: true,
@@ -69,12 +70,26 @@ describe('Sequence', () => {
         }
     });
 
-    checkStatement(`ALTER SEQUENCE myseq RESTART WITH 5`, {
+    checkAlterSequence(`ALTER SEQUENCE myseq RESTART WITH 5`, {
         type: 'alter sequence',
         name: 'myseq',
         change: {
             type: 'set options',
             restart: 5,
+        }
+    });
+
+    checkAlterSequence(`ALTER SEQUENCE public.seq OWNED BY public.tbl.col`, {
+        type: 'alter sequence',
+        name: 'seq',
+        schema: 'public',
+        change: {
+            type: 'set options',
+            ownedBy: {
+                column: 'col',
+                table: 'tbl',
+                schema: 'public',
+            }
         }
     });
 });

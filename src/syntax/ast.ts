@@ -73,6 +73,7 @@ export interface OnConflictAction {
 export interface AlterTableStatement {
     type: 'alter table';
     table: TableRefAliased;
+    only?: boolean;
     ifExists?: boolean;
     change: TableAlteration;
 }
@@ -173,7 +174,8 @@ export type ConstraintAction = 'cascade'
 
 export interface CreateIndexStatement {
     type: 'create index';
-    table: string;
+    table: TableRef;
+    using?: string;
     expressions: IndexExpression[];
     unique?: true;
     ifNotExists?: true;
@@ -191,6 +193,8 @@ export interface CreateExtensionStatement {
 
 export interface IndexExpression {
     expression: Expr;
+    opclass?: QualifiedName;
+    collate?: QualifiedName;
     order?: 'asc' | 'desc';
     nulls?: 'first' | 'last';
 }
@@ -321,7 +325,7 @@ export type From = FromTable | FromStatement;
 
 export interface TableRef {
     table: string;
-    db?: string;
+    schema?: string;
 }
 
 export interface TableRefAliased extends TableRef {
@@ -510,8 +514,23 @@ export interface ExprWhen {
 export interface SetGlobalStatement {
     type: 'set';
     variable: string;
-    value: Expr;
+    set: SetGlobalValue;
 }
+
+type SetGlobalValueRaw = {
+    type: 'value',
+    value: number | string;
+} | {
+    type: 'identifier',
+    name: string;
+};
+export type SetGlobalValue
+    = SetGlobalValueRaw
+    | { type: 'default' }
+    | {
+        type: 'list',
+        values: SetGlobalValueRaw[],
+    }
 
 export interface CreateSequenceStatement extends QualifiedName, CreateSequenceOptions {
     type: 'create sequence';
@@ -530,6 +549,7 @@ export interface CreateSequenceOptions {
     ownedBy?: 'none' | {
         table: string;
         column: string;
+        schema?: string;
     };
 }
 

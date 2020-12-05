@@ -13,6 +13,27 @@ describe('Alter table', () => {
         }
     });
 
+    checkAlterTable(['alter table if exists only test rename to newname'], {
+        type: 'alter table',
+        table: { table: 'test' },
+        ifExists: true,
+        only: true,
+        change: {
+            type: 'rename',
+            to: 'newname'
+        }
+    });
+
+    checkAlterTable(['alter table ONLY  test rename to newname'], {
+        type: 'alter table',
+        table: { table: 'test' },
+        only: true,
+        change: {
+            type: 'rename',
+            to: 'newname'
+        }
+    });
+
     checkAlterTable(['alter table test rename column a to b', 'alter table test rename a to b',], {
         type: 'alter table',
         table: { table: 'test' },
@@ -205,7 +226,7 @@ describe('Alter table', () => {
 
     checkAlterTable(`ALTER TABLE public.tbl OWNER to postgres;`, {
         type: 'alter table',
-        table: { table: 'tbl', db: 'public'},
+        table: { table: 'tbl', schema: 'public'},
         change: {
             type: 'owner',
             to: 'postgres',

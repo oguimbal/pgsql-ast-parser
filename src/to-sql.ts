@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor';
 import { NotSupported, nil, ReplaceReturnType } from './utils';
-import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QualifiedName } from './syntax/ast';
+import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QualifiedName, SetGlobalValue } from './syntax/ast';
 import { literal } from './pg-escape';
 
 
@@ -79,6 +79,32 @@ function visitQualifiedName(cs: QualifiedName) {
     }
     ret.push(name(cs.name), ' ');
 }
+function visitSetVal(set: SetGlobalValue) {
+
+    switch (set.type) {
+        case 'default':
+            ret.push('DEFAULT ');
+            break;
+        case 'identifier':
+            ret.push(set.name);
+            break;
+        case 'list':
+            let first = true;
+            for( const v of set.values) {
+                if (!first) {
+                    ret.push(', ');
+                }
+                first = false;
+                visitSetVal(v);
+            }
+            break;
+        case 'value':
+            ret.push(typeof set.value === 'number' ? set.value.toString() : literal(set.value));
+            break;
+        default:
+            throw NotSupported.never(set);
+    }
+}
 function visitSeqOpts(m: IAstVisitor, cs: AlterSequenceSetOptions | CreateSequenceOptions) {
     if (cs.as) {
         ret.push('AS ');
@@ -112,7 +138,11 @@ function visitSeqOpts(m: IAstVisitor, cs: AlterSequenceSetOptions | CreateSequen
     if (cs.ownedBy === 'none') {
         ret.push('OWNED BY NONE ');
     } else if (cs.ownedBy) {
-        ret.push('OWNED BY ', name(cs.ownedBy.table), '.', name(cs.ownedBy.column), ' ');
+        ret.push('OWNED BY ');
+        if (cs.ownedBy.schema) {
+            ret.push(name(cs.ownedBy.schema), '.');
+        }
+        ret.push(name(cs.ownedBy.table), '.', name(cs.ownedBy.column), ' ');
     }
 
     if ('restart' in cs) {
@@ -209,6 +239,12 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     alterTable: t => {
         ret.push('ALTER TABLE ');
+        if (t.ifExists) {
+            ret.push(' IF EXISTS ');
+        }
+        if (t.only) {
+            ret.push(' ONLY ');
+        }
         m.super().alterTable(t);
     },
 
@@ -316,10 +352,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(' ');
         if (c.collate) {
             ret.push('COLLATE ');
-            if (c.collate.schema) {
-                ret.push(name(c.collate.schema), '.');
-            }
-            ret.push(name(c.collate.name), ' ');
+            visitQualifiedName(c.collate);
         }
         for (const cst of c.constraints ?? []) {
             m.constraint(cst);
@@ -390,7 +423,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     setGlobal: g => {
         ret.push('SET ', name(g.variable), ' = ');
-        m.expr(g.value);
+        visitSetVal(g.set);
     },
 
     dataType: d => {
@@ -416,9 +449,20 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (c.indexName) {
             ret.push(name(c.indexName), ' ');
         }
-        ret.push('ON ', name(c.table));
+        ret.push('ON ');
+        m.tableRef(c.table);
+        if (c.using) {
+            ret.push('USING ', name(c.using), ' ');
+        }
         list(c.expressions, e => {
             m.expr(e.expression);
+            if (e.collate) {
+                ret.push('COLLATE ');
+                visitQualifiedName(e.collate);
+            }
+            if (e.opclass) {
+                visitQualifiedName(e.opclass);
+            }
             if (e.order) {
                 ret.push(e.order, ' ');
             }
@@ -658,8 +702,8 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     statement: s => m.super().statement(s),
 
     tableRef: r => {
-        if (r.db) {
-            ret.push(name(r.db), '.');
+        if (r.schema) {
+            ret.push(name(r.schema), '.');
         }
         ret.push(name(r.table));
         if (r.alias) {

@@ -4,12 +4,13 @@
 
 # https://www.postgresql.org/docs/12/sql-altertable.html
 
-altertable_statement -> kw_alter %kw_table kw_ifexists:? table_ref
+altertable_statement -> kw_alter %kw_table kw_ifexists:? %kw_only:? table_ref
                         altertable_action {% x => ({
                             type: 'alter table',
                             ... x[2] ? {ifExists: true} : {},
-                            table: unwrap(x[3]),
-                            change: unwrap(x[4]),
+                            ... x[3] ? {only: true} : {},
+                            table: unwrap(x[4]),
+                            change: unwrap(x[5]),
                         }) %}
 
 

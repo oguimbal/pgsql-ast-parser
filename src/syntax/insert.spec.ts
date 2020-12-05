@@ -106,7 +106,7 @@ describe('Insert', () => {
 
     checkInsert([`insert into db . test(a, b) values (1, 'x')`, `INSERT INTO"db"."test"(a,"b")VALUES(1,'x')`], {
         type: 'insert',
-        into: { table: 'test', db: 'db' },
+        into: { table: 'test', schema: 'db' },
         columns: ['a', 'b'],
         values: [[{
             type: 'integer',
@@ -121,14 +121,14 @@ describe('Insert', () => {
 
     checkInsert([`insert into db . test(a, b) select a,b FROM x . test`], {
         type: 'insert',
-        into: { table: 'test', db: 'db' },
+        into: { table: 'test', schema: 'db' },
         columns: ['a', 'b'],
         select: {
             type: 'select',
             from: [{
                 type: 'table',
                 table: 'test',
-                db: 'x'
+                schema: 'x'
             }],
             columns: [{
                 expr: {

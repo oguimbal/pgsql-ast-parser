@@ -206,7 +206,7 @@ ident_aliased -> (%kw_as ident {% last %}) | ident {% unwrap %}
 table_ref
     -> (ident dot {% id %}):? (ident | current_schema) {% x => ({
         table: unwrap(x[1]),
-        ...x[0] ? { db: unwrap(x[0]) } : {},
+        ...x[0] ? { schema: unwrap(x[0]) } : {},
     })%}
 
 current_schema -> %kw_current_schema (lparen rparen):? {% () => 'current_schema' %}
