@@ -1,6 +1,7 @@
 
 @lexer lexerAny
 @include "base.ne"
+@include "expr.ne"
 
 
 simplestatements_all
@@ -8,6 +9,7 @@ simplestatements_all
     | simplestatements_commit
     | simplestatements_rollback
     | simplestatements_tablespace
+    | simplestatements_set
 
 
 
@@ -21,3 +23,6 @@ simplestatements_commit -> kw_commit {% () => ({ type: 'commit' }) %}
 simplestatements_rollback -> kw_rollback {% () => ({ type: 'rollback' }) %}
 
 simplestatements_tablespace -> kw_tablespace word {% ([_, tbl]) => ({ type: 'tablespace', tablespace: tbl }) %}
+
+
+simplestatements_set -> kw_set ident %op_eq expr {% ([_, variable, __, value])  => ({type: 'set', variable, value}) %}

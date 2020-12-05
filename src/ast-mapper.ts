@@ -49,6 +49,7 @@ export interface IAstPartialMapper {
     constraint?: (constraint: a.ColumnConstraint) => a.ColumnConstraint | nil
     valueKeyword?(val: a.ExprValueKeyword): a.Expr | nil
     tablespace?(val: a.TablespaceStatement): a.Statement | nil
+    setGlobal?(val: a.SetGlobalStatement): a.Statement | nil
 }
 
 export type IAstFullMapper = {
@@ -178,6 +179,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.createExtension(val);
             case 'tablespace':
                 return this.tablespace(val);
+            case 'set':
+                return this.setGlobal(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -185,6 +188,10 @@ export class AstDefaultMapper implements IAstMapper {
 
 
     tablespace(val: a.TablespaceStatement): a.Statement | nil {
+        return val;
+    }
+
+    setGlobal(val: a.SetGlobalStatement): a.Statement | nil {
         return val;
     }
 

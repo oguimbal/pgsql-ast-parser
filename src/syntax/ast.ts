@@ -14,6 +14,7 @@ export type Statement = (SelectStatement
     | RollbackStatement
     | TablespaceStatement
     | AlterTableStatement
+    | SetGlobalStatement
     | StartTransactionStatement) & {
         [LOCATION]?: StatementLocation;
     };
@@ -501,5 +502,11 @@ export interface ExprCase {
 
 export interface ExprWhen {
     when: Expr;
+    value: Expr;
+}
+
+export interface SetGlobalStatement {
+    type: 'set';
+    variable: string;
     value: Expr;
 }

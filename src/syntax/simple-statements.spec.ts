@@ -1,7 +1,6 @@
 import 'mocha';
 import 'chai';
 import { checkStatement } from './spec-utils';
-import { StartTransactionStatement, CommitStatement, Statement } from './ast';
 
 describe('Simple statements', () => {
 
@@ -23,4 +22,23 @@ describe('Simple statements', () => {
         type: 'tablespace',
         tablespace: 'abc',
     });
+
+    checkStatement(`SET statement_timeout = 0`, {
+        type: 'set',
+        variable: 'statement_timeout',
+        value: {
+            type: 'integer',
+            value: 0,
+        }
+    });
+
+    checkStatement(`SET client_min_messages = warning`, {
+        type: 'set',
+        variable: 'client_min_messages',
+        value: {
+            type: 'ref',
+            name: 'warning',
+        }
+    });
+
 });

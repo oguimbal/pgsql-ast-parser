@@ -300,6 +300,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    setGlobal: g => {
+        ret.push('SET ', name(g.variable), ' = ');
+        m.expr(g.value);
+    },
+
     dataType: d => {
         if (!d?.type) {
             ret.push('unkown');
