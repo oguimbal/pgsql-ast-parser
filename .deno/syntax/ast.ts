@@ -5,6 +5,7 @@ export const LOCATION = Symbol('_location_');
 
 export type Statement = (SelectStatement
     | CreateTableStatement
+    | CreateSequenceStatement
     | CreateIndexStatement
     | CreateExtensionStatement
     | CommitStatement
@@ -12,7 +13,10 @@ export type Statement = (SelectStatement
     | UpdateStatement
     | DeleteStatement
     | RollbackStatement
+    | TablespaceStatement
     | AlterTableStatement
+    | AlterSequenceStatement
+    | SetGlobalStatement
     | StartTransactionStatement) & {
         [LOCATION]?: StatementLocation;
     };
@@ -32,6 +36,11 @@ export interface CommitStatement {
 }
 export interface RollbackStatement {
     type: 'rollback';
+}
+
+export interface TablespaceStatement {
+    type: 'tablespace';
+    tablespace: string;
 }
 
 
@@ -64,6 +73,7 @@ export interface OnConflictAction {
 export interface AlterTableStatement {
     type: 'alter table';
     table: TableRefAliased;
+    only?: boolean;
     ifExists?: boolean;
     change: TableAlteration;
 }
@@ -113,6 +123,13 @@ export type TableAlteration = TableAlterationRename
     | TableAlterationDropColumn
     | TableAlterationAlterColumn
     | TableAlterationAddConstraint
+    | TableAlterationOwner
+
+
+export interface TableAlterationOwner {
+    type: 'owner';
+    to: string;
+}
 
 export interface AlterColumnSetType {
     type: 'set type';
@@ -157,7 +174,8 @@ export type ConstraintAction = 'cascade'
 
 export interface CreateIndexStatement {
     type: 'create index';
-    table: string;
+    table: TableRef;
+    using?: string;
     expressions: IndexExpression[];
     unique?: true;
     ifNotExists?: true;
@@ -175,6 +193,8 @@ export interface CreateExtensionStatement {
 
 export interface IndexExpression {
     expression: Expr;
+    opclass?: QualifiedName;
+    collate?: QualifiedName;
     order?: 'asc' | 'desc';
     nulls?: 'first' | 'last';
 }
@@ -193,13 +213,13 @@ export interface CreateColumnDef {
     name: string;
     dataType: DataTypeDef;
     constraints?: ColumnConstraint[];
-    collate?: CollateDef;
+    collate?: QualifiedName;
 }
 
 
-export interface CollateDef {
+export interface QualifiedName {
+    name: string;
     schema?: string;
-    collation: string;
 }
 
 export interface DataTypeDef {
@@ -215,9 +235,9 @@ export type ColumnConstraint
 
 export interface ColumnConstraintSimple {
     type: 'unique'
-        | 'primary key'
-        | 'not null'
-        | 'null';
+    | 'primary key'
+    | 'not null'
+    | 'null';
     constraintName?: string;
 }
 
@@ -305,7 +325,7 @@ export type From = FromTable | FromStatement;
 
 export interface TableRef {
     table: string;
-    db?: string;
+    schema?: string;
 }
 
 export interface TableRefAliased extends TableRef {
@@ -489,4 +509,80 @@ export interface ExprCase {
 export interface ExprWhen {
     when: Expr;
     value: Expr;
+}
+
+export interface SetGlobalStatement {
+    type: 'set';
+    variable: string;
+    set: SetGlobalValue;
+}
+
+type SetGlobalValueRaw = {
+    type: 'value',
+    value: number | string;
+} | {
+    type: 'identifier',
+    name: string;
+};
+export type SetGlobalValue
+    = SetGlobalValueRaw
+    | { type: 'default' }
+    | {
+        type: 'list',
+        values: SetGlobalValueRaw[],
+    }
+
+export interface CreateSequenceStatement extends QualifiedName, CreateSequenceOptions {
+    type: 'create sequence';
+    temp?: boolean;
+    ifNotExists?: boolean;
+}
+
+export interface CreateSequenceOptions {
+    as?: DataTypeDef;
+    incrementBy?: number;
+    minValue?: 'no minvalue' | number;
+    maxValue?: 'no maxvalue' | number;
+    startWith?: number;
+    cache?: number;
+    cycle?: 'cycle' | 'no cycle';
+    ownedBy?: 'none' | {
+        table: string;
+        column: string;
+        schema?: string;
+    };
+}
+
+
+
+export interface AlterSequenceStatement extends QualifiedName {
+    type: 'alter sequence';
+    ifExists?: boolean;
+    change: AlterSequenceChange;
+}
+
+export type AlterSequenceChange
+    = AlterSequenceSetOptions
+    | AlterSequenceOwnerTo
+    | AlterSequenceRename
+    | AlterSequenceSetSchema;
+
+export interface AlterSequenceSetOptions extends CreateSequenceOptions {
+    type: 'set options';
+    restart?: true | number;
+}
+
+export interface AlterSequenceOwnerTo {
+    type: 'owner to';
+    owner: 'session_user' | 'current_user' | { user: string };
+}
+
+export interface AlterSequenceRename {
+    type: 'rename';
+    newName: string;
+}
+
+export interface AlterSequenceSetSchema {
+    type: 'set schema';
+    newSchema: string;
 }

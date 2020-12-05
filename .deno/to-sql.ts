@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper.ts';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor.ts';
 import { NotSupported, nil, ReplaceReturnType } from './utils.ts';
-import { TableConstraint, JoinClause, ColumnConstraint } from './syntax/ast.ts';
+import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QualifiedName, SetGlobalValue } from './syntax/ast.ts';
 import { literal } from './pg-escape.ts';
 
 
@@ -73,6 +73,86 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
             throw NotSupported.never(c)
     }
 }
+function visitQualifiedName(cs: QualifiedName) {
+    if (cs.schema) {
+        ret.push(name(cs.schema), '.');
+    }
+    ret.push(name(cs.name), ' ');
+}
+function visitSetVal(set: SetGlobalValue) {
+
+    switch (set.type) {
+        case 'default':
+            ret.push('DEFAULT ');
+            break;
+        case 'identifier':
+            ret.push(set.name);
+            break;
+        case 'list':
+            let first = true;
+            for( const v of set.values) {
+                if (!first) {
+                    ret.push(', ');
+                }
+                first = false;
+                visitSetVal(v);
+            }
+            break;
+        case 'value':
+            ret.push(typeof set.value === 'number' ? set.value.toString() : literal(set.value));
+            break;
+        default:
+            throw NotSupported.never(set);
+    }
+}
+function visitSeqOpts(m: IAstVisitor, cs: AlterSequenceSetOptions | CreateSequenceOptions) {
+    if (cs.as) {
+        ret.push('AS ');
+        m.dataType(cs.as);
+        ret.push(' ');
+    }
+    if (typeof cs.incrementBy === 'number') {
+        ret.push('INCREMENT BY ', cs.incrementBy.toString(), ' ');
+    }
+    if (cs.minValue === 'no minvalue') {
+        ret.push('NO MINVALUE ');
+    }
+    if (typeof cs.minValue === 'number') {
+        ret.push('MINVALUE ', cs.minValue.toString(), ' ');
+    }
+    if (cs.maxValue === 'no maxvalue') {
+        ret.push('NO MAXVALUE ');
+    }
+    if (typeof cs.maxValue === 'number') {
+        ret.push('MAXVALUE ', cs.maxValue.toString(), ' ');
+    }
+    if (typeof cs.startWith === 'number') {
+        ret.push('START WITH ', cs.startWith.toString(), ' ');
+    }
+    if (typeof cs.cache === 'number') {
+        ret.push('CACHE ', cs.cache.toString(), ' ');
+    }
+    if (cs.cycle) {
+        ret.push(cs.cycle, ' ');
+    }
+    if (cs.ownedBy === 'none') {
+        ret.push('OWNED BY NONE ');
+    } else if (cs.ownedBy) {
+        ret.push('OWNED BY ');
+        if (cs.ownedBy.schema) {
+            ret.push(name(cs.ownedBy.schema), '.');
+        }
+        ret.push(name(cs.ownedBy.table), '.', name(cs.ownedBy.column), ' ');
+    }
+
+    if ('restart' in cs) {
+        if (cs.restart === true) {
+            ret.push('RESTART ')
+        } else if (cs.restart) {
+            ret.push('RESTART WITH ', cs.restart.toString(), ' ');
+        }
+    }
+}
 
 function join(m: IAstVisitor, j: JoinClause | nil, tbl: () => void) {
     if (!j) {
@@ -119,6 +199,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    tablespace: t => {
+        ret.push('TABLESPACE ', name(t.tablespace));
+    },
+
     addConstraint: c => {
         ret.push(' ADD ');
         const cname = c.constraint.constraintName;
@@ -141,6 +225,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    setTableOwner: o => {
+        ret.push(' OWNER TO ', name(o.to));
+    },
+
     alterColumnSimple: c => ret.push(c.type),
 
     setColumnType: t => {
@@ -151,6 +239,12 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     alterTable: t => {
         ret.push('ALTER TABLE ');
+        if (t.ifExists) {
+            ret.push(' IF EXISTS ');
+        }
+        if (t.only) {
+            ret.push(' ONLY ');
+        }
         m.super().alterTable(t);
     },
 
@@ -258,14 +352,49 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(' ');
         if (c.collate) {
             ret.push('COLLATE ');
-            if (c.collate.schema) {
-                ret.push(name(c.collate.schema), '.');
-            }
-            ret.push(name(c.collate.collation), ' ');
+            visitQualifiedName(c.collate);
         }
         for (const cst of c.constraints ?? []) {
             m.constraint(cst);
         }
+    },
+
+    alterSequence: cs => {
+        ret.push('ALTER SEQUENCE ');
+        if (cs.ifExists) {
+            ret.push('IF EXISTS ');
+        }
+        visitQualifiedName(cs);
+        switch (cs.change.type) {
+            case 'set options':
+                visitSeqOpts(m, cs.change);
+                break;
+            case 'rename':
+                ret.push('RENAME TO ', name(cs.change.newName), ' ');
+                break;
+            case 'set schema':
+                ret.push('SET SCHEMA ', name(cs.change.newSchema), ' ');
+                break;
+            case 'owner to':
+                const own = cs.change.owner;
+                ret.push('OWNER TO ', typeof own === 'string' ? own : name(own.user), ' ');
+                break;
+            default:
+                throw NotSupported.never(cs.change);
+        }
+    },
+
+    createSequence: cs => {
+        ret.push('CREATE ');
+        if (cs.temp) {
+            ret.push('TEMPORARY ');
+        }
+        ret.push('SEQUENCE ');
+        if (cs.ifNotExists) {
+            ret.push('IF NOT EXISTS ');
+        }
+        visitQualifiedName(cs);
+        visitSeqOpts(m, cs);
     },
 
     constraint: cst => {
@@ -292,6 +421,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    setGlobal: g => {
+        ret.push('SET ', name(g.variable), ' = ');
+        visitSetVal(g.set);
+    },
+
     dataType: d => {
         if (!d?.type) {
             ret.push('unkown');
@@ -315,9 +449,20 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (c.indexName) {
             ret.push(name(c.indexName), ' ');
         }
-        ret.push('ON ', name(c.table));
+        ret.push('ON ');
+        m.tableRef(c.table);
+        if (c.using) {
+            ret.push('USING ', name(c.using), ' ');
+        }
         list(c.expressions, e => {
             m.expr(e.expression);
+            if (e.collate) {
+                ret.push('COLLATE ');
+                visitQualifiedName(e.collate);
+            }
+            if (e.opclass) {
+                visitQualifiedName(e.opclass);
+            }
             if (e.order) {
                 ret.push(e.order, ' ');
             }
@@ -381,7 +526,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             m.selection(s.statement);
             ret.push(') ');
             if (s.alias) {
-                ret.push(' AS ', name(s.alias));
+                ret.push(' AS ', name(s.alias), ' ');
             }
         });
 
@@ -557,8 +702,8 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     statement: s => m.super().statement(s),
 
     tableRef: r => {
-        if (r.db) {
-            ret.push(name(r.db), '.');
+        if (r.schema) {
+            ret.push(name(r.schema), '.');
         }
         ret.push(name(r.table));
         if (r.alias) {

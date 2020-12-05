@@ -25,7 +25,7 @@ export const lexer = compile({
         // value: x => x.substr(1, x.length - 2),
     },
     string: {
-        match: /'(?:[^']|\'\')+'/,
+        match: /'(?:[^']|\'\')*'/,
         value: x => {
             return x.substr(1, x.length - 2)
                 .replace(/''/g, '\'');

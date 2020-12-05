@@ -18,6 +18,7 @@ export interface IAstPartialMapper {
     alterTable?: (st: a.AlterTableStatement) => a.Statement | nil
     dropColumn?: (change: a.TableAlterationDropColumn, table: a.TableRefAliased) => a.TableAlteration | nil
     renameConstraint?: (change: a.TableAlterationRenameConstraint, table: a.TableRefAliased) => a.TableAlteration | nil
+    setTableOwner?: (change: a.TableAlterationOwner, table: a.TableRefAliased) => a.TableAlteration | nil
     renameColumn?: (change: a.TableAlterationRenameColumn, table: a.TableRefAliased) => a.TableAlteration | nil
     renameTable?: (change: a.TableAlterationRename, table: a.TableRefAliased) => a.TableAlteration | nil
     alterColumn?: (change: a.TableAlterationAlterColumn, inTable: a.TableRefAliased) => a.TableAlteration | nil
@@ -47,6 +48,10 @@ export interface IAstPartialMapper {
     join?(join: a.JoinClause): a.JoinClause | nil
     constraint?: (constraint: a.ColumnConstraint) => a.ColumnConstraint | nil
     valueKeyword?(val: a.ExprValueKeyword): a.Expr | nil
+    tablespace?(val: a.TablespaceStatement): a.Statement | nil
+    setGlobal?(val: a.SetGlobalStatement): a.Statement | nil
+    createSequence?(seq: a.CreateSequenceStatement): a.Statement | nil
+    alterSequence?(seq: a.AlterSequenceStatement): a.Statement | nil
 }
 
 export type IAstFullMapper = {
@@ -174,9 +179,42 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.update(val);
             case 'create extension':
                 return this.createExtension(val);
+            case 'tablespace':
+                return this.tablespace(val);
+            case 'set':
+                return this.setGlobal(val);
+            case 'create sequence':
+                return this.createSequence(val);
+            case 'alter sequence':
+                return this.alterSequence(val);
             default:
                 throw NotSupported.never(val);
         }
+    }
+
+
+    alterSequence(seq: a.AlterSequenceStatement): a.Statement | nil {
+        if (seq.change.type === 'set options') {
+            if (seq.change.as) {
+                this.dataType(seq.change.as);
+            }
+        }
+        return seq;
+    }
+
+    createSequence(seq: a.CreateSequenceStatement): a.Statement | nil {
+        if (seq.as) {
+            this.dataType(seq.as);
+        }
+        return seq;
+    }
+
+    tablespace(val: a.TablespaceStatement): a.Statement | nil {
+        return val;
+    }
+
+    setGlobal(val: a.SetGlobalStatement): a.Statement | nil {
+        return val;
     }
 
 
@@ -415,6 +453,10 @@ export class AstDefaultMapper implements IAstMapper {
                 change = this.dropColumn(st.change, st.table);
                 break;
             }
+            case 'owner': {
+                change = this.setTableOwner(st.change, st.table);
+                break;
+            }
             default:
                 throw NotSupported.never(st.change);
         }
@@ -431,6 +473,10 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     dropColumn(change: a.TableAlterationDropColumn, table: a.TableRefAliased): a.TableAlteration | nil {
+        return change;
+    }
+
+    setTableOwner(change: a.TableAlterationOwner, table: a.TableRefAliased): a.TableAlteration | nil {
         return change;
     }
 
