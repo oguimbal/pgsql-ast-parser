@@ -15,6 +15,7 @@ export type Statement = (SelectStatement
     | RollbackStatement
     | TablespaceStatement
     | AlterTableStatement
+    | AlterSequenceStatement
     | SetGlobalStatement
     | StartTransactionStatement) & {
         [LOCATION]?: StatementLocation;
@@ -230,9 +231,9 @@ export type ColumnConstraint
 
 export interface ColumnConstraintSimple {
     type: 'unique'
-        | 'primary key'
-        | 'not null'
-        | 'null';
+    | 'primary key'
+    | 'not null'
+    | 'null';
     constraintName?: string;
 }
 
@@ -512,10 +513,13 @@ export interface SetGlobalStatement {
     value: Expr;
 }
 
-export interface CreateSequenceStatement extends QualifiedName {
+export interface CreateSequenceStatement extends QualifiedName, CreateSequenceOptions {
     type: 'create sequence';
     temp?: boolean;
     ifNotExists?: boolean;
+}
+
+export interface CreateSequenceOptions {
     as?: DataTypeDef;
     incrementBy?: number;
     minValue?: 'no minvalue' | number;
@@ -527,4 +531,38 @@ export interface CreateSequenceStatement extends QualifiedName {
         table: string;
         column: string;
     };
+}
+
+
+
+export interface AlterSequenceStatement extends QualifiedName {
+    type: 'alter sequence';
+    ifExists?: boolean;
+    change: AlterSequenceChange;
+}
+
+export type AlterSequenceChange
+    = AlterSequenceSetOptions
+    | AlterSequenceOwnerTo
+    | AlterSequenceRename
+    | AlterSequenceSetSchema;
+
+export interface AlterSequenceSetOptions extends CreateSequenceOptions {
+    type: 'set options';
+    restart?: true | number;
+}
+
+export interface AlterSequenceOwnerTo {
+    type: 'owner to';
+    owner: 'session_user' | 'current_user' | { user: string };
+}
+
+export interface AlterSequenceRename {
+    type: 'rename';
+    newName: string;
+}
+
+export interface AlterSequenceSetSchema {
+    type: 'set schema';
+    newSchema: string;
 }

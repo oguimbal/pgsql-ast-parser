@@ -56,3 +56,4 @@ statement
     | altertable_statement
     | delete_statement
     | create_sequence_statement
+    | alter_sequence_statement

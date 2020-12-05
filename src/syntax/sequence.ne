@@ -2,6 +2,24 @@
 @include "base.ne"
 @include "expr.ne"
 
+@{%
+function setSeqOpts(ret, opts) {
+    const defs = new Set();
+    for (const [k, v] of opts) {
+        if (defs.has(k)) {
+            throw new Error('conflicting or redundant options');
+        }
+        defs.add(k);
+        ret[k] = v;
+    }
+}
+%}
+
+
+# =========== CREATE SEQUENCE ===============
+
+# https://www.postgresql.org/docs/12/sql-createsequence.html
+
 create_sequence_statement
     -> %kw_create
         (kw_temp | kw_temporary):?
@@ -15,15 +33,7 @@ create_sequence_statement
                 ...x[3] && { ifNotExists: true },
                 ...unwrap(x[4]),
             };
-            const opts = x[5];
-            const defs = new Set();
-            for (const [k, v] of opts) {
-                if (defs.has(k)) {
-                    throw new Error('conflicting or redundant options');
-                }
-                defs.add(k);
-                ret[k] = v;
-            }
+            setSeqOpts(ret, x[5]);
             return ret;
         }%}
 
@@ -51,3 +61,39 @@ create_sequence_owned_by
             kw_none
             | ident dot ident {% ([table, _, column]) => ({ table, column }) %}
         ) {% last %}
+
+
+# =========== ALTER SEQUENCE ===============
+
+# https://www.postgresql.org/docs/12/sql-altersequence.html
+
+alter_sequence_statement
+     -> kw_alter
+        kw_sequence
+        kw_ifexists:?
+        qualified_name
+        alter_sequence_statement_body {% x => {
+            const ret: any = {
+                type: 'alter sequence',
+                ...x[2] && { ifExists: true },
+                ...unwrap(x[3]),
+                change: x[4],
+            };
+            return ret;
+        }%}
+
+alter_sequence_statement_body
+    -> alter_sequence_option:+ {% x => {
+            const ret: any = {
+                type: 'set options',
+            };
+            setSeqOpts(ret, x[0]);
+            return ret;
+        }%}
+    | kw_owner %kw_to (ident | %kw_session_user | %kw_current_user) {% x => ({ type: 'owner to', owner: last(x), }) %}
+    | kw_rename %kw_to ident {% x => ({ type: 'rename', newName: last(x) }) %}
+    | kw_set kw_schema ident {% x => ({ type: 'set schema', newSchema: last(x) }) %}
+
+alter_sequence_option
+     -> create_sequence_option {% unwrap %}
+     | kw_restart (%kw_with:? int {% last %}):? {% x => ['restart', typeof x[1] === 'number' ? x[1] : true] %}

@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor';
 import { NotSupported, nil, ReplaceReturnType } from './utils';
-import { TableConstraint, JoinClause, ColumnConstraint } from './syntax/ast';
+import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QualifiedName } from './syntax/ast';
 import { literal } from './pg-escape';
 
 
@@ -71,6 +71,56 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
             break;
         default:
             throw NotSupported.never(c)
+    }
+}
+function visitQualifiedName(cs: QualifiedName) {
+    if (cs.schema) {
+        ret.push(name(cs.schema), '.');
+    }
+    ret.push(name(cs.name), ' ');
+}
+function visitSeqOpts(m: IAstVisitor, cs: AlterSequenceSetOptions | CreateSequenceOptions) {
+    if (cs.as) {
+        ret.push('AS ');
+        m.dataType(cs.as);
+        ret.push(' ');
+    }
+    if (typeof cs.incrementBy === 'number') {
+        ret.push('INCREMENT BY ', cs.incrementBy.toString(), ' ');
+    }
+    if (cs.minValue === 'no minvalue') {
+        ret.push('NO MINVALUE ');
+    }
+    if (typeof cs.minValue === 'number') {
+        ret.push('MINVALUE ', cs.minValue.toString(), ' ');
+    }
+    if (cs.maxValue === 'no maxvalue') {
+        ret.push('NO MAXVALUE ');
+    }
+    if (typeof cs.maxValue === 'number') {
+        ret.push('MAXVALUE ', cs.maxValue.toString(), ' ');
+    }
+    if (typeof cs.startWith === 'number') {
+        ret.push('START WITH ', cs.startWith.toString(), ' ');
+    }
+    if (typeof cs.cache === 'number') {
+        ret.push('CACHE ', cs.cache.toString(), ' ');
+    }
+    if (cs.cycle) {
+        ret.push(cs.cycle, ' ');
+    }
+    if (cs.ownedBy === 'none') {
+        ret.push('OWNED BY NONE ');
+    } else if (cs.ownedBy) {
+        ret.push('OWNED BY ', name(cs.ownedBy.table), '.', name(cs.ownedBy.column), ' ');
+    }
+
+    if ('restart' in cs) {
+        if (cs.restart === true) {
+            ret.push('RESTART ')
+        } else if (cs.restart) {
+            ret.push('RESTART WITH ', cs.restart.toString(), ' ');
+        }
     }
 }
 
@@ -276,6 +326,31 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    alterSequence: cs => {
+        ret.push('ALTER SEQUENCE ');
+        if (cs.ifExists) {
+            ret.push('IF EXISTS ');
+        }
+        visitQualifiedName(cs);
+        switch (cs.change.type) {
+            case 'set options':
+                visitSeqOpts(m, cs.change);
+                break;
+            case 'rename':
+                ret.push('RENAME TO ', name(cs.change.newName), ' ');
+                break;
+            case 'set schema':
+                ret.push('SET SCHEMA ', name(cs.change.newSchema), ' ');
+                break;
+            case 'owner to':
+                const own = cs.change.owner;
+                ret.push('OWNER TO ', typeof own === 'string' ? own : name(own.user), ' ');
+                break;
+            default:
+                throw NotSupported.never(cs.change);
+        }
+    },
+
     createSequence: cs => {
         ret.push('CREATE ');
         if (cs.temp) {
@@ -285,44 +360,8 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (cs.ifNotExists) {
             ret.push('IF NOT EXISTS ');
         }
-        if (cs.schema) {
-            ret.push(name(cs.schema), '.');
-        }
-        ret.push(name(cs.name), ' ');
-        if (cs.as) {
-            ret.push('AS ');
-            m.dataType(cs.as);
-            ret.push(' ');
-        }
-        if (typeof cs.incrementBy === 'number') {
-            ret.push('INCREMENT BY ', cs.incrementBy.toString(), ' ');
-        }
-        if (cs.minValue === 'no minvalue') {
-            ret.push('NO MINVALUE ');
-        }
-        if (typeof cs.minValue === 'number') {
-            ret.push('MINVALUE ', cs.minValue.toString(), ' ');
-        }
-        if (cs.maxValue === 'no maxvalue') {
-            ret.push('NO MAXVALUE ');
-        }
-        if (typeof cs.maxValue === 'number') {
-            ret.push('MAXVALUE ', cs.maxValue.toString(), ' ');
-        }
-        if (typeof cs.startWith === 'number') {
-            ret.push('START WITH ', cs.startWith.toString(), ' ');
-        }
-        if (typeof cs.cache === 'number') {
-            ret.push('CACHE ', cs.cache.toString(), ' ');
-        }
-        if (cs.cycle) {
-            ret.push(cs.cycle, ' ');
-        }
-        if (cs.ownedBy === 'none') {
-            ret.push('OWNED BY NONE ');
-        } else if (cs.ownedBy) {
-            ret.push('OWNED BY ', name(cs.ownedBy.table), '.', name(cs.ownedBy.column));
-        }
+        visitQualifiedName(cs);
+        visitSeqOpts(m, cs);
     },
 
     constraint: cst => {

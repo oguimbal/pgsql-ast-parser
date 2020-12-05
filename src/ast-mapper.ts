@@ -50,7 +50,8 @@ export interface IAstPartialMapper {
     valueKeyword?(val: a.ExprValueKeyword): a.Expr | nil
     tablespace?(val: a.TablespaceStatement): a.Statement | nil
     setGlobal?(val: a.SetGlobalStatement): a.Statement | nil
-    createSequence(seq: a.CreateSequenceStatement): a.Statement | nil
+    createSequence?(seq: a.CreateSequenceStatement): a.Statement | nil
+    alterSequence?(seq: a.AlterSequenceStatement): a.Statement | nil
 }
 
 export type IAstFullMapper = {
@@ -184,11 +185,22 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.setGlobal(val);
             case 'create sequence':
                 return this.createSequence(val);
+            case 'alter sequence':
+                return this.alterSequence(val);
             default:
                 throw NotSupported.never(val);
         }
     }
 
+
+    alterSequence(seq: a.AlterSequenceStatement): a.Statement | nil {
+        if (seq.change.type === 'set options') {
+            if (seq.change.as) {
+                this.dataType(seq.change.as);
+            }
+        }
+        return seq;
+    }
 
     createSequence(seq: a.CreateSequenceStatement): a.Statement | nil {
         if (seq.as) {

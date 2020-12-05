@@ -67,16 +67,23 @@ collist -> ident (comma ident {% last %}):* {% ([head, tail]) => {
 # === Non reserved keywords
 # ... which are not in keywords.ts (thus parsed as words)
 @{%
+ const kwSensitivity = { sensitivity: 'accent' };
+ const eqInsensitive = (a: string, b: string) => a.localeCompare(b, undefined, kwSensitivity) === 0;
  const notReservedKw = (kw: string) => (x: any[], _: any, rej: any) => {
      const val = typeof x[0] === 'string' ? x[0] : x[0].value;
-     const low = val.toLowerCase();
-     return low === kw ? low : rej;
+     if (eqInsensitive(val, kw)) {
+         return kw;
+     }
+     return rej;
  }
  const kw = notReservedKw;
- const anyKw = (...kw: string[]) => (x: any[], _: any, rej: any) => {
-     const val = typeof x[0] === 'string' ? x[0] : x[0].value;
-     const low = val.toLowerCase();
-     return kw.includes(low) ? low : rej;
+ const anyKw = (...kw: string[]) => {
+     const kwSet = new Set(kw);
+     return (x: any[], _: any, rej: any) => {
+        const val = typeof x[0] === 'string' ? x[0] : x[0].value;
+        const low = val.toLowerCase();
+        return kwSet.has(low) ? low : rej;
+    }
  }
 %}
 kw_between -> %word {% notReservedKw('between')  %}
@@ -93,6 +100,7 @@ kw_nulls -> %word {% notReservedKw('nulls')  %}
 kw_first -> %word {% notReservedKw('first')  %}
 kw_last -> %word {% notReservedKw('last')  %}
 kw_start -> %word {% notReservedKw('start')  %}
+kw_restart -> %word {% notReservedKw('restart')  %}
 kw_commit -> %word {% notReservedKw('commit')  %}
 kw_tablespace -> %word {% notReservedKw('tablespace')  %}
 kw_transaction -> %word {% notReservedKw('transaction')  %}

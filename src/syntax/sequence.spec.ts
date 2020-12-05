@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkCreateSequence, checkInvalidExpr } from './spec-utils';
+import { checkCreateSequence, checkInvalidExpr, checkStatement } from './spec-utils';
 
 
 describe('Sequence', () => {
@@ -47,5 +47,34 @@ describe('Sequence', () => {
         type: 'create sequence',
         name: 'myseq',
         ownedBy: 'none',
+    });
+
+
+    checkStatement(`ALTER SEQUENCE myseq owned by none`, {
+        type: 'alter sequence',
+        name: 'myseq',
+        change: {
+            type: 'set options',
+            ownedBy: 'none',
+        }
+    });
+
+    checkStatement(`ALTER SEQUENCE if exists myseq RESTART`, {
+        type: 'alter sequence',
+        name: 'myseq',
+        ifExists: true,
+        change: {
+            type: 'set options',
+            restart: true,
+        }
+    });
+
+    checkStatement(`ALTER SEQUENCE myseq RESTART WITH 5`, {
+        type: 'alter sequence',
+        name: 'myseq',
+        change: {
+            type: 'set options',
+            restart: 5,
+        }
     });
 });
