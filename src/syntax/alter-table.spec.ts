@@ -148,6 +148,23 @@ describe('Alter table', () => {
         }
     });
 
+    checkAlterTable(`ALTER TABLE tbl ADD check (a > 0)`, {
+        type: 'alter table',
+        table: { table: 'tbl' },
+        change: {
+            type: 'add constraint',
+            constraint: {
+                type: 'check',
+                expr: {
+                    type: 'binary',
+                    left: { type: 'ref', name: 'a' },
+                    op: '>',
+                    right: { type: 'integer', value: 0 },
+                }
+            },
+        }
+    });
+
 
 
     checkAlterTable(`ALTER TABLE "photo" ADD CONSTRAINT "FK_4494006ff358f754d07df5ccc87"
