@@ -868,7 +868,7 @@ for (const k of Object.getOwnPropertyNames(proto)) {
         configurable: false,
         get() {
             return function (this: SkipModifier, ...args: []) {
-                return orig.apply(this.parent, args);
+                return orig.apply(this.parent.wrapped, args);
             }
         }
     });

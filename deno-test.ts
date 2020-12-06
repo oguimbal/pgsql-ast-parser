@@ -3,22 +3,28 @@ import { toSql, parseFirst, astMapper } from './.deno/mod.ts';
 // create a mapper
 const mapper = astMapper(map => ({
     tableRef: t => {
-        if (t.table === 'foo') {
+        if (t.name === 'foo') {
             return {
                  // Dont do that... see below
                  // (I wrote this like that for the sake of explainability)
                 ...t,
-                table: 'bar',
+                name: 'bar',
             }
         }
 
         // call the default implementation of 'tableRef'
         // this will ensure that the subtree is also traversed.
-        return map.super().tableRef(t);
+        const sup = map.super();
+        return sup.tableRef(t);
     }
 }))
 
 // parse + map + reconvert to sql
-const modified = mapper.statement(parseFirst('select * from foo'));
+const parsed = parseFirst('select * from foo');
+const modified = mapper.statement(parsed);
 
-console.log('Modified', toSql.statement(modified!)); //  =>  SELECT * FROM "bar"
+const modif = toSql.statement(modified!);
+console.log('Modified', modif); //  =>  SELECT * FROM "bar"
+if (modif !== 'SELECT *  FROM "bar"') {
+    throw new Error('💀 ' + modif);
+}

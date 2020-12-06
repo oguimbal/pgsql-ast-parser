@@ -8,9 +8,11 @@ describe('Ast visitor', () => {
     // just a quickcheck. (those were throwing)
     it('visits ref when implemented', () => {
         let visited = null;
-        astVisitor(() => ({
+        const mapper = astVisitor(() => ({
             ref: r => visited = r.name,
-        })).expr({
+        }))
+        debugger;
+        mapper.expr({
             type: 'unary',
             op: 'NOT',
             operand: {
@@ -53,5 +55,4 @@ describe('Ast visitor', () => {
         })
         expect(visited).to.equal('myRef');
     });
-
 })

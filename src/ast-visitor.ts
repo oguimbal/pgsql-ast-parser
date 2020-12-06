@@ -37,7 +37,7 @@ for (const k of Object.getOwnPropertyNames(mapperProto)) {
                 const impl = (this.visitor as any)[k] as Function;
                 if (!impl) {
                     // just ignore & forward call to mapper
-                    return orig.apply(this.mapper!.super(), args);
+                    return orig.apply(this, args);
                 }
                 // return first argument
                 // ...which means "I dont wana change anything"

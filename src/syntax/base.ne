@@ -222,3 +222,4 @@ qualified_name -> (ident dot {% get(0) %}):? ident {% ([schema, name]) => {
         }
         return {name};
     }%}
+    | current_schema {% () => ({ name: 'current_schema' }) %}
