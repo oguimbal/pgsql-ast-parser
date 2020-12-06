@@ -6,7 +6,7 @@ describe('Alter table', () => {
 
     checkAlterTable(['alter table test rename to newname'], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         change: {
             type: 'rename',
             to: 'newname'
@@ -15,7 +15,7 @@ describe('Alter table', () => {
 
     checkAlterTable(['alter table if exists only test rename to newname'], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         ifExists: true,
         only: true,
         change: {
@@ -26,7 +26,7 @@ describe('Alter table', () => {
 
     checkAlterTable(['alter table ONLY  test rename to newname'], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         only: true,
         change: {
             type: 'rename',
@@ -36,7 +36,7 @@ describe('Alter table', () => {
 
     checkAlterTable(['alter table test rename column a to b', 'alter table test rename a to b',], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         change: {
             type: 'rename column',
             column: 'a',
@@ -46,7 +46,7 @@ describe('Alter table', () => {
 
     checkAlterTable(['alter table test rename constraint a to b',], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         change: {
             type: 'rename constraint',
             constraint: 'a',
@@ -56,7 +56,7 @@ describe('Alter table', () => {
 
     checkAlterTable(['alter table test add column a jsonb not null', 'alter table test add a jsonb not null'], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         change: {
             type: 'add column',
             column: {
@@ -69,7 +69,7 @@ describe('Alter table', () => {
 
     checkAlterTable(['alter table test add column if not exists a jsonb not null', 'alter table test add if not exists a jsonb not null'], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         change: {
             type: 'add column',
             ifNotExists: true,
@@ -83,7 +83,7 @@ describe('Alter table', () => {
 
     checkAlterTable(['alter table test drop column if exists a', 'alter table test drop if exists a'], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         change: {
             type: 'drop column',
             column: 'a',
@@ -93,7 +93,7 @@ describe('Alter table', () => {
 
     checkAlterTable(['alter table test drop column a', 'alter table test drop a'], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         change: {
             type: 'drop column',
             column: 'a',
@@ -102,7 +102,7 @@ describe('Alter table', () => {
 
     checkAlterTable(['alter table test alter column a set data type jsonb', 'alter table test alter a type jsonb'], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         change: {
             type: 'alter column',
             column: 'a',
@@ -114,7 +114,7 @@ describe('Alter table', () => {
     });
     checkAlterTable(['alter table test alter a set default 42'], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         change: {
             type: 'alter column',
             column: 'a',
@@ -126,7 +126,7 @@ describe('Alter table', () => {
     });
     checkAlterTable(['alter table test alter a drop default'], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         change: {
             type: 'alter column',
             column: 'a',
@@ -137,7 +137,7 @@ describe('Alter table', () => {
     });
     checkAlterTable(['alter table test alter a  drop not null'], {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         change: {
             type: 'alter column',
             column: 'a',
@@ -153,7 +153,7 @@ describe('Alter table', () => {
 
     checkAlterTable(`ALTER TABLE tbl ADD CONSTRAINT "cname" check (a > 0)`, {
         type: 'alter table',
-        table: { table: 'tbl' },
+        table: { name: 'tbl' },
         change: {
             type: 'add constraint',
             constraint: {
@@ -171,7 +171,7 @@ describe('Alter table', () => {
 
     checkAlterTable(`ALTER TABLE tbl ADD check (a > 0)`, {
         type: 'alter table',
-        table: { table: 'tbl' },
+        table: { name: 'tbl' },
         change: {
             type: 'add constraint',
             constraint: {
@@ -193,7 +193,7 @@ describe('Alter table', () => {
                 REFERENCES "user"("id")
                 ON DELETE NO ACTION ON UPDATE NO ACTION;`, {
         type: 'alter table',
-        table: { table: 'photo' },
+        table: { name: 'photo' },
         change: {
             type: 'add constraint',
             constraint: {
@@ -212,7 +212,7 @@ describe('Alter table', () => {
     checkAlterTable(`ALTER TABLE "test" ADD CONSTRAINT "cname"
                  PRIMARY KEY ("a", "b")`, {
         type: 'alter table',
-        table: { table: 'test' },
+        table: { name: 'test' },
         change: {
             type: 'add constraint',
             constraint: {
@@ -226,7 +226,7 @@ describe('Alter table', () => {
 
     checkAlterTable(`ALTER TABLE public.tbl OWNER to postgres;`, {
         type: 'alter table',
-        table: { table: 'tbl', schema: 'public'},
+        table: { name: 'tbl', schema: 'public'},
         change: {
             type: 'owner',
             to: 'postgres',

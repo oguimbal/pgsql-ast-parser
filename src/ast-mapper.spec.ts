@@ -147,12 +147,12 @@ describe('Ast mapper', () => {
         // create a mapper
         const mapper = astMapper(map => ({
             tableRef: t => {
-                if (t.table === 'foo') {
+                if (t.name === 'foo') {
                     return {
                         // Dont do that... see below
                         // (I wrote this like that for the sake of explainability)
                         ...t,
-                        table: 'bar',
+                        name: 'bar',
                     }
                 }
 
@@ -167,6 +167,21 @@ describe('Ast mapper', () => {
 
         assert.exists(modified);
         expect(toSql.statement(modified!)).to.equal('SELECT *  FROM "bar"');
+    })
+
+
+    it('allows super call', () => {
+        // create a mapper
+        const mapper = astMapper(map => ({
+            tableRef: t => {
+                return map.super().tableRef(t);
+            }
+        }))
+
+        // parse + map + reconvert to sql
+        const modified = mapper.statement(parseFirst('select * from foo'));
+        assert.exists(modified);
+        expect(toSql.statement(modified!)).to.equal('SELECT *  FROM "foo"');
     })
 
     it('removes node', () => {

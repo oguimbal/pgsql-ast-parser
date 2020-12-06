@@ -6,7 +6,7 @@ describe('Update', () => {
 
     checkUpdate([`update test set a=1`, `UPDATE"test"SET"a"=1`], {
         type: 'update',
-        table: { table: 'test' },
+        table: { name: 'test' },
         sets: [{
             column: 'a',
             value: { type: 'integer', value: 1 }
@@ -15,7 +15,7 @@ describe('Update', () => {
 
     checkUpdate([`update test set (a,b)=(1,2), c=3`], {
         type: 'update',
-        table: { table: 'test' },
+        table: { name: 'test' },
         sets: [{
             column: 'a',
             value: { type: 'integer', value: 1 }
@@ -30,7 +30,7 @@ describe('Update', () => {
 
     checkUpdate([`update test set a=1, b=a where a>1`], {
         type: 'update',
-        table: { table: 'test' },
+        table: { name: 'test' },
         sets: [{
             column: 'a',
             value: { type: 'integer', value: 1 }

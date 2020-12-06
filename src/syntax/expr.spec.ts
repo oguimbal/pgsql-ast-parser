@@ -796,7 +796,7 @@ line`,
                 args: [{
                     type: 'select',
                     columns: [{ expr: { type: 'ref', name: '*' } }],
-                    from: [{ type: 'table', table: 'tbl' }],
+                    from: [{ type: 'table', name: 'tbl' }],
                 }]
             }
         });
@@ -809,7 +809,7 @@ line`,
             right: {
                 type: 'select',
                 columns: [{ expr: { type: 'ref', name: '*' } }],
-                from: [{ type: 'table', table: 'tb' }],
+                from: [{ type: 'table', name: 'tb' }],
             }
         });
     });

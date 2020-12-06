@@ -34,4 +34,24 @@ describe('Ast visitor', () => {
         });
         expect(visited).to.equal(null);
     });
+
+
+    it('allow super call', () => {
+        let visited = null;
+        astVisitor(v => ({
+            ref: r => {
+                visited = r.name;
+                return v.super().ref(r);
+            },
+        })).expr({
+            type: 'unary',
+            op: 'NOT',
+            operand: {
+                type: 'ref',
+                name: 'myRef'
+            }
+        })
+        expect(visited).to.equal('myRef');
+    });
+
 })

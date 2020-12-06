@@ -46,14 +46,14 @@ export interface TablespaceStatement {
 
 export interface DeleteStatement {
     type: 'delete';
-    from: TableRefAliased;
+    from: QNameAliased;
     returning?: SelectedColumn[] | nil;
     where?: Expr | nil;
 }
 
 export interface InsertStatement {
     type: 'insert';
-    into: TableRefAliased;
+    into: QNameAliased;
     returning?: SelectedColumn[] | nil;
     columns?: string[] | nil;
     /** Insert values */
@@ -72,7 +72,7 @@ export interface OnConflictAction {
 
 export interface AlterTableStatement {
     type: 'alter table';
-    table: TableRefAliased;
+    table: QNameAliased;
     only?: boolean;
     ifExists?: boolean;
     change: TableAlteration;
@@ -174,7 +174,7 @@ export type ConstraintAction = 'cascade'
 
 export interface CreateIndexStatement {
     type: 'create index';
-    table: TableRef;
+    table: QName;
     using?: string;
     expressions: IndexExpression[];
     unique?: true;
@@ -193,8 +193,8 @@ export interface CreateExtensionStatement {
 
 export interface IndexExpression {
     expression: Expr;
-    opclass?: QualifiedName;
-    collate?: QualifiedName;
+    opclass?: QName;
+    collate?: QName;
     order?: 'asc' | 'desc';
     nulls?: 'first' | 'last';
 }
@@ -213,11 +213,11 @@ export interface CreateColumnDef {
     name: string;
     dataType: DataTypeDef;
     constraints?: ColumnConstraint[];
-    collate?: QualifiedName;
+    collate?: QName;
 }
 
 
-export interface QualifiedName {
+export interface QName {
     name: string;
     schema?: string;
 }
@@ -305,7 +305,7 @@ export interface LimitStatement {
 
 export interface UpdateStatement {
     type: 'update';
-    table: TableRefAliased;
+    table: QNameAliased;
     sets: SetStatement[];
     where?: Expr | nil;
     returning?: SelectedColumn[] | nil;
@@ -323,16 +323,12 @@ export interface SelectedColumn {
 
 export type From = FromTable | FromStatement;
 
-export interface TableRef {
-    table: string;
-    schema?: string;
-}
 
-export interface TableRefAliased extends TableRef {
+export interface QNameAliased extends QName {
     alias?: string;
 }
 
-export interface FromTable extends TableRefAliased {
+export interface FromTable extends QNameAliased {
     type: 'table',
     join?: JoinClause | nil;
 }
@@ -532,7 +528,7 @@ export type SetGlobalValue
         values: SetGlobalValueRaw[],
     }
 
-export interface CreateSequenceStatement extends QualifiedName, CreateSequenceOptions {
+export interface CreateSequenceStatement extends QName, CreateSequenceOptions {
     type: 'create sequence';
     temp?: boolean;
     ifNotExists?: boolean;
@@ -555,7 +551,7 @@ export interface CreateSequenceOptions {
 
 
 
-export interface AlterSequenceStatement extends QualifiedName {
+export interface AlterSequenceStatement extends QName {
     type: 'alter sequence';
     ifExists?: boolean;
     change: AlterSequenceChange;

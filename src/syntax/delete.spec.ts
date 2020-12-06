@@ -6,7 +6,7 @@ describe('Delete', () => {
 
     checkDelete([`delete from test where a = b`], {
         type: 'delete',
-        from: { table: 'test' },
+        from: { name: 'test' },
         where: {
             type: 'binary',
             op: '=',
@@ -18,12 +18,12 @@ describe('Delete', () => {
 
     checkDelete([`truncate test`, `truncate table test`], {
         type: 'delete',
-        from: { table: 'test' },
+        from: { name: 'test' },
     });
 
     checkDelete([`delete from test returning *`], {
         type: 'delete',
-        from: { table: 'test' },
+        from: { name: 'test' },
         returning: [{
             expr: { type: 'ref', name: '*' }
         }]

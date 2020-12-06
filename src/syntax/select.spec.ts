@@ -40,19 +40,19 @@ describe('Select statements', () => {
 
     checkSelect(['select * from test', 'select*from"test"', 'select* from"test"', 'select *from"test"', 'select*from "test"', 'select * from "test"'], {
         type: 'select',
-        from: [{ type: 'table', table: 'test' }],
+        from: [{ type: 'table', name: 'test' }],
         columns: noAlias([{ type: 'ref', name: '*' }])
     });
 
     checkSelect(['select * from current_schema()', 'select * from current_schema ( )'], {
         type: 'select',
-        from: [{ type: 'table', table: 'current_schema' }],
+        from: [{ type: 'table', name: 'current_schema' }],
         columns: noAlias([{ type: 'ref', name: '*' }])
     });
 
     checkSelect(['select a as a1, b as b1 from test', 'select a a1,b b1 from test', 'select a a1 ,b b1 from test'], {
         type: 'select',
-        from: [{ type: 'table', table: 'test' }],
+        from: [{ type: 'table', name: 'test' }],
         columns: [{
             expr: { type: 'ref', name: 'a' },
             alias: 'a1',
@@ -64,35 +64,35 @@ describe('Select statements', () => {
 
     checkSelect(['select * from db.test'], {
         type: 'select',
-        from: [{ type: 'table', table: 'test', schema: 'db' }],
+        from: [{ type: 'table', name: 'test', schema: 'db' }],
         columns: noAlias([{ type: 'ref', name: '*' }]),
     });
 
 
     checkSelect(['select * from test limit 5', 'select * from test fetch first 5', 'select * from test fetch next 5 rows'], {
         type: 'select',
-        from: [{ type: 'table', table: 'test' }],
+        from: [{ type: 'table', name: 'test' }],
         columns: noAlias([{ type: 'ref', name: '*' }]),
         limit: { limit: 5 },
     });
 
     checkSelect(['select * from test limit 0'], {
         type: 'select',
-        from: [{ type: 'table', table: 'test' }],
+        from: [{ type: 'table', name: 'test' }],
         columns: noAlias([{ type: 'ref', name: '*' }]),
         limit: { limit: 0 },
     });
 
     checkSelect(['select * from test limit 5 offset 3', 'select * from test offset 3 rows fetch first 5'], {
         type: 'select',
-        from: [{ type: 'table', table: 'test' }],
+        from: [{ type: 'table', name: 'test' }],
         columns: noAlias([{ type: 'ref', name: '*' }]),
         limit: { limit: 5, offset: 3 },
     });
 
     checkSelect(['select * from test offset 3', 'select * from test offset 3 rows'], {
         type: 'select',
-        from: [{ type: 'table', table: 'test' }],
+        from: [{ type: 'table', name: 'test' }],
         columns: noAlias([{ type: 'ref', name: '*' }]),
         limit: { offset: 3 },
     });
@@ -100,7 +100,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from test order by a asc limit 3', 'select * from test order by a limit 3'], {
         type: 'select',
-        from: [{ type: 'table', table: 'test' }],
+        from: [{ type: 'table', name: 'test' }],
         columns: noAlias([{ type: 'ref', name: '*' }]),
         limit: { limit: 3 },
         orderBy: [{
@@ -112,7 +112,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from test order by a asc, b desc'], {
         type: 'select',
-        from: [{ type: 'table', table: 'test' }],
+        from: [{ type: 'table', name: 'test' }],
         columns: noAlias([{ type: 'ref', name: '*' }]),
         orderBy: [{
             by: { type: 'ref', name: 'a' },
@@ -149,7 +149,7 @@ describe('Select statements', () => {
         , 'select*from test as"a"where a.b > 42'
         , 'select*from test as a where a.b > 42'], {
         type: 'select',
-        from: [{ type: 'table', table: 'test', alias: 'a' }],
+        from: [{ type: 'table', name: 'test', alias: 'a' }],
         columns: noAlias([{ type: 'ref', name: '*' }]),
         where: {
             type: 'binary',
@@ -179,7 +179,7 @@ describe('Select statements', () => {
             type: 'statement',
             statement: {
                 type: 'select',
-                from: [{ type: 'table', table: 'test' }],
+                from: [{ type: 'table', name: 'test' }],
                 columns: noAlias([{ type: 'ref', name: 'id' }]),
             },
             alias: 'd'
@@ -189,14 +189,14 @@ describe('Select statements', () => {
     checkSelect(['select * from test group by grp', 'select * from test group by (grp)'], {
         type: 'select',
         columns: noAlias([{ type: 'ref', name: '*' }]),
-        from: [{ type: 'table', table: 'test' }],
+        from: [{ type: 'table', name: 'test' }],
         groupBy: [{ type: 'ref', name: 'grp' }]
     })
 
     checkSelect(['select * from test group by a,b', 'select * from test group by (a,b)'], {
         type: 'select',
         columns: noAlias([{ type: 'ref', name: '*' }]),
-        from: [{ type: 'table', table: 'test' }],
+        from: [{ type: 'table', name: 'test' }],
         groupBy: [
             { type: 'ref', name: 'a' },
             { type: 'ref', name: 'b' }
@@ -210,10 +210,10 @@ describe('Select statements', () => {
             columns: noAlias([{ type: 'ref', name: '*' }]),
             from: [{
                 type: 'table',
-                table: 'ta'
+                name: 'ta'
             }, {
                 type: 'table',
-                table: 'tb',
+                name: 'tb',
                 join: {
                     type: t,
                     on: {

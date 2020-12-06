@@ -203,11 +203,7 @@ data_type_date
 # [AS x] or just [x]
 ident_aliased -> (%kw_as ident {% last %}) | ident {% unwrap %}
 
-table_ref
-    -> (ident dot {% id %}):? (ident | current_schema) {% x => ({
-        table: unwrap(x[1]),
-        ...x[0] ? { schema: unwrap(x[0]) } : {},
-    })%}
+table_ref -> qualified_name {% unwrap %}
 
 current_schema -> %kw_current_schema (lparen rparen):? {% () => 'current_schema' %}
 

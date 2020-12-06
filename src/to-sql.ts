@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor';
 import { NotSupported, nil, ReplaceReturnType } from './utils';
-import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QualifiedName, SetGlobalValue } from './syntax/ast';
+import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue } from './syntax/ast';
 import { literal } from './pg-escape';
 
 
@@ -73,7 +73,7 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
             throw NotSupported.never(c)
     }
 }
-function visitQualifiedName(cs: QualifiedName) {
+function visitQualifiedName(cs: QName) {
     if (cs.schema) {
         ret.push(name(cs.schema), '.');
     }
@@ -705,7 +705,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (r.schema) {
             ret.push(name(r.schema), '.');
         }
-        ret.push(name(r.table));
+        ret.push(name(r.name));
         if (r.alias) {
             ret.push(' AS ', name(r.alias));
         }
