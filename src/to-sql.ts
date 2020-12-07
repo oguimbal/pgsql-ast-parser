@@ -394,7 +394,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push('IF NOT EXISTS ');
         }
         visitQualifiedName(cs);
-        visitSeqOpts(m, cs);
+        visitSeqOpts(m, cs.options);
     },
 
     constraint: cst => {

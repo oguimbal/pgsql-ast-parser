@@ -203,8 +203,8 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     createSequence(seq: a.CreateSequenceStatement): a.Statement | nil {
-        if (seq.as) {
-            this.dataType(seq.as);
+        if (seq.options.as) {
+            this.dataType(seq.options.as);
         }
         return seq;
     }

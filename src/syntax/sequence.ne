@@ -32,8 +32,9 @@ create_sequence_statement
                 ...x[1] && { temp: true },
                 ...x[3] && { ifNotExists: true },
                 ...unwrap(x[4]),
+                options: {},
             };
-            setSeqOpts(ret, x[5]);
+            setSeqOpts(ret.options, x[5]);
             return ret;
         }%}
 

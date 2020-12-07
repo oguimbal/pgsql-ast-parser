@@ -10,14 +10,16 @@ describe('Sequence', () => {
         type: 'create sequence',
         name: 'myseq',
         schema: 'public',
-        startWith: 1,
-        incrementBy: 1,
-        minValue: 'no minvalue',
-        maxValue: 'no maxvalue',
-        cache: 1,
-        as: {type: 'bigint'},
-        cycle: 'cycle',
         ifNotExists: true,
+        options: {
+            startWith: 1,
+            incrementBy: 1,
+            minValue: 'no minvalue',
+            maxValue: 'no maxvalue',
+            cache: 1,
+            as: { type: 'bigint' },
+            cycle: 'cycle',
+        }
     });
 
 
@@ -25,29 +27,37 @@ describe('Sequence', () => {
         type: 'create sequence',
         name: 'myseq',
         temp: true,
-        ownedBy: {
-            table: 'tbl',
-            column: 'col',
-        }
+        options: {
+            ownedBy: {
+                table: 'tbl',
+                column: 'col',
+            },
+        },
     });
 
 
     checkCreateSequence(`CREATE SEQUENCE myseq no cycle`, {
         type: 'create sequence',
         name: 'myseq',
-        cycle: 'no cycle',
+        options: {
+            cycle: 'no cycle',
+        },
     });
 
     checkCreateSequence(`CREATE SEQUENCE myseq cycle`, {
         type: 'create sequence',
         name: 'myseq',
-        cycle: 'cycle',
+        options: {
+            cycle: 'cycle',
+        },
     });
 
     checkCreateSequence(`CREATE SEQUENCE myseq owned by none`, {
         type: 'create sequence',
         name: 'myseq',
-        ownedBy: 'none',
+        options: {
+            ownedBy: 'none',
+        },
     });
 
 
