@@ -36,6 +36,9 @@
                     .map(x => x.trim())
                     .filter(x => !!x);
     }
+    function toStr(e: any): string {
+        return flattenStr(e).join('').toLowerCase()
+    }
 %}
 # @preprocessor typescript
 

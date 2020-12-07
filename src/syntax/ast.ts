@@ -17,9 +17,28 @@ export type Statement = (SelectStatement
     | AlterTableStatement
     | AlterSequenceStatement
     | SetGlobalStatement
+    | DropTableStatement
+    | DropSequenceStatement
+    | DropIndexStatement
     | StartTransactionStatement) & {
         [LOCATION]?: StatementLocation;
     };
+
+export interface DropTableStatement extends QName {
+    type: 'drop table';
+    ifExists?: boolean;
+}
+
+export interface DropSequenceStatement extends QName {
+    type: 'drop sequence';
+    ifExists?: boolean;
+}
+
+export interface DropIndexStatement extends QName {
+    type: 'drop index';
+    ifExists?: boolean;
+    concurrently?: boolean;
+}
 
 export interface StatementLocation {
     /** Location of the last ";" prior to this statement */

@@ -2,7 +2,7 @@ import { Parser, Grammar } from 'nearley';
 import { expect, assert } from 'chai';
 import grammar from '../syntax/main.ne';
 import { trimNullish } from '../utils';
-import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement } from './ast';
+import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, DropTableStatement } from './ast';
 import { astMapper, IAstMapper } from '../ast-mapper';
 import { IAstVisitor } from '../ast-visitor';
 import { toSql, IAstToSql } from '../to-sql';
@@ -44,7 +44,7 @@ export function checkUpdate(value: string | string[], expected: UpdateStatement)
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 
-export function checkStatement<T extends Statement>(value: string | string[], expected: T)  {
+export function checkStatement(value: string | string[], expected: Statement)  {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 
