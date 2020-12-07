@@ -62,7 +62,7 @@ const visitor = astVisitor(map => ({
 
     // implement here AST parts you want to hook
 
-    tableRef: t => tables.add(t.table),
+    tableRef: t => tables.add(t.name),
     join: t => {
         joins++;
         // call the default implementation of 'join'
@@ -113,12 +113,12 @@ import { toSql, parseFirst, astMapper } from 'pgsql-ast-parser';
 // create a mapper
 const mapper = astMapper(map => ({
     tableRef: t => {
-        if (t.table === 'foo') {
+        if (t.name === 'foo') {
             return {
                  // Dont do that... see below
                  // (I wrote this like that for the sake of explainability)
                 ...t,
-                table: 'bar',
+                name: 'bar',
             }
         }
 

@@ -12,21 +12,21 @@ export interface IAstPartialMapper {
     createExtension?: (val: a.CreateExtensionStatement) => a.Statement | nil
     set?: (st: a.SetStatement) => a.SetStatement | nil
     dataType?: (dataType: a.DataTypeDef) => a.DataTypeDef
-    tableRef?: (st: a.TableRefAliased) => a.TableRefAliased | nil
+    tableRef?: (st: a.QNameAliased) => a.QNameAliased | nil
     transaction?: (val: a.CommitStatement | a.RollbackStatement | a.StartTransactionStatement) => a.Statement | nil
     createIndex?: (val: a.CreateIndexStatement) => a.Statement | nil
     alterTable?: (st: a.AlterTableStatement) => a.Statement | nil
-    dropColumn?: (change: a.TableAlterationDropColumn, table: a.TableRefAliased) => a.TableAlteration | nil
-    renameConstraint?: (change: a.TableAlterationRenameConstraint, table: a.TableRefAliased) => a.TableAlteration | nil
-    setTableOwner?: (change: a.TableAlterationOwner, table: a.TableRefAliased) => a.TableAlteration | nil
-    renameColumn?: (change: a.TableAlterationRenameColumn, table: a.TableRefAliased) => a.TableAlteration | nil
-    renameTable?: (change: a.TableAlterationRename, table: a.TableRefAliased) => a.TableAlteration | nil
-    alterColumn?: (change: a.TableAlterationAlterColumn, inTable: a.TableRefAliased) => a.TableAlteration | nil
-    setColumnType?: (alter: a.AlterColumnSetType, inTable: a.TableRef, inColumn: string) => a.AlterColumn | nil
-    alterColumnSimple?: (alter: a.AlterColumnSimple, inTable: a.TableRef, inColumn: string) => a.AlterColumn | nil
-    setColumnDefault?: (alter: a.AlterColumnSetDefault, inTable: a.TableRef, inColumn: string) => a.AlterColumn | nil
-    addConstraint?: (change: a.TableAlterationAddConstraint, inTable: a.TableRef) => a.TableAlteration | nil
-    addColumn?: (change: a.TableAlterationAddColumn, inTable: a.TableRef) => a.TableAlteration | nil
+    dropColumn?: (change: a.TableAlterationDropColumn, table: a.QNameAliased) => a.TableAlteration | nil
+    renameConstraint?: (change: a.TableAlterationRenameConstraint, table: a.QNameAliased) => a.TableAlteration | nil
+    setTableOwner?: (change: a.TableAlterationOwner, table: a.QNameAliased) => a.TableAlteration | nil
+    renameColumn?: (change: a.TableAlterationRenameColumn, table: a.QNameAliased) => a.TableAlteration | nil
+    renameTable?: (change: a.TableAlterationRename, table: a.QNameAliased) => a.TableAlteration | nil
+    alterColumn?: (change: a.TableAlterationAlterColumn, inTable: a.QNameAliased) => a.TableAlteration | nil
+    setColumnType?: (alter: a.AlterColumnSetType, inTable: a.QName, inColumn: string) => a.AlterColumn | nil
+    alterColumnSimple?: (alter: a.AlterColumnSimple, inTable: a.QName, inColumn: string) => a.AlterColumn | nil
+    setColumnDefault?: (alter: a.AlterColumnSetDefault, inTable: a.QName, inColumn: string) => a.AlterColumn | nil
+    addConstraint?: (change: a.TableAlterationAddConstraint, inTable: a.QName) => a.TableAlteration | nil
+    addColumn?: (change: a.TableAlterationAddColumn, inTable: a.QName) => a.TableAlteration | nil
     createColumn?: (col: a.CreateColumnDef) => a.CreateColumnDef | nil
     selection?: (val: a.SelectStatement) => a.SelectStatement | nil
     from?: (from: a.From) => a.From | nil
@@ -379,7 +379,7 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     /** Called when an alias of a table is created */
-    tableRef(st: a.TableRefAliased): a.TableRefAliased | nil {
+    tableRef(st: a.QNameAliased): a.QNameAliased | nil {
         return st;
     }
 
@@ -472,28 +472,28 @@ export class AstDefaultMapper implements IAstMapper {
 
     }
 
-    dropColumn(change: a.TableAlterationDropColumn, table: a.TableRefAliased): a.TableAlteration | nil {
+    dropColumn(change: a.TableAlterationDropColumn, table: a.QNameAliased): a.TableAlteration | nil {
         return change;
     }
 
-    setTableOwner(change: a.TableAlterationOwner, table: a.TableRefAliased): a.TableAlteration | nil {
+    setTableOwner(change: a.TableAlterationOwner, table: a.QNameAliased): a.TableAlteration | nil {
         return change;
     }
 
-    renameConstraint(change: a.TableAlterationRenameConstraint, table: a.TableRefAliased): a.TableAlteration | nil {
+    renameConstraint(change: a.TableAlterationRenameConstraint, table: a.QNameAliased): a.TableAlteration | nil {
         return change;
     }
 
-    renameColumn(change: a.TableAlterationRenameColumn, table: a.TableRefAliased): a.TableAlteration | nil {
+    renameColumn(change: a.TableAlterationRenameColumn, table: a.QNameAliased): a.TableAlteration | nil {
         return change;
     }
 
 
-    renameTable(change: a.TableAlterationRename, table: a.TableRefAliased): a.TableAlteration | nil {
+    renameTable(change: a.TableAlterationRename, table: a.QNameAliased): a.TableAlteration | nil {
         return change;
     }
 
-    alterColumn(change: a.TableAlterationAlterColumn, inTable: a.TableRefAliased): a.TableAlteration | nil {
+    alterColumn(change: a.TableAlterationAlterColumn, inTable: a.QNameAliased): a.TableAlteration | nil {
         let alter: a.AlterColumn | nil;
         switch (change.alter.type) {
             case 'set default':
@@ -518,7 +518,7 @@ export class AstDefaultMapper implements IAstMapper {
         });
     }
 
-    setColumnType(alter: a.AlterColumnSetType, inTable: a.TableRef, inColumn: string): a.AlterColumn | nil {
+    setColumnType(alter: a.AlterColumnSetType, inTable: a.QName, inColumn: string): a.AlterColumn | nil {
         const dataType = this.dataType(alter.dataType);
         return assignChanged(alter, {
             dataType,
@@ -526,11 +526,11 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
 
-    alterColumnSimple(alter: a.AlterColumnSimple, inTable: a.TableRef, inColumn: string): a.AlterColumn | nil {
+    alterColumnSimple(alter: a.AlterColumnSimple, inTable: a.QName, inColumn: string): a.AlterColumn | nil {
         return alter;
     }
 
-    setColumnDefault(alter: a.AlterColumnSetDefault, inTable: a.TableRef, inColumn: string): a.AlterColumn | nil {
+    setColumnDefault(alter: a.AlterColumnSetDefault, inTable: a.QName, inColumn: string): a.AlterColumn | nil {
         const def = this.expr(alter.default);
         if (!def) {
             return null; // no more default to set
@@ -540,11 +540,11 @@ export class AstDefaultMapper implements IAstMapper {
         });
     }
 
-    addConstraint(change: a.TableAlterationAddConstraint, inTable: a.TableRef): a.TableAlteration | nil {
+    addConstraint(change: a.TableAlterationAddConstraint, inTable: a.QName): a.TableAlteration | nil {
         return change;
     }
 
-    addColumn(change: a.TableAlterationAddColumn, inTable: a.TableRef): a.TableAlteration | nil {
+    addColumn(change: a.TableAlterationAddColumn, inTable: a.QName): a.TableAlteration | nil {
         const column = this.createColumn(change.column);
         if (!column) {
             return null; // no more column to add
@@ -868,7 +868,7 @@ for (const k of Object.getOwnPropertyNames(proto)) {
         configurable: false,
         get() {
             return function (this: SkipModifier, ...args: []) {
-                return orig.apply(this.parent, args);
+                return orig.apply(this.parent.wrapped, args);
             }
         }
     });

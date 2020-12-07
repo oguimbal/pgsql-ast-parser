@@ -373,15 +373,7 @@ const grammar: Grammar = {
     {"name": "ident_aliased$subexpression$1", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "ident"], "postprocess": last},
     {"name": "ident_aliased", "symbols": ["ident_aliased$subexpression$1"]},
     {"name": "ident_aliased", "symbols": ["ident"], "postprocess": unwrap},
-    {"name": "table_ref$ebnf$1$subexpression$1", "symbols": ["ident", "dot"], "postprocess": id},
-    {"name": "table_ref$ebnf$1", "symbols": ["table_ref$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "table_ref$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "table_ref$subexpression$1", "symbols": ["ident"]},
-    {"name": "table_ref$subexpression$1", "symbols": ["current_schema"]},
-    {"name": "table_ref", "symbols": ["table_ref$ebnf$1", "table_ref$subexpression$1"], "postprocess":  x => ({
-            table: unwrap(x[1]),
-            ...x[0] ? { schema: unwrap(x[0]) } : {},
-        })},
+    {"name": "table_ref", "symbols": ["qualified_name"], "postprocess": unwrap},
     {"name": "current_schema$ebnf$1$subexpression$1", "symbols": ["lparen", "rparen"]},
     {"name": "current_schema$ebnf$1", "symbols": ["current_schema$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "current_schema$ebnf$1", "symbols": [], "postprocess": () => null},
@@ -404,6 +396,7 @@ const grammar: Grammar = {
             }
             return {name};
         }},
+    {"name": "qualified_name", "symbols": ["current_schema"], "postprocess": () => ({ name: 'current_schema' })},
     {"name": "select_statement$ebnf$1", "symbols": ["select_from"], "postprocess": id},
     {"name": "select_statement$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_statement$ebnf$2", "symbols": ["select_where"], "postprocess": id},
@@ -432,7 +425,9 @@ const grammar: Grammar = {
     {"name": "select_subject", "symbols": ["select_table_base", "select_subject$ebnf$1"], "postprocess":  ([head, tail]) => {
             return [head, ...(tail || [])];
         } },
-    {"name": "select_table_base", "symbols": ["table_ref_aliased"], "postprocess": x => ({ type: 'table', ...x[0]})},
+    {"name": "select_table_base", "symbols": ["table_ref_aliased"], "postprocess":  x => {
+            return { type: 'table', ...x[0]};
+        } },
     {"name": "select_table_base", "symbols": ["select_subject_select_statement"], "postprocess": unwrap},
     {"name": "select_table_join$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "expr"], "postprocess": last},
     {"name": "select_table_join$ebnf$1", "symbols": ["select_table_join$ebnf$1$subexpression$1"], "postprocess": id},
@@ -1342,7 +1337,6 @@ const grammar: Grammar = {
     {"name": "create_sequence_owned_by$subexpression$1$ebnf$1", "symbols": ["create_sequence_owned_by$subexpression$1$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "create_sequence_owned_by$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "create_sequence_owned_by$subexpression$1", "symbols": ["ident", "dot", "ident", "create_sequence_owned_by$subexpression$1$ebnf$1"], "postprocess":  x => {
-            debugger;
             if (!x[3]) {
                 return { table: x[0], column: x[2] };
             }
