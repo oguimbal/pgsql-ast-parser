@@ -397,6 +397,32 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         visitSeqOpts(m, cs.options);
     },
 
+
+    dropTable: val =>  {
+        ret.push('DROP TABLE ');
+        if (val.ifExists) {
+            ret.push('IF EXISTS ');
+        }
+        m.tableRef(val);
+    },
+    dropIndex: val =>  {
+        ret.push('DROP INDEX ');
+        if (val.concurrently) {
+            ret.push('CONCURRENTLY ');
+        }
+        if (val.ifExists) {
+            ret.push('IF EXISTS ');
+        }
+        m.tableRef(val);
+    },
+    dropSequence: val =>  {
+        ret.push('DROP SEQUENCE ');
+        if (val.ifExists) {
+            ret.push('IF EXISTS ');
+        }
+        m.tableRef(val);
+    },
+
     constraint: cst => {
         if (cst.constraintName) {
             ret.push(' CONSTRAINT ', name(cst.constraintName), ' ');

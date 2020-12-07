@@ -8,6 +8,9 @@ export interface IAstPartialMapper {
     update?: (val: a.UpdateStatement) => a.Statement | nil
     insert?: (val: a.InsertStatement) => a.Statement | nil
     delete?: (val: a.DeleteStatement) => a.Statement | nil
+    dropTable?: (val: a.DropTableStatement) => a.Statement | nil
+    dropIndex?: (val: a.DropIndexStatement) => a.Statement | nil
+    dropSequence?: (val: a.DropSequenceStatement) => a.Statement | nil
     createTable?: (val: a.CreateTableStatement) => a.Statement | nil
     createExtension?: (val: a.CreateExtensionStatement) => a.Statement | nil
     set?: (st: a.SetStatement) => a.SetStatement | nil
@@ -187,11 +190,27 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.createSequence(val);
             case 'alter sequence':
                 return this.alterSequence(val);
+            case 'drop index':
+                return this.dropIndex(val);
+            case 'drop sequence':
+                return this.dropSequence(val);
+            case 'drop table':
+                return this.dropTable(val);
             default:
                 throw NotSupported.never(val);
         }
     }
 
+
+    dropTable(val: a.DropTableStatement): a.Statement | nil {
+        return val;
+    }
+    dropIndex(val: a.DropIndexStatement): a.Statement | nil {
+        return val;
+    }
+    dropSequence(val: a.DropSequenceStatement): a.Statement | nil {
+        return val;
+    }
 
     alterSequence(seq: a.AlterSequenceStatement): a.Statement | nil {
         if (seq.change.type === 'set options') {

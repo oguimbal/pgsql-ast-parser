@@ -137,6 +137,8 @@ declare var kw_with: any;
 declare var kw_to: any;
 declare var kw_session_user: any;
 declare var kw_current_user: any;
+declare var kw_table: any;
+declare var kw_concurrently: any;
 declare var semicolon: any;
 
 import {lexerAny, LOCATION} from '../lexer.ts';
@@ -177,6 +179,9 @@ import {lexerAny, LOCATION} from '../lexer.ts';
                     .filter(x => typeof x === 'string')
                     .map(x => x.trim())
                     .filter(x => !!x);
+    }
+    function toStr(e: any): string {
+        return flattenStr(e).join('').toLowerCase()
     }
 
 
@@ -1377,6 +1382,24 @@ const grammar: Grammar = {
     {"name": "alter_sequence_option$ebnf$1", "symbols": ["alter_sequence_option$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "alter_sequence_option$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "alter_sequence_option", "symbols": ["kw_restart", "alter_sequence_option$ebnf$1"], "postprocess": x => ['restart', typeof x[1] === 'number' ? x[1] : true]},
+    {"name": "drop_statement$ebnf$1", "symbols": ["kw_ifexists"], "postprocess": id},
+    {"name": "drop_statement$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "drop_statement", "symbols": ["kw_drop", "drop_what", "drop_statement$ebnf$1", "qualified_name"], "postprocess":  (x: any, rej: any) => {
+            const v = unwrap(x[1]);
+            return {
+                ...v,
+                ... x[2] && {ifExists: true},
+                ...unwrap(x[3]),
+            }
+        }},
+    {"name": "drop_what", "symbols": [(lexerAny.has("kw_table") ? {type: "kw_table"} : kw_table)], "postprocess": x => ({ type: 'drop table' })},
+    {"name": "drop_what", "symbols": ["kw_sequence"], "postprocess": x => ({ type: 'drop sequence' })},
+    {"name": "drop_what$ebnf$1", "symbols": [(lexerAny.has("kw_concurrently") ? {type: "kw_concurrently"} : kw_concurrently)], "postprocess": id},
+    {"name": "drop_what$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "drop_what", "symbols": ["kw_index", "drop_what$ebnf$1"], "postprocess":  x => ({
+            type: 'drop index',
+            ...x[1] && {concurrently: true },
+        }) },
     {"name": "main$ebnf$1", "symbols": []},
     {"name": "main$ebnf$1", "symbols": ["main$ebnf$1", "statement_separator"], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "main$ebnf$2", "symbols": []},
@@ -1420,7 +1443,8 @@ const grammar: Grammar = {
     {"name": "statement", "symbols": ["altertable_statement"]},
     {"name": "statement", "symbols": ["delete_statement"]},
     {"name": "statement", "symbols": ["create_sequence_statement"]},
-    {"name": "statement", "symbols": ["alter_sequence_statement"]}
+    {"name": "statement", "symbols": ["alter_sequence_statement"]},
+    {"name": "statement", "symbols": ["drop_statement"]}
   ],
   ParserStart: "main",
 };
