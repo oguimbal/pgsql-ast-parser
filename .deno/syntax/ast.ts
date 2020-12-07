@@ -528,10 +528,11 @@ export type SetGlobalValue
         values: SetGlobalValueRaw[],
     }
 
-export interface CreateSequenceStatement extends QName, CreateSequenceOptions {
+export interface CreateSequenceStatement extends QName {
     type: 'create sequence';
     temp?: boolean;
     ifNotExists?: boolean;
+    options: CreateSequenceOptions;
 }
 
 export interface CreateSequenceOptions {

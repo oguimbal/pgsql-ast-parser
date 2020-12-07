@@ -1310,8 +1310,9 @@ const grammar: Grammar = {
                 ...x[1] && { temp: true },
                 ...x[3] && { ifNotExists: true },
                 ...unwrap(x[4]),
+                options: {},
             };
-            setSeqOpts(ret, x[5]);
+            setSeqOpts(ret.options, x[5]);
             return ret;
         }},
     {"name": "create_sequence_option", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "data_type"], "postprocess": x => ['as', x[1]]},
