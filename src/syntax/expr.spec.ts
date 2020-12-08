@@ -737,6 +737,22 @@ line`,
                 value: 4,
             }]
         })
+
+        checkTreeExpr([`pg_catalog.set_config('search_path', '', false)`], {
+            type: 'call',
+            function: 'set_config',
+            namespace: 'pg_catalog',
+            args: [{
+                type: 'string',
+                value: 'search_path',
+            }, {
+                type: 'string',
+                value: '',
+            }, {
+                type: 'boolean',
+                value: false,
+            }]
+        })
     });
 
 

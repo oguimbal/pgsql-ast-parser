@@ -1,4 +1,4 @@
-import { Statement, Expr, LOCATION } from './syntax/ast';
+import { Statement, Expr, LOCATION, QName } from './syntax/ast';
 import { Parser, Grammar } from 'nearley';
 import sqlGrammar from './syntax/main.ne';
 import arrayGrammar from './literal-syntaxes/array.ne';
@@ -15,6 +15,7 @@ export function parseFirst(sql: string): Statement {
 /** Parse an AST from SQL */
 export function parse(sql: string): Statement[];
 export function parse(sql: string, entry: 'expr'): Expr;
+export function parse(sql: string, entry: 'qualified_name'): QName;
 export function parse(sql: string, entry?: string): any {
     if (!sqlCompiled) {
         sqlCompiled = Grammar.fromCompiled(sqlGrammar);

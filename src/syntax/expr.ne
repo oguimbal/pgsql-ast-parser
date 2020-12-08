@@ -125,7 +125,8 @@ ops_member -> (%op_member | %op_membertext) {% x => unwrap(x)?.value %}
 
 # x,y,z
 expr_list_raw -> (expr_or_select | expr_star) (comma (expr_or_select | expr_star) {% last %}):* {% ([head, tail]) => {
-    return [head[0], ...(tail[0] || [])];
+    const u = unwrap(tail) || [];
+    return [unwrap(head), ...(Array.isArray(u) ? u : [u]).map(unwrap)];
 } %}
 expr_list_raw_many -> expr_or_select (comma expr_or_select {% last %}):+ {% ([head, tail]) => {
     return [unwrap(head), ...(tail || []).map(unwrap)];
