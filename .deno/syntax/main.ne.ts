@@ -815,7 +815,8 @@ const grammar: Grammar = {
     {"name": "expr_list_raw$ebnf$1$subexpression$1", "symbols": ["comma", "expr_list_raw$ebnf$1$subexpression$1$subexpression$1"], "postprocess": last},
     {"name": "expr_list_raw$ebnf$1", "symbols": ["expr_list_raw$ebnf$1", "expr_list_raw$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "expr_list_raw", "symbols": ["expr_list_raw$subexpression$1", "expr_list_raw$ebnf$1"], "postprocess":  ([head, tail]) => {
-            return [head[0], ...(tail[0] || [])];
+            const u = unwrap(tail) || [];
+            return [unwrap(head), ...(Array.isArray(u) ? u : [u]).map(unwrap)];
         } },
     {"name": "expr_list_raw_many$ebnf$1$subexpression$1", "symbols": ["comma", "expr_or_select"], "postprocess": last},
     {"name": "expr_list_raw_many$ebnf$1", "symbols": ["expr_list_raw_many$ebnf$1$subexpression$1"]},
