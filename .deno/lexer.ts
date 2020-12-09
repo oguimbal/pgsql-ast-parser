@@ -20,7 +20,7 @@ export const lexer = compile({
         type: caseInsensitiveKeywords(keywodsMap),
     },
     wordQuoted: {
-        match: /"[^"\*]+"/,
+        match: /"(?:[^"\*]|"")+"/,
         type: () => 'word',
         // value: x => x.substr(1, x.length - 2),
     },
