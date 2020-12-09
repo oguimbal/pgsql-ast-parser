@@ -271,4 +271,20 @@ describe('Select statements', () => {
         }]
     })
 
+
+    checkSelect(['select now()::time without time zone'], {
+        type: 'select',
+        columns: [{
+            expr: {
+                type: 'cast',
+                operand: {
+                    type: 'call',
+                    function: 'now',
+                    args: [],
+                },
+                to: { type: 'time without time zone' },
+            }
+        }]
+    })
+
 });

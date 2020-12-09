@@ -482,6 +482,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
         list(c.expressions, e => {
             m.expr(e.expression);
+            ret.push(' ');
             if (e.collate) {
                 ret.push('COLLATE ');
                 visitQualifiedName(e.collate);

@@ -68,6 +68,11 @@ describe('Lexer', () => {
         next({ type: 'word', value: '"test"' });
     });
 
+    it('tokenizes "" as the letter " in names', () => {
+        lexer.reset(`"a""b"`);
+        next({ type: 'word', value: '"a""b"' });
+    });
+
     it('tokenizes additive binaries', () => {
         lexer.reset('2+2');
         next({ type: 'int', value: '2' });
