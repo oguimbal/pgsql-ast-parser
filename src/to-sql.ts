@@ -503,10 +503,8 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     createTable: t => {
         ret.push(t.ifNotExists ? 'CREATE TABLE IF NOT EXISTS ' : 'CREATE TABLE ');
-        if (t.schema) {
-            ret.push(name(t.schema), '.');
-        }
-        ret.push(name(t.name), '(');
+        m.tableRef(t);
+        ret.push('(');
         list(t.columns, c => m.createColumn(c), false);
         if (t.constraints) {
             ret.push(', ');
@@ -519,6 +517,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             }, false)
         }
         ret.push(')');
+    },
+
+    truncateTable: t => {
+        ret.push('TRUNCATE TABLE ');
+        m.tableRef(t);
     },
 
     delete: t => {

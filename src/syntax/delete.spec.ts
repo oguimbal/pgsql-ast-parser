@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkDelete } from './spec-utils';
+import { checkDelete, checkStatement } from './spec-utils';
 
 describe('Delete', () => {
 
@@ -16,7 +16,12 @@ describe('Delete', () => {
     });
 
 
-    checkDelete([`truncate test`, `truncate table test`], {
+    checkStatement([`truncate test`, `truncate table test`], {
+        type: 'truncate table',
+        name: 'test',
+    });
+
+    checkDelete([`delete from test`], {
         type: 'delete',
         from: { name: 'test' },
     });

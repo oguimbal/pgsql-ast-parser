@@ -17,6 +17,7 @@ export type Statement = (SelectStatement
     | AlterTableStatement
     | AlterSequenceStatement
     | SetGlobalStatement
+    | TruncateTableStatement
     | DropTableStatement
     | DropSequenceStatement
     | DropIndexStatement
@@ -24,6 +25,9 @@ export type Statement = (SelectStatement
         [LOCATION]?: StatementLocation;
     };
 
+export interface TruncateTableStatement extends QName {
+    type: 'truncate table';
+}
 export interface DropTableStatement extends QName {
     type: 'drop table';
     ifExists?: boolean;

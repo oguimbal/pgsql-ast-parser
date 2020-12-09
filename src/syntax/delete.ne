@@ -22,7 +22,7 @@ delete_delete -> (kw_delete %kw_from)
                         }
                     } %}
 
-delete_truncate ->  (kw_truncate %kw_table:?) table_ref_aliased {% x => ({
-                            type: 'delete',
-                            from: unwrap(x[1]),
+delete_truncate ->  (kw_truncate %kw_table:?) table_ref {% x => ({
+                            type: 'truncate table',
+                            ...unwrap(x[1]),
                         }) %}

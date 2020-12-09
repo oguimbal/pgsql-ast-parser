@@ -12,6 +12,7 @@ export interface IAstPartialMapper {
     dropIndex?: (val: a.DropIndexStatement) => a.Statement | nil
     dropSequence?: (val: a.DropSequenceStatement) => a.Statement | nil
     createTable?: (val: a.CreateTableStatement) => a.Statement | nil
+    truncateTable?: (val: a.TruncateTableStatement) => a.Statement | nil
     createExtension?: (val: a.CreateExtensionStatement) => a.Statement | nil
     set?: (st: a.SetStatement) => a.SetStatement | nil
     dataType?: (dataType: a.DataTypeDef) => a.DataTypeDef
@@ -172,6 +173,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.createIndex(val);
             case 'create table':
                 return this.createTable(val);
+            case 'truncate table':
+                return this.truncateTable(val);
             case 'delete':
                 return this.delete(val);
             case 'insert':
@@ -344,6 +347,11 @@ export class AstDefaultMapper implements IAstMapper {
             columns,
         });
     }
+
+    truncateTable(val: a.TruncateTableStatement): a.Statement | nil {
+        return val;
+    }
+
 
     constraint(c: a.ColumnConstraint): a.ColumnConstraint | nil {
         switch (c.type) {
