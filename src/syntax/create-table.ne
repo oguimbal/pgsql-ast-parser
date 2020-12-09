@@ -51,7 +51,7 @@ createtable_constraint_def
 
 createtable_constraint_def_unique
     -> (%kw_unique | kw_primary_key) lparen createtable_collist rparen {% x => ({
-        type: flattenStr(x[0]).join(' ').toLowerCase(),
+        type: toStr(x[0], ' '),
         columns: x[2],
     }) %}
 
@@ -80,7 +80,7 @@ createtable_constraint_on_action
     | (kw_no kw_action)
     | kw_restrict
     | kw_set (%kw_null | %kw_default))
-    {% x => flattenStr(x).join(' ').toLowerCase() %}
+    {% x => toStr(x, ' ') %}
 
 
 # ================ COLUMN ======================

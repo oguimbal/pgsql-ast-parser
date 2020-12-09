@@ -161,12 +161,12 @@ expr_fn_name -> ((word %dot):?  word_or_keyword {% ([ns, fn]) => ({
         })%})
 
 word_or_keyword
-    -> word {% ([x]) => x.toLowerCase() %}
+    -> word {% unwrap %}
     | value_keyword
 
 value_keyword -> _value_keyword {% x => ({
     type: 'keyword',
-    keyword: unwrap(x).value.toLowerCase(),
+    keyword: unwrap(x).value,
 }) %}
 
 _value_keyword

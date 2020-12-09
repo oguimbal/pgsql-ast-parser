@@ -73,6 +73,17 @@ describe('Lexer', () => {
         next({ type: 'word', value: '"a""b"' });
     });
 
+
+    it('keeps case in quoted names', () => {
+        lexer.reset(`"Name"`);
+        next({ type: 'word', value: '"Name"' });
+    });
+
+    it ('lowers non quoted names', () => {
+        lexer.reset(`Name`);
+        next({ type: 'word', value: 'name' });
+    })
+
     it('tokenizes additive binaries', () => {
         lexer.reset('2+2');
         next({ type: 'int', value: '2' });

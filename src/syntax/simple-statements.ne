@@ -37,4 +37,4 @@ simplestatements_set_val
 
 simplestatements_set_val_raw
     -> (string | int) {% x => ({ type: 'value', value: unwrap(x) }) %}
-    | (%word | %kw_on | %kw_true | %kw_false) {% x => ({ type: 'identifier', name: unwrap(x).value.toLowerCase() }) %}
+    | (%word | %kw_on | %kw_true | %kw_false) {% x => ({ type: 'identifier', name: unwrap(x).value }) %}

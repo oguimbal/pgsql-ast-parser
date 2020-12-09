@@ -45,7 +45,7 @@ create_sequence_option
      | create_sequence_maxvalue {% x => ['maxValue', x[0]] %}
      | kw_start %kw_with:? int {% x => ['startWith', x[2]] %}
      | kw_cache int {% x => ['cache', x[1]] %}
-     | kw_no:? kw_cycle {% x => ['cycle', flattenStr(x).join(' ').toLowerCase()] %}
+     | kw_no:? kw_cycle {% x => ['cycle', toStr(x, ' ')] %}
      | create_sequence_owned_by {% x => ['ownedBy', unwrap(x)] %}
 
 

@@ -18,6 +18,7 @@ export const lexer = compile({
     word: {
         match: /[eE](?!')[A-Za-z0-9_]*|[a-df-zA-DF-Z][A-Za-z0-9_]*/,
         type: caseInsensitiveKeywords(keywodsMap),
+        value: x => x.toLowerCase(),
     },
     wordQuoted: {
         match: /"(?:[^"\*]|"")+"/,

@@ -36,6 +36,6 @@ createindex_expression -> (expr_basic | expr_paren)
     expression: unwrap(x[0]),
     ...x[1] && { collate: unwrap(x[1]) },
     ...x[2] && { opclass: unwrap(x[2]) },
-    ...x[3] && { order: unwrap(x[3]).value.toLowerCase() },
+    ...x[3] && { order: unwrap(x[3]).value },
     ...x[4] && { nulls: unwrap(x[4]) },
 }) %}

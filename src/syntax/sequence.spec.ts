@@ -36,7 +36,7 @@ describe('Sequence', () => {
     });
 
 
-    checkCreateSequence(`CREATE SEQUENCE myseq no cycle`, {
+    checkCreateSequence(`CREATE SEQUENCE myseq NO CYCLE`, {
         type: 'create sequence',
         name: 'myseq',
         options: {

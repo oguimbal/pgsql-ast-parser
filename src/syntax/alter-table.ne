@@ -67,7 +67,7 @@ altercol
     ->  (kw_set kw_data):? kw_type data_type {% x => ({ type: 'set type', dataType: unwrap(last(x)) }) %}
     | kw_set %kw_default expr {% x => ({type: 'set default', default: unwrap(last(x)) }) %}
     | kw_drop %kw_default {% x => ({type: 'drop default' }) %}
-    | (kw_set | kw_drop) kw_not_null {% x => ({type: flattenStr(x).join(' ').toLowerCase() }) %}
+    | (kw_set | kw_drop) kw_not_null {% x => ({type: toStr(x, ' ') }) %}
 
 altertable_add_constraint
     -> kw_add createtable_constraint {% x => ({

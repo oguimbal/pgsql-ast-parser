@@ -36,8 +36,8 @@
                     .map(x => x.trim())
                     .filter(x => !!x);
     }
-    function toStr(e: any): string {
-        return flattenStr(e).join('').toLowerCase()
+    function toStr(e: any, join?: string): string {
+        return flattenStr(e).join(join || '');
     }
 %}
 # @preprocessor typescript
@@ -84,8 +84,7 @@ collist -> ident (comma ident {% last %}):* {% ([head, tail]) => {
      const kwSet = new Set(kw);
      return (x: any[], _: any, rej: any) => {
         const val = typeof x[0] === 'string' ? x[0] : x[0].value;
-        const low = val.toLowerCase();
-        return kwSet.has(low) ? low : rej;
+        return kwSet.has(val) ? val : rej;
     }
  }
 %}
@@ -154,7 +153,7 @@ kw_primary_key -> %kw_primary kw_key
 # https://www.postgresql.org/docs/9.5/datatype.html
 data_type -> data_type_simple (lparen int rparen {% get(1) %}):? (%kw_array | (%lbracket %rbracket):+):? {% x => {
     let asArray = x[2];
-    const type = flattenStr(x[0]).join(' ').toLowerCase();
+    const type = toStr(x[0], ' ');
     let ret;
     ret = {
         type,
