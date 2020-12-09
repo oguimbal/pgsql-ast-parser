@@ -1297,9 +1297,9 @@ const grammar: Grammar = {
     {"name": "delete_truncate$subexpression$1$ebnf$1", "symbols": [(lexerAny.has("kw_table") ? {type: "kw_table"} : kw_table)], "postprocess": id},
     {"name": "delete_truncate$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "delete_truncate$subexpression$1", "symbols": ["kw_truncate", "delete_truncate$subexpression$1$ebnf$1"]},
-    {"name": "delete_truncate", "symbols": ["delete_truncate$subexpression$1", "table_ref_aliased"], "postprocess":  x => ({
-            type: 'delete',
-            from: unwrap(x[1]),
+    {"name": "delete_truncate", "symbols": ["delete_truncate$subexpression$1", "table_ref"], "postprocess":  x => ({
+            type: 'truncate table',
+            ...unwrap(x[1]),
         }) },
     {"name": "create_sequence_statement$ebnf$1$subexpression$1", "symbols": ["kw_temp"]},
     {"name": "create_sequence_statement$ebnf$1$subexpression$1", "symbols": ["kw_temporary"]},
