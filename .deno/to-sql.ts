@@ -90,7 +90,7 @@ function visitSetVal(set: SetGlobalValue) {
             break;
         case 'list':
             let first = true;
-            for( const v of set.values) {
+            for (const v of set.values) {
                 if (!first) {
                     ret.push(', ');
                 }
@@ -398,14 +398,14 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
 
-    dropTable: val =>  {
+    dropTable: val => {
         ret.push('DROP TABLE ');
         if (val.ifExists) {
             ret.push('IF EXISTS ');
         }
         m.tableRef(val);
     },
-    dropIndex: val =>  {
+    dropIndex: val => {
         ret.push('DROP INDEX ');
         if (val.concurrently) {
             ret.push('CONCURRENTLY ');
@@ -415,7 +415,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
         m.tableRef(val);
     },
-    dropSequence: val =>  {
+    dropSequence: val => {
         ret.push('DROP SEQUENCE ');
         if (val.ifExists) {
             ret.push('IF EXISTS ');
@@ -462,9 +462,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push('[]');
             return;
         }
-        ret.push(d.length
+        const tname = d.length
             ? (d.type + '(' + d.length + ')')
-            : d.type);
+            : d.type;
+        ret.push(name(tname));
     },
 
     createIndex: c => {

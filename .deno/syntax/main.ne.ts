@@ -180,8 +180,8 @@ import {lexerAny, LOCATION} from '../lexer.ts';
                     .map(x => x.trim())
                     .filter(x => !!x);
     }
-    function toStr(e: any): string {
-        return flattenStr(e).join('').toLowerCase()
+    function toStr(e: any, join?: string): string {
+        return flattenStr(e).join(join || '');
     }
 
 
@@ -199,8 +199,7 @@ import {lexerAny, LOCATION} from '../lexer.ts';
      const kwSet = new Set(kw);
      return (x: any[], _: any, rej: any) => {
         const val = typeof x[0] === 'string' ? x[0] : x[0].value;
-        const low = val.toLowerCase();
-        return kwSet.has(low) ? low : rej;
+        return kwSet.has(val) ? val : rej;
     }
  }
 
@@ -340,7 +339,7 @@ const grammar: Grammar = {
     {"name": "data_type$ebnf$2", "symbols": [], "postprocess": () => null},
     {"name": "data_type", "symbols": ["data_type_simple", "data_type$ebnf$1", "data_type$ebnf$2"], "postprocess":  x => {
             let asArray = x[2];
-            const type = flattenStr(x[0]).join(' ').toLowerCase();
+            const type = toStr(x[0], ' ');
             let ret;
             ret = {
                 type,
@@ -861,11 +860,11 @@ const grammar: Grammar = {
             function: 'any',
         })},
     {"name": "expr_fn_name", "symbols": ["expr_fn_name$subexpression$2"]},
-    {"name": "word_or_keyword", "symbols": ["word"], "postprocess": ([x]) => x.toLowerCase()},
+    {"name": "word_or_keyword", "symbols": ["word"], "postprocess": unwrap},
     {"name": "word_or_keyword", "symbols": ["value_keyword"]},
     {"name": "value_keyword", "symbols": ["_value_keyword"], "postprocess":  x => ({
             type: 'keyword',
-            keyword: unwrap(x).value.toLowerCase(),
+            keyword: unwrap(x).value,
         }) },
     {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_current_catalog") ? {type: "kw_current_catalog"} : kw_current_catalog)]},
     {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_current_date") ? {type: "kw_current_date"} : kw_current_date)]},
@@ -927,7 +926,7 @@ const grammar: Grammar = {
     {"name": "createtable_constraint_def_unique$subexpression$1", "symbols": [(lexerAny.has("kw_unique") ? {type: "kw_unique"} : kw_unique)]},
     {"name": "createtable_constraint_def_unique$subexpression$1", "symbols": ["kw_primary_key"]},
     {"name": "createtable_constraint_def_unique", "symbols": ["createtable_constraint_def_unique$subexpression$1", "lparen", "createtable_collist", "rparen"], "postprocess":  x => ({
-            type: flattenStr(x[0]).join(' ').toLowerCase(),
+            type: toStr(x[0], ' '),
             columns: x[2],
         }) },
     {"name": "createtable_constraint_def_check", "symbols": [(lexerAny.has("kw_check") ? {type: "kw_check"} : kw_check), "expr_paren"], "postprocess":  ([_, expr]) => ({
@@ -955,7 +954,7 @@ const grammar: Grammar = {
     {"name": "createtable_constraint_on_action$subexpression$1$subexpression$2", "symbols": [(lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
     {"name": "createtable_constraint_on_action$subexpression$1$subexpression$2", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default)]},
     {"name": "createtable_constraint_on_action$subexpression$1", "symbols": ["kw_set", "createtable_constraint_on_action$subexpression$1$subexpression$2"]},
-    {"name": "createtable_constraint_on_action", "symbols": ["createtable_constraint_on_action$subexpression$1"], "postprocess": x => flattenStr(x).join(' ').toLowerCase()},
+    {"name": "createtable_constraint_on_action", "symbols": ["createtable_constraint_on_action$subexpression$1"], "postprocess": x => toStr(x, ' ')},
     {"name": "createtable_collist$ebnf$1", "symbols": []},
     {"name": "createtable_collist$ebnf$1$subexpression$1", "symbols": ["comma", "ident"], "postprocess": last},
     {"name": "createtable_collist$ebnf$1", "symbols": ["createtable_collist$ebnf$1", "createtable_collist$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
@@ -1040,7 +1039,7 @@ const grammar: Grammar = {
             expression: unwrap(x[0]),
             ...x[1] && { collate: unwrap(x[1]) },
             ...x[2] && { opclass: unwrap(x[2]) },
-            ...x[3] && { order: unwrap(x[3]).value.toLowerCase() },
+            ...x[3] && { order: unwrap(x[3]).value },
             ...x[4] && { nulls: unwrap(x[4]) },
         }) },
     {"name": "createextension_statement$ebnf$1", "symbols": ["kw_ifnotexists"], "postprocess": id},
@@ -1093,7 +1092,7 @@ const grammar: Grammar = {
     {"name": "simplestatements_set_val_raw$subexpression$2", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on)]},
     {"name": "simplestatements_set_val_raw$subexpression$2", "symbols": [(lexerAny.has("kw_true") ? {type: "kw_true"} : kw_true)]},
     {"name": "simplestatements_set_val_raw$subexpression$2", "symbols": [(lexerAny.has("kw_false") ? {type: "kw_false"} : kw_false)]},
-    {"name": "simplestatements_set_val_raw", "symbols": ["simplestatements_set_val_raw$subexpression$2"], "postprocess": x => ({ type: 'identifier', name: unwrap(x).value.toLowerCase() })},
+    {"name": "simplestatements_set_val_raw", "symbols": ["simplestatements_set_val_raw$subexpression$2"], "postprocess": x => ({ type: 'identifier', name: unwrap(x).value })},
     {"name": "insert_statement$subexpression$1", "symbols": ["kw_insert", (lexerAny.has("kw_into") ? {type: "kw_into"} : kw_into)]},
     {"name": "insert_statement$ebnf$1", "symbols": ["collist_paren"], "postprocess": id},
     {"name": "insert_statement$ebnf$1", "symbols": [], "postprocess": () => null},
@@ -1271,7 +1270,7 @@ const grammar: Grammar = {
     {"name": "altercol", "symbols": ["kw_drop", (lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default)], "postprocess": x => ({type: 'drop default' })},
     {"name": "altercol$subexpression$1", "symbols": ["kw_set"]},
     {"name": "altercol$subexpression$1", "symbols": ["kw_drop"]},
-    {"name": "altercol", "symbols": ["altercol$subexpression$1", "kw_not_null"], "postprocess": x => ({type: flattenStr(x).join(' ').toLowerCase() })},
+    {"name": "altercol", "symbols": ["altercol$subexpression$1", "kw_not_null"], "postprocess": x => ({type: toStr(x, ' ') })},
     {"name": "altertable_add_constraint", "symbols": ["kw_add", "createtable_constraint"], "postprocess":  x => ({
             type: 'add constraint',
             constraint: unwrap(last(x)),
@@ -1333,7 +1332,7 @@ const grammar: Grammar = {
     {"name": "create_sequence_option", "symbols": ["kw_cache", "int"], "postprocess": x => ['cache', x[1]]},
     {"name": "create_sequence_option$ebnf$3", "symbols": ["kw_no"], "postprocess": id},
     {"name": "create_sequence_option$ebnf$3", "symbols": [], "postprocess": () => null},
-    {"name": "create_sequence_option", "symbols": ["create_sequence_option$ebnf$3", "kw_cycle"], "postprocess": x => ['cycle', flattenStr(x).join(' ').toLowerCase()]},
+    {"name": "create_sequence_option", "symbols": ["create_sequence_option$ebnf$3", "kw_cycle"], "postprocess": x => ['cycle', toStr(x, ' ')]},
     {"name": "create_sequence_option", "symbols": ["create_sequence_owned_by"], "postprocess": x => ['ownedBy', unwrap(x)]},
     {"name": "create_sequence_minvalue", "symbols": ["kw_minvalue", "int"], "postprocess": last},
     {"name": "create_sequence_minvalue", "symbols": ["kw_no", "kw_minvalue"], "postprocess": () => 'no minvalue'},
