@@ -521,7 +521,14 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     truncateTable: t => {
         ret.push('TRUNCATE TABLE ');
-        m.tableRef(t);
+        let first = true;
+        for (const tbl of t.tables) {
+            if (!first) {
+                ret.push(', ');
+            }
+            first = false;
+            m.tableRef(tbl);
+        }
     },
 
     delete: t => {
@@ -664,9 +671,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     selection: s => {
         ret.push('SELECT ');
-        if (!s.columns) {
-            ret.push('*');
-        } else {
+        if (s.columns) {
             list(s.columns, c => m.selectionColumn(c), false);
         }
         ret.push(' ');

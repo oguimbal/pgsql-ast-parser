@@ -25,8 +25,9 @@ export type Statement = (SelectStatement
         [LOCATION]?: StatementLocation;
     };
 
-export interface TruncateTableStatement extends QName {
+export interface TruncateTableStatement {
     type: 'truncate table';
+    tables: QName[];
 }
 export interface DropTableStatement extends QName {
     type: 'drop table';

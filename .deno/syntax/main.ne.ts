@@ -131,6 +131,7 @@ declare var kw_default: any;
 declare var kw_from: any;
 declare var kw_returning: any;
 declare var kw_table: any;
+declare var comma: any;
 declare var kw_create: any;
 declare var kw_as: any;
 declare var kw_with: any;
@@ -464,7 +465,9 @@ const grammar: Grammar = {
             statement: unwrap(x[0]),
             alias: unwrap(x[1])
         }) },
-    {"name": "select_what", "symbols": [(lexerAny.has("kw_select") ? {type: "kw_select"} : kw_select), "select_expr_list_aliased"], "postprocess": last},
+    {"name": "select_what$ebnf$1", "symbols": ["select_expr_list_aliased"], "postprocess": id},
+    {"name": "select_what$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "select_what", "symbols": [(lexerAny.has("kw_select") ? {type: "kw_select"} : kw_select), "select_what$ebnf$1"], "postprocess": last},
     {"name": "select_expr_list_aliased$ebnf$1", "symbols": []},
     {"name": "select_expr_list_aliased$ebnf$1$subexpression$1", "symbols": ["comma", "select_expr_list_item"], "postprocess": last},
     {"name": "select_expr_list_aliased$ebnf$1", "symbols": ["select_expr_list_aliased$ebnf$1", "select_expr_list_aliased$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
@@ -933,20 +936,18 @@ const grammar: Grammar = {
             type: 'check',
             expr: unwrap(expr),
         }) },
-    {"name": "createtable_constraint_foreignkey$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_delete", "createtable_constraint_on_action"], "postprocess": last},
-    {"name": "createtable_constraint_foreignkey$ebnf$1", "symbols": ["createtable_constraint_foreignkey$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "createtable_constraint_foreignkey$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "createtable_constraint_foreignkey$ebnf$2$subexpression$1", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_update", "createtable_constraint_on_action"], "postprocess": last},
-    {"name": "createtable_constraint_foreignkey$ebnf$2", "symbols": ["createtable_constraint_foreignkey$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "createtable_constraint_foreignkey$ebnf$2", "symbols": [], "postprocess": () => null},
-    {"name": "createtable_constraint_foreignkey", "symbols": [(lexerAny.has("kw_foreign") ? {type: "kw_foreign"} : kw_foreign), "kw_key", "collist_paren", (lexerAny.has("kw_references") ? {type: "kw_references"} : kw_references), "ident", "collist_paren", "createtable_constraint_foreignkey$ebnf$1", "createtable_constraint_foreignkey$ebnf$2"], "postprocess":  x => ({
+    {"name": "createtable_constraint_foreignkey$ebnf$1", "symbols": []},
+    {"name": "createtable_constraint_foreignkey$ebnf$1", "symbols": ["createtable_constraint_foreignkey$ebnf$1", "createtable_constraint_foreignkey_onsometing"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "createtable_constraint_foreignkey", "symbols": [(lexerAny.has("kw_foreign") ? {type: "kw_foreign"} : kw_foreign), "kw_key", "collist_paren", (lexerAny.has("kw_references") ? {type: "kw_references"} : kw_references), "ident", "collist_paren", "createtable_constraint_foreignkey$ebnf$1"], "postprocess":  (x: any[]) => ({
             type: 'foreign key',
             localColumns: x[2],
             foreignTable: unwrap(x[4]),
             foreignColumns: x[5],
-            onDelete: x[6] || 'no action',
-            onUpdate: x[7] || 'no action',
+            onDelete: x[6].filter((v: any) => v.onDelete).map((v: any) => v.value)[0] || 'no action',
+            onUpdate: x[6].filter((v: any) => v.onUpdate).map((v: any) => v.value)[0] || 'no action',
         }) },
+    {"name": "createtable_constraint_foreignkey_onsometing", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_delete", "createtable_constraint_on_action"], "postprocess": x => ({onDelete: true, value: last(x)})},
+    {"name": "createtable_constraint_foreignkey_onsometing", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_update", "createtable_constraint_on_action"], "postprocess": x => ({onUpdate: true, value: last(x)})},
     {"name": "createtable_constraint_on_action$subexpression$1", "symbols": ["kw_cascade"]},
     {"name": "createtable_constraint_on_action$subexpression$1$subexpression$1", "symbols": ["kw_no", "kw_action"]},
     {"name": "createtable_constraint_on_action$subexpression$1", "symbols": ["createtable_constraint_on_action$subexpression$1$subexpression$1"]},
@@ -1297,9 +1298,16 @@ const grammar: Grammar = {
     {"name": "delete_truncate$subexpression$1$ebnf$1", "symbols": [(lexerAny.has("kw_table") ? {type: "kw_table"} : kw_table)], "postprocess": id},
     {"name": "delete_truncate$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "delete_truncate$subexpression$1", "symbols": ["kw_truncate", "delete_truncate$subexpression$1$ebnf$1"]},
-    {"name": "delete_truncate", "symbols": ["delete_truncate$subexpression$1", "table_ref"], "postprocess":  x => ({
+    {"name": "delete_truncate$macrocall$2", "symbols": ["table_ref"]},
+    {"name": "delete_truncate$macrocall$1$ebnf$1", "symbols": []},
+    {"name": "delete_truncate$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("comma") ? {type: "comma"} : comma), "delete_truncate$macrocall$2"], "postprocess": last},
+    {"name": "delete_truncate$macrocall$1$ebnf$1", "symbols": ["delete_truncate$macrocall$1$ebnf$1", "delete_truncate$macrocall$1$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "delete_truncate$macrocall$1", "symbols": ["delete_truncate$macrocall$2", "delete_truncate$macrocall$1$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [unwrap(head), ...(tail.map(unwrap) || [])];
+        } },
+    {"name": "delete_truncate", "symbols": ["delete_truncate$subexpression$1", "delete_truncate$macrocall$1"], "postprocess":  x => ({
             type: 'truncate table',
-            ...unwrap(x[1]),
+            tables: x[1],
         }) },
     {"name": "create_sequence_statement$ebnf$1$subexpression$1", "symbols": ["kw_temp"]},
     {"name": "create_sequence_statement$ebnf$1$subexpression$1", "symbols": ["kw_temporary"]},
