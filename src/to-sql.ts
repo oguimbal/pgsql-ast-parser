@@ -664,9 +664,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     selection: s => {
         ret.push('SELECT ');
-        if (!s.columns) {
-            ret.push('*');
-        } else {
+        if (s.columns) {
             list(s.columns, c => m.selectionColumn(c), false);
         }
         ret.push(' ');

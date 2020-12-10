@@ -69,7 +69,7 @@ select_subject_select_statement -> select_statement_paren ident_aliased {% x => 
 
 
 # SELECT x,y as YY,z
-select_what -> %kw_select select_expr_list_aliased {% last %}
+select_what -> %kw_select select_expr_list_aliased:? {% last %}
 
 select_expr_list_aliased -> select_expr_list_item (comma select_expr_list_item {% last %}):* {% ([head, tail]) => {
     return [head, ...(tail || [])];

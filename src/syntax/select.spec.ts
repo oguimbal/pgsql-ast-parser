@@ -10,6 +10,11 @@ describe('Select statements', () => {
         return x.map(expr => ({ expr }));
     }
 
+    // yea... thats a valid query. Try it oO'
+    checkSelect(['select'], {
+        type: 'select',
+    });
+
     checkSelect(['select 42', 'select(42)'], {
         type: 'select',
         columns: noAlias([{
