@@ -25,7 +25,7 @@ export function parse(sql: string, entry?: string): any {
     let parsed = _parse(sql, sqlCompiled, entry);
 
     // always return an array of statements.
-    if (!entry && !Array.isArray(parsed))  {
+    if (!entry && !Array.isArray(parsed)) {
         parsed = [parsed]
     }
     return parsed;
@@ -39,18 +39,39 @@ export function parseArrayLiteral(sql: string): string[] {
 }
 
 function _parse(sql: string, grammar: Grammar, entry?: string): any {
-    grammar.start = entry ?? 'main';
-    const parser = new Parser(grammar);
-    parser.feed(sql);
-    const asts = parser.finish();
-    if (!asts.length) {
-        throw new Error('Unexpected end of input');
-    } else if (asts.length !== 1) {
-        throw new Error(`💀 Ambiguous SQL syntax: Please file an issue stating the request that has failed at https://github.com/oguimbal/pgsql-ast-parser:
+    try {
+        grammar.start = entry ?? 'main';
+        const parser = new Parser(grammar);
+        parser.feed(sql);
+        const asts = parser.finish();
+        if (!asts.length) {
+            throw new Error('Unexpected end of input');
+        } else if (asts.length !== 1) {
+            throw new Error(`💀 Ambiguous SQL syntax: Please file an issue stating the request that has failed at https://github.com/oguimbal/pgsql-ast-parser:
 
         ${sql}
 
         `);
+        }
+        return asts[0];
+    } catch (e) {
+        if (typeof e?.message !== 'string') {
+            throw e;
+        }
+        let msg: string = e.message;
+        // remove all the stack crap of nearley parser
+        let begin: string | null = null;
+        const parts: string[] = [];
+        const reg = /A (.+) token based on:/g;
+        let m: RegExpExecArray | null;
+        while (m = reg.exec(msg)) {
+            begin = begin ?? msg.substr(0, m.index);
+            parts.push(`    - A "${m[1]}" token`);
+        }
+        if (begin) {
+            msg = begin + parts.join('\n') + '\n\n';
+        }
+        e.message = msg;
+        throw e;
     }
-    return asts[0];
 }

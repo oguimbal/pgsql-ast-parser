@@ -225,3 +225,8 @@ qualified_name -> (ident dot {% get(0) %}):? ident {% ([schema, name]) => {
         return {name};
     }%}
     | current_schema {% () => ({ name: 'current_schema' }) %}
+
+
+array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
+    return [head, ...(tail || [])];
+} %}

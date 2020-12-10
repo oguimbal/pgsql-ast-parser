@@ -3,7 +3,13 @@
 @include "expr.ne"
 @include "select.ne"
 
+array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
+    return [unwrap(head), ...(tail.map(unwrap) || [])];
+} %}
+
+
 # https://www.postgresql.org/docs/12/sql-delete.html
+
 
 delete_statement -> delete_delete | delete_truncate
 
@@ -22,7 +28,7 @@ delete_delete -> (kw_delete %kw_from)
                         }
                     } %}
 
-delete_truncate ->  (kw_truncate %kw_table:?) table_ref {% x => ({
+delete_truncate ->  (kw_truncate %kw_table:?) array_of[table_ref] {% x => ({
                             type: 'truncate table',
-                            ...unwrap(x[1]),
+                            tables: x[1],
                         }) %}

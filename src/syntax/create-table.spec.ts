@@ -327,4 +327,44 @@ describe('Create table', () => {
             }]
         }],
     })
+
+
+    // bugfix
+    checkCreateTable([`CREATE TABLE Post (
+        categoryId text,
+        CONSTRAINT Post_fk_categoryId FOREIGN KEY (categoryId)
+          REFERENCES Category (id) ON UPDATE CASCADE ON DELETE CASCADE,
+        CONSTRAINT Post_ck_isPublished CHECK (isPublished IN (0, 1))
+      );`], {
+        type: 'create table',
+        name: 'post',
+        columns: [{
+            name: 'categoryid',
+            dataType: { type: 'text' },
+        }],
+        constraints: [{
+            type: 'foreign key',
+            foreignTable: 'category',
+            foreignColumns: ['id'],
+            localColumns: ['categoryid'],
+            onUpdate: 'cascade',
+            onDelete: 'cascade',
+            constraintName: 'post_fk_categoryid',
+        }, {
+            type: 'check',
+            constraintName: 'post_ck_ispublished',
+            expr: {
+                type: 'binary',
+                op: 'IN',
+                left: { type: 'ref', name: 'ispublished' },
+                right: {
+                    type: 'list',
+                    expressions: [
+                        { type: 'integer', value: 0 },
+                        { type: 'integer', value: 1 }
+                    ]
+                }
+            }
+        }]
+    })
 });

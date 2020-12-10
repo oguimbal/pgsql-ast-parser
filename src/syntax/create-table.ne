@@ -64,16 +64,19 @@ createtable_constraint_def_check
 createtable_constraint_foreignkey
     -> %kw_foreign kw_key collist_paren
             %kw_references ident collist_paren
-            (%kw_on kw_delete createtable_constraint_on_action {% last %}):?
-            (%kw_on kw_update createtable_constraint_on_action {% last %}):?
-        {% x => ({
+            createtable_constraint_foreignkey_onsometing:*
+        {% (x: any[]) => ({
             type: 'foreign key',
             localColumns: x[2],
             foreignTable: unwrap(x[4]),
             foreignColumns: x[5],
-            onDelete: x[6] || 'no action',
-            onUpdate: x[7] || 'no action',
+            onDelete: x[6].filter((v: any) => v.onDelete).map((v: any) => v.value)[0] || 'no action',
+            onUpdate: x[6].filter((v: any) => v.onUpdate).map((v: any) => v.value)[0] || 'no action',
         }) %}
+
+createtable_constraint_foreignkey_onsometing
+     -> %kw_on kw_delete createtable_constraint_on_action {% x => ({onDelete: true, value: last(x)}) %}
+     | %kw_on kw_update createtable_constraint_on_action {% x => ({onUpdate: true, value: last(x)}) %}
 
 createtable_constraint_on_action
     -> (kw_cascade

@@ -18,9 +18,13 @@ describe('Delete', () => {
 
     checkStatement([`truncate test`, `truncate table test`], {
         type: 'truncate table',
-        name: 'test',
+        tables: [{ name: 'test' }]
     });
 
+    checkStatement([`truncate ta, "tb"`, `truncate table "ta","tb"`], {
+        type: 'truncate table',
+        tables: [{ name: 'ta' }, { name: 'tb' }]
+    });
     checkDelete([`delete from test`], {
         type: 'delete',
         from: { name: 'test' },

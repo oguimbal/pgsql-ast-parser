@@ -521,7 +521,14 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     truncateTable: t => {
         ret.push('TRUNCATE TABLE ');
-        m.tableRef(t);
+        let first = true;
+        for (const tbl of t.tables) {
+            if (!first) {
+                ret.push(', ');
+            }
+            first = false;
+            m.tableRef(tbl);
+        }
     },
 
     delete: t => {
