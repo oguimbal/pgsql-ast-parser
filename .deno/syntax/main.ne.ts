@@ -143,6 +143,9 @@ declare var kw_session_user: any;
 declare var kw_current_user: any;
 declare var kw_table: any;
 declare var kw_concurrently: any;
+declare var kw_create: any;
+declare var kw_as: any;
+declare var comma: any;
 declare var semicolon: any;
 import {lexerAny, LOCATION} from '../lexer.ts';
 
@@ -330,6 +333,7 @@ const grammar: Grammar = {
     {"name": "kw_always", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('always')},
     {"name": "kw_identity", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('identity')},
     {"name": "kw_name", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('name')},
+    {"name": "kw_enum", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('enum')},
     {"name": "kw_ifnotexists", "symbols": ["kw_if", (lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), "kw_exists"]},
     {"name": "kw_ifexists", "symbols": ["kw_if", "kw_exists"]},
     {"name": "kw_not_null", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), (lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
@@ -1448,6 +1452,22 @@ const grammar: Grammar = {
             type: 'drop index',
             ...x[1] && {concurrently: true },
         }) },
+    {"name": "createtype_statement$subexpression$1", "symbols": ["createtype_enum"]},
+    {"name": "createtype_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "kw_type", "qualified_name", "createtype_statement$subexpression$1"], "postprocess":  x => ({
+            name: x[2],
+            ...unwrap(x[3]),
+        }) },
+    {"name": "createtype_enum$macrocall$2", "symbols": ["string"]},
+    {"name": "createtype_enum$macrocall$1$ebnf$1", "symbols": []},
+    {"name": "createtype_enum$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("comma") ? {type: "comma"} : comma), "createtype_enum$macrocall$2"], "postprocess": last},
+    {"name": "createtype_enum$macrocall$1$ebnf$1", "symbols": ["createtype_enum$macrocall$1$ebnf$1", "createtype_enum$macrocall$1$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "createtype_enum$macrocall$1", "symbols": ["createtype_enum$macrocall$2", "createtype_enum$macrocall$1$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [unwrap(head), ...(tail.map(unwrap) || [])];
+        } },
+    {"name": "createtype_enum", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "kw_enum", "lparen", "createtype_enum$macrocall$1", "rparen"], "postprocess":  x => ({
+            type: 'create enum',
+            values: x[3],
+        }) },
     {"name": "main$ebnf$1", "symbols": []},
     {"name": "main$ebnf$1", "symbols": ["main$ebnf$1", "statement_separator"], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "main$ebnf$2", "symbols": []},
@@ -1492,7 +1512,8 @@ const grammar: Grammar = {
     {"name": "statement", "symbols": ["delete_statement"]},
     {"name": "statement", "symbols": ["create_sequence_statement"]},
     {"name": "statement", "symbols": ["alter_sequence_statement"]},
-    {"name": "statement", "symbols": ["drop_statement"]}
+    {"name": "statement", "symbols": ["drop_statement"]},
+    {"name": "statement", "symbols": ["createtype_statement"]}
   ],
   ParserStart: "main",
 };
