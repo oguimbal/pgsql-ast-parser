@@ -169,6 +169,7 @@ export interface AlterColumnSetDefault {
 export interface AlterColumnAddGenerated {
     type: 'add generated',
     always?: 'always' | 'by default';
+    constraintName?: string;
     sequence?: {
         name?: QName;
     } & CreateSequenceOptions;
