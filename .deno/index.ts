@@ -1,4 +1,4 @@
-export { parse, parseFirst, parseArrayLiteral } from './parser.ts';
+export { parse, parseFirst, parseArrayLiteral, parseGeometricLiteral } from './parser.ts';
 export { astVisitor } from './ast-visitor.ts';
 export { arrayNilMap, assignChanged, astMapper } from './ast-mapper.ts';
 export { toSql } from './to-sql.ts';

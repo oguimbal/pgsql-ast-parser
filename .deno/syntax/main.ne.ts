@@ -6,6 +6,7 @@ function id(d: any[]): any { return d[0]; }
 declare var lparen: any;
 declare var rparen: any;
 declare var dot: any;
+declare var float: any;
 declare var int: any;
 declare var comma: any;
 declare var star: any;
@@ -141,7 +142,6 @@ declare var kw_current_user: any;
 declare var kw_table: any;
 declare var kw_concurrently: any;
 declare var semicolon: any;
-
 import {lexerAny, LOCATION} from '../lexer.ts';
 
 
@@ -247,14 +247,12 @@ const grammar: Grammar = {
   ParserRules: [
     {"name": "lparen", "symbols": [(lexerAny.has("lparen") ? {type: "lparen"} : lparen)]},
     {"name": "rparen", "symbols": [(lexerAny.has("rparen") ? {type: "rparen"} : rparen)]},
-    {"name": "number", "symbols": ["float"]},
-    {"name": "number", "symbols": ["int"]},
+    {"name": "number$subexpression$1", "symbols": ["float"]},
+    {"name": "number$subexpression$1", "symbols": ["int"]},
+    {"name": "number", "symbols": ["number$subexpression$1"], "postprocess": unwrap},
     {"name": "dot", "symbols": [(lexerAny.has("dot") ? {type: "dot"} : dot)], "postprocess": id},
-    {"name": "float$ebnf$1", "symbols": [(lexerAny.has("int") ? {type: "int"} : int)], "postprocess": id},
-    {"name": "float$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "float", "symbols": [(lexerAny.has("int") ? {type: "int"} : int), "dot", "float$ebnf$1"], "postprocess": args => parseFloat(args.join(''))},
-    {"name": "float", "symbols": ["dot", (lexerAny.has("int") ? {type: "int"} : int)], "postprocess": args => parseFloat(args.join(''))},
-    {"name": "int", "symbols": [(lexerAny.has("int") ? {type: "int"} : int)], "postprocess": arg => parseInt(arg as any, 10)},
+    {"name": "float", "symbols": [(lexerAny.has("float") ? {type: "float"} : float)], "postprocess": args => parseFloat(unwrap(args))},
+    {"name": "int", "symbols": [(lexerAny.has("int") ? {type: "int"} : int)], "postprocess": arg => parseInt(unwrap(arg), 10)},
     {"name": "comma", "symbols": [(lexerAny.has("comma") ? {type: "comma"} : comma)], "postprocess": id},
     {"name": "star", "symbols": [(lexerAny.has("star") ? {type: "star"} : star)], "postprocess": x => x[0].value},
     {"name": "string$subexpression$1", "symbols": [(lexerAny.has("string") ? {type: "string"} : string)]},
