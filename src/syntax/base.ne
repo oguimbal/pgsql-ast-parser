@@ -144,6 +144,7 @@ kw_generated -> %word {% notReservedKw('generated')  %}
 kw_always -> %word {% notReservedKw('always')  %}
 kw_identity -> %word {% notReservedKw('identity')  %}
 kw_name -> %word {% notReservedKw('name')  %}
+kw_enum -> %word {% notReservedKw('enum')  %}
 
 
 # === Composite keywords

@@ -17,6 +17,7 @@ export type Statement = (SelectStatement
     | AlterTableStatement
     | AlterSequenceStatement
     | SetGlobalStatement
+    | CreateEnumType
     | TruncateTableStatement
     | DropTableStatement
     | DropSequenceStatement
@@ -24,6 +25,12 @@ export type Statement = (SelectStatement
     | StartTransactionStatement) & {
         [LOCATION]?: StatementLocation;
     };
+
+export interface CreateEnumType {
+    type: 'create enum',
+    name: QName;
+    values: string[];
+}
 
 export interface TruncateTableStatement {
     type: 'truncate table';

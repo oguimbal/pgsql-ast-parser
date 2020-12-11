@@ -249,6 +249,14 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    createEnum: t => {
+        ret.push('CREATE TYPE ');
+        visitQualifiedName(t.name);
+        ret.push(' AS ENUM ');
+        list(t.values, x => ret.push(literal(x)));
+        ret.push(' ');
+    },
+
     setTableOwner: o => {
         ret.push(' OWNER TO ', name(o.to));
     },
