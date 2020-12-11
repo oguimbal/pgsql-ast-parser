@@ -17,7 +17,7 @@ describe('Sequence', () => {
             minValue: 'no minvalue',
             maxValue: 'no maxvalue',
             cache: 1,
-            as: { type: 'bigint' },
+            as: { name: 'bigint' },
             cycle: 'cycle',
         }
     });

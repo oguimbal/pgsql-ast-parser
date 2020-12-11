@@ -159,10 +159,10 @@ kw_primary_key -> %kw_primary kw_key
 # https://www.postgresql.org/docs/9.5/datatype.html
 data_type -> data_type_simple (lparen int rparen {% get(1) %}):? (%kw_array | (%lbracket %rbracket):+):? {% x => {
     let asArray = x[2];
-    const type = toStr(x[0], ' ');
+    const name = unwrap(x[0]);
     let ret;
     ret = {
-        type,
+        ...name,
         ... (typeof x[1] === 'number' && x[1] >= 0 ) ? { length: x[1] } : {},
     };
     if (asArray) {
@@ -171,7 +171,7 @@ data_type -> data_type_simple (lparen int rparen {% get(1) %}):? (%kw_array | (%
         }
         for (const _ of asArray[0]) {
             ret = {
-                type: 'array',
+                kind: 'array',
                 arrayOf: ret,
             };
         }
@@ -180,10 +180,10 @@ data_type -> data_type_simple (lparen int rparen {% get(1) %}):? (%kw_array | (%
 } %}
 
 data_type_simple
-    -> data_type_text
-    | data_type_numeric
-    | data_type_date
-    | word
+    -> data_type_text {% x => ({ name: toStr(x, ' ') }) %}
+    | data_type_numeric  {% x => ({ name: toStr(x, ' ') }) %}
+    | data_type_date  {% x => ({ name: toStr(x, ' ') }) %}
+    | qualified_name
     # | word {% anyKw('json', 'jsonb', 'boolean', 'bool', 'money', 'bytea', 'regtype') %}
 
 

@@ -287,7 +287,7 @@ describe('Select statements', () => {
                     function: 'now',
                     args: [],
                 },
-                to: { type: 'time without time zone' },
+                to: { name: 'time without time zone' },
             }
         }]
     })

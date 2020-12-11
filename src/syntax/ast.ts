@@ -263,10 +263,16 @@ export interface QName {
     schema?: string;
 }
 
-export interface DataTypeDef {
-    type: string;
+export type DataTypeDef = ArrayDataTypeDef | BasicDataTypeDef;
+
+export interface ArrayDataTypeDef {
+    kind: 'array';
+    arrayOf: DataTypeDef;
+}
+
+export interface BasicDataTypeDef extends QName {
+    kind?: undefined;
     length?: number;
-    arrayOf?: DataTypeDef;
 }
 
 export type ColumnConstraint

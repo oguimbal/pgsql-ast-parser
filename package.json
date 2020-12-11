@@ -1,6 +1,6 @@
 {
   "name": "pgsql-ast-parser",
-  "version": "1.4.3",
+  "version": "1.5.0",
   "description": "Yet another simple Postgres SQL parser/modifier",
   "main": "index.js",
   "repository": "https://github.com/oguimbal/pgsql-ast-parser",

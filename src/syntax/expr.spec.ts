@@ -192,7 +192,7 @@ line`,
             member: 'b',
             operand: {
                 type: 'cast',
-                to: { type: 'jsonb' },
+                to: { name: 'jsonb' },
                 operand: {
                     type: 'ref',
                     name: 'data',
@@ -202,14 +202,14 @@ line`,
 
         checkTreeExpr([`data::jsonb->'b'::json`, `((data::jsonb) -> 'b')::json`], {
             type: 'cast',
-            to: { type: 'json' },
+            to: { name: 'json' },
             operand: {
                 type: 'member',
                 op: '->',
                 member: 'b',
                 operand: {
                     type: 'cast',
-                    to: { type: 'jsonb' },
+                    to: { name: 'jsonb' },
                     operand: {
                         type: 'ref',
                         name: 'data',
@@ -453,7 +453,7 @@ line`,
             },
             right: {
                 type: 'cast',
-                to: { type: 'jsonb' },
+                to: { name: 'jsonb' },
                 operand: {
                     type: 'ref',
                     name: 'b',
@@ -470,7 +470,7 @@ line`,
             },
             right: {
                 type: 'cast',
-                to: { type: 'JSONB' },
+                to: { name: 'JSONB' },
                 operand: {
                     type: 'ref',
                     name: 'b',
@@ -480,7 +480,7 @@ line`,
 
         checkTreeExpr(['(a + b)::jsonb', '(a + b)::"jsonb"'], {
             type: 'cast',
-            to: { type: 'jsonb' },
+            to: { name: 'jsonb' },
             operand: {
                 type: 'binary',
                 op: '+',
