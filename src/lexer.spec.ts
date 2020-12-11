@@ -10,6 +10,7 @@ describe('Lexer', () => {
     const hasContent = [
         /^word$/,
         /^int$/,
+        /^float$/,
     ]
     function next(expected: any) {
         const result = lexer.next() as Optional<Token>;
@@ -98,6 +99,23 @@ describe('Lexer', () => {
         next({ type: 'int', value: '2' });
     })
 
+
+    it('tokenizes floats', () => {
+        lexer.reset('1.,.1,-.1,-0.1,0.1,10.,-10.');
+        next({ type: 'float', value: '1.' });
+        next({ type: 'comma' });
+        next({ type: 'float', value: '.1' });
+        next({ type: 'comma' });
+        next({ type: 'float', value: '-.1' });
+        next({ type: 'comma' });
+        next({ type: 'float', value: '-0.1' });
+        next({ type: 'comma' });
+        next({ type: 'float', value: '0.1' });
+        next({ type: 'comma' });
+        next({ type: 'float', value: '10.' });
+        next({ type: 'comma' });
+        next({ type: 'float', value: '-10.' });
+    })
 
     it('tokenizes ->', () => {
         lexer.reset('a->b');

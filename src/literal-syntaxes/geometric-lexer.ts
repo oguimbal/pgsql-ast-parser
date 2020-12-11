@@ -4,8 +4,8 @@ import {compile} from 'moo';
 export const lexer = compile({
     comma: ',',
     space: { match: /[\s\t\n\v\f\r]+/, lineBreaks: true, },
-    dot: '.',
-    int: /\-?[0-9]+/,
+    int: /\-?\d+(?![\.\d])/,
+    float: /\-?(?:(?:\d*\.\d+)|(?:\d+\.\d*))/,
     lcurl: '{',
     rcurl: '}',
     lparen: '(',

@@ -11,6 +11,7 @@ describe('Geometric literals', () => {
 
     const hasContent = [
         /^int$/,
+        /^float$/,
     ]
     function next(expected: any) {
         const result = lexer.next() as Optional<Token>;
@@ -26,18 +27,42 @@ describe('Geometric literals', () => {
         expect(result).to.deep.equal(expected);
     }
 
-    it('Lexer', () => {
-        lexer.reset(`(12,.)<>{}`);
+    it('Lexer: various tokens', () => {
+        lexer.reset(`(12,)<>{}`);
         next({ type: 'lparen' });
         next({ type: 'int', value: '12' });
         next({ type: 'comma' });
-        next({ type: 'dot' });
         next({ type: 'rparen' });
         next({ type: 'lcomp' });
         next({ type: 'rcomp' });
         next({ type: 'lcurl' });
         next({ type: 'rcurl' });
     });
+
+    it('Lexer: tokenizes comma', () => {
+        lexer.reset('2,2');
+        next({ type: 'int', value: '2' });
+        next({ type: 'comma' });
+        next({ type: 'int', value: '2' });
+    })
+
+
+    it('Lexer: tokenizes floats', () => {
+        lexer.reset('1.,.1,-.1,-0.1,0.1,10.,-10.');
+        next({ type: 'float', value: '1.' });
+        next({ type: 'comma' });
+        next({ type: 'float', value: '.1' });
+        next({ type: 'comma' });
+        next({ type: 'float', value: '-.1' });
+        next({ type: 'comma' });
+        next({ type: 'float', value: '-0.1' });
+        next({ type: 'comma' });
+        next({ type: 'float', value: '0.1' });
+        next({ type: 'comma' });
+        next({ type: 'float', value: '10.' });
+        next({ type: 'comma' });
+        next({ type: 'float', value: '-10.' });
+    })
 
     it('parses point', () => {
         const point: Point = { x: 1, y: 2 };

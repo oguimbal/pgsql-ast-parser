@@ -46,12 +46,10 @@
 # === Basic constructs
 lparen -> %lparen
 rparen -> %rparen
-number -> float | int
+number -> (float | int) {%unwrap%}
 dot -> %dot {% id %}
-float
-    -> %int dot %int:? {% args => parseFloat(args.join('')) %}
-    | dot %int {% args => parseFloat(args.join('')) %}
-int -> %int {% arg => parseInt(arg as any, 10) %}
+float -> %float  {% args => parseFloat(unwrap(args)) %}
+int -> %int {% arg => parseInt(unwrap(arg), 10) %}
 comma -> %comma {% id %}
 star -> %star {% x => x[0].value %}
 string -> (%string | %eString) {% x => unwrap(x[0]).value %}

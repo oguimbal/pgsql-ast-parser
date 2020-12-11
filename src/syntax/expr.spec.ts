@@ -30,6 +30,25 @@ describe('Expressions', () => {
             value: 42,
         });
 
+        checkTreeExpr(['0.5', '.5'], {
+            type: 'numeric',
+            value: 0.5,
+        });
+
+        checkTreeExpr(['-0.5', '-.5'], {
+            type: 'numeric',
+            value: -0.5,
+        });
+
+        checkTreeExpr(['-42.', '-42.0'], {
+            type: 'numeric',
+            value: -42,
+        });
+
+        checkInvalidExpr('42. 51');
+
+        checkInvalidExpr('42.-51');
+
         checkTreeExpr(['null'], {
             type: 'null',
         });

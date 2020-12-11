@@ -73,7 +73,7 @@ if (process.argv.includes('--copy')) {
     }
     function handleTs(ipath, rpath) {
         const content = fs.readFileSync(ipath, 'utf-8');
-        const newContent = content.replace(/^(import|export)\s+([^\n]+)\s+from\s+['"]([^'"]+)['"];?$/mg, (_, op, what, where) => {
+        const newContent = content.replace(/^\s*(import|export)\s+([^\n]+)\s+from\s+['"]([^'"]+)['"]\;?$/mg, (_, op, what, where) => {
             if (/^\./.test(where)) {
                 const asDir = path.join(path.dirname(ipath), where, 'index.ts');
                 if (fs.existsSync(asDir)) {

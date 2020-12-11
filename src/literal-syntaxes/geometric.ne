@@ -20,11 +20,8 @@
 
 
 number -> (float | int) {%unwrap%}
-dot -> %dot {% id %}
-int -> %int {% arg => parseInt(arg as any, 10) %}
-float
-    -> %int dot %int:? {% args => parseFloat(args.join('')) %}
-    | dot %int {% args => parseFloat(args.join('')) %}
+float -> %float  {% args => parseFloat(unwrap(args)) %}
+int -> %int {% arg => parseInt(unwrap(arg), 10) %}
 comma -> %comma {% id %}
 
 opt_paren[X] -> ($X | %lparen $X %rparen {% get(1) %}) {% unwrap %}
