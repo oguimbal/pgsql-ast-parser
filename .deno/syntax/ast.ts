@@ -264,6 +264,7 @@ export interface DataTypeDef {
 export type ColumnConstraint
     = ColumnConstraintSimple
     | ColumnConstraintDefault
+    | AlterColumnAddGenerated
     | ColumnConstraintCheck;
 
 export interface ColumnConstraintSimple {
