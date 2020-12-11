@@ -351,10 +351,10 @@ const grammar: Grammar = {
     {"name": "data_type$ebnf$2", "symbols": [], "postprocess": () => null},
     {"name": "data_type", "symbols": ["data_type_simple", "data_type$ebnf$1", "data_type$ebnf$2"], "postprocess":  x => {
             let asArray = x[2];
-            const type = toStr(x[0], ' ');
+            const name = unwrap(x[0]);
             let ret;
             ret = {
-                type,
+                ...name,
                 ... (typeof x[1] === 'number' && x[1] >= 0 ) ? { length: x[1] } : {},
             };
             if (asArray) {
@@ -363,17 +363,17 @@ const grammar: Grammar = {
                 }
                 for (const _ of asArray[0]) {
                     ret = {
-                        type: 'array',
+                        kind: 'array',
                         arrayOf: ret,
                     };
                 }
             }
             return ret;
         } },
-    {"name": "data_type_simple", "symbols": ["data_type_text"]},
-    {"name": "data_type_simple", "symbols": ["data_type_numeric"]},
-    {"name": "data_type_simple", "symbols": ["data_type_date"]},
-    {"name": "data_type_simple", "symbols": ["word"]},
+    {"name": "data_type_simple", "symbols": ["data_type_text"], "postprocess": x => ({ name: toStr(x, ' ') })},
+    {"name": "data_type_simple", "symbols": ["data_type_numeric"], "postprocess": x => ({ name: toStr(x, ' ') })},
+    {"name": "data_type_simple", "symbols": ["data_type_date"], "postprocess": x => ({ name: toStr(x, ' ') })},
+    {"name": "data_type_simple", "symbols": ["qualified_name"]},
     {"name": "data_type_numeric$subexpression$1", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('double')},
     {"name": "data_type_numeric$subexpression$2", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('precision')},
     {"name": "data_type_numeric", "symbols": ["data_type_numeric$subexpression$1", "data_type_numeric$subexpression$2"]},

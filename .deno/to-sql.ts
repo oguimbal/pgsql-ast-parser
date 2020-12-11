@@ -496,19 +496,19 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     dataType: d => {
-        if (!d?.type) {
-            ret.push('unkown');
-            return;
-        }
-        if (d.type === 'array') {
+        if (d?.kind === 'array') {
             m.dataType(d.arrayOf!)
             ret.push('[]');
             return;
         }
-        const tname = d.length
-            ? (d.type + '(' + d.length + ')')
-            : d.type;
-        ret.push(name(tname));
+        if (!d?.name) {
+            ret.push('unkown');
+            return;
+        }
+        visitQualifiedName(d);
+        if (d.length) {
+            ret.push('(', d.length.toString(), ')');
+        }
     },
 
     createIndex: c => {
