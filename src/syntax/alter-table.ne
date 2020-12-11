@@ -68,7 +68,7 @@ altercol
     | kw_set %kw_default expr {% x => ({type: 'set default', default: unwrap(last(x)) }) %}
     | kw_drop %kw_default {% x => ({type: 'drop default' }) %}
     | (kw_set | kw_drop) kw_not_null {% x => ({type: toStr(x, ' ') }) %}
-    | altercol_generated {% unwrap %}
+    | altercol_generated_add {% unwrap %}
 
 altertable_add_constraint
     -> kw_add createtable_constraint {% x => ({
@@ -81,13 +81,14 @@ altertable_owner
      -> kw_owner %kw_to ident {% x => ({ type:'owner', to: last(x) }) %}
 
 
+altercol_generated_add -> kw_add altercol_generated {% last %}
 altercol_generated
-    -> (kw_add kw_generated)
+    -> kw_generated
         (kw_always | kw_by %kw_default):?
         (%kw_as kw_identity )
         (lparen altercol_generated_seq rparen {% get(1) %}):? {% x => ({
             type: 'add generated',
-            ...x[1] && { always: toStr(x[1]) },
+            ...x[1] && { always: toStr(x[1], ' ') },
             ...x[3] && { sequence: unwrap(x[3]) },
         }) %}
 

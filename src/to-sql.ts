@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor';
 import { NotSupported, nil, ReplaceReturnType } from './utils';
-import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue } from './syntax/ast';
+import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated } from './syntax/ast';
 import { literal } from './pg-escape';
 
 
@@ -41,7 +41,7 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
                 , ...c.localColumns.map(name).join(', ')
                 , ') REFERENCES ');
             m.tableRef(c.foreignTable);
-            ret.push( '('
+            ret.push('('
                 , ...c.foreignColumns.map(name).join(', ')
                 , ') ');
             if (c.match) {
@@ -71,6 +71,10 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
         case 'default':
             ret.push(' DEFAULT ');
             m.expr(c.default);
+            break;
+        case 'add generated':
+            ret.push(' GENERATED ');
+            visitGenerated(m, c);
             break;
         default:
             throw NotSupported.never(c)
@@ -106,6 +110,23 @@ function visitSetVal(set: SetGlobalValue) {
             break;
         default:
             throw NotSupported.never(set);
+    }
+}
+
+function visitGenerated(m: IAstVisitor, alter: AlterColumnAddGenerated) {
+    if (alter.always) {
+        ret.push(alter.always.toUpperCase(), ' ');
+    }
+    ret.push('AS IDENTITY ');
+    if (alter.sequence) {
+        ret.push('(');
+        if (alter.sequence.name) {
+            ret.push('SEQUENCE NAME ');
+            visitQualifiedName(alter.sequence.name);
+            ret.push(' ');
+        }
+        visitSeqOpts(m, alter.sequence);
+        ret.push(') ');
     }
 }
 function visitSeqOpts(m: IAstVisitor, cs: AlterSequenceSetOptions | CreateSequenceOptions) {
@@ -236,22 +257,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
 
 
-    alterColumnAddGenerated: (alter, intable, inColu    ) => {
+    alterColumnAddGenerated: (alter) => {
         ret.push(' ADD GENERATED ');
-        if (alter.always) {
-            ret.push(alter.always.toUpperCase(), ' ');
-        }
-        ret.push('AS IDENTITY ');
-        if (alter.sequence) {
-            ret.push('(');
-            if (alter.sequence.name) {
-                ret.push('SEQUENCE NAME ');
-                visitQualifiedName(alter.sequence.name);
-                ret.push(' ');
-            }
-            visitSeqOpts(m, alter.sequence);
-            ret.push(')');
-        }
+        visitGenerated(m, alter)
     },
 
     setColumnType: t => {
@@ -447,7 +455,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     constraint: cst => {
-        if (cst.constraintName) {
+        if ('constraintName' in cst && cst.constraintName) {
             ret.push(' CONSTRAINT ', name(cst.constraintName), ' ');
         }
         switch (cst.type) {
@@ -464,6 +472,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             case 'check':
                 ret.push(' CHECK ');
                 m.expr(cst.expr);
+                break;
+            case 'add generated':
+                ret.push(' GENERATED ');
+                visitGenerated(m, cst);
                 break;
             default:
                 throw NotSupported.never(cst);

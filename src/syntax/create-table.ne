@@ -117,6 +117,7 @@ createtable_column_constraint_def
     | %kw_null          {% () => ({ type: 'null' }) %}
     | %kw_default expr  {% ([_, e]) => ({ type: 'default', default: unwrap(e) }) %}
     | %kw_check expr_paren {% ([_, e]) => ({ type: 'check', expr: unwrap(e) }) %}
+    | altercol_generated
 
 createtable_collate
     -> %kw_collate qualified_name {% last %}

@@ -360,6 +360,7 @@ export class AstDefaultMapper implements IAstMapper {
             case 'null':
             case 'primary key':
             case 'unique':
+            case 'add generated':
                 return c;
             case 'default': {
                 const def = this.expr(c.default);
