@@ -71,7 +71,7 @@ createtable_constraint_foreignkey
                 localColumns: x[2],
                 foreignTable: unwrap(x[4]),
                 foreignColumns: x[5],
-                ...x[6].reduce((a, b) => ({...a, ...b}), {}),
+                ...x[6].reduce((a: any, b: any) => ({...a, ...b}), {}),
             }
         } %}
 

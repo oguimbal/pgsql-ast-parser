@@ -234,6 +234,26 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     alterColumnSimple: c => ret.push(c.type),
 
+
+
+    alterColumnAddGenerated: (alter, intable, inColu    ) => {
+        ret.push(' ADD GENERATED ');
+        if (alter.always) {
+            ret.push(alter.always.toUpperCase(), ' ');
+        }
+        ret.push('AS IDENTITY ');
+        if (alter.sequence) {
+            ret.push('(');
+            if (alter.sequence.name) {
+                ret.push('SEQUENCE NAME ');
+                visitQualifiedName(alter.sequence.name);
+                ret.push(' ');
+            }
+            visitSeqOpts(m, alter.sequence);
+            ret.push(')');
+        }
+    },
+
     setColumnType: t => {
         ret.push(' SET DATA TYPE ');
         m.dataType(t.dataType);

@@ -166,12 +166,21 @@ export interface AlterColumnSetDefault {
     updateExisting?: boolean;
 }
 
+export interface AlterColumnAddGenerated {
+    type: 'add generated',
+    always?: 'always' | 'by default';
+    sequence?: {
+        name?: QName;
+    } & CreateSequenceOptions;
+}
+
 export interface AlterColumnSimple {
     type: 'drop default' | 'set not null' | 'drop not null';
 };
 
 export type AlterColumn = AlterColumnSetType
     | AlterColumnSetDefault
+    | AlterColumnAddGenerated
     | AlterColumnSimple;
 
 

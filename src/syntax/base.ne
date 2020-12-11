@@ -140,6 +140,10 @@ kw_next -> %word {% notReservedKw('next')  %}
 kw_match -> %word {% notReservedKw('match')  %}
 kw_partial -> %word {% notReservedKw('partial')  %}
 kw_simple -> %word {% notReservedKw('simple')  %}
+kw_generated -> %word {% notReservedKw('generated')  %}
+kw_always -> %word {% notReservedKw('always')  %}
+kw_identity -> %word {% notReservedKw('identity')  %}
+kw_name -> %word {% notReservedKw('name')  %}
 
 
 # === Composite keywords

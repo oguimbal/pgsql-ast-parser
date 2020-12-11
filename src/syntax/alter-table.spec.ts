@@ -250,5 +250,34 @@ describe('Alter table', () => {
                 match: 'full',
             }
         }
+    });
+
+
+    checkAlterTable(`ALTER TABLE public.city ALTER COLUMN city_id ADD GENERATED ALWAYS AS IDENTITY (
+        SEQUENCE NAME public.city_city_id_seq
+        START WITH 0
+        INCREMENT BY 1
+        MINVALUE 0
+        NO MAXVALUE
+        CACHE 1
+      );`, {
+        type: 'alter table',
+        table: { name: 'city', schema: 'public' },
+        change: {
+            type: 'alter column',
+            column: 'city_id',
+            alter: {
+                type: 'add generated',
+                always: 'always',
+                sequence: {
+                    name: { name: 'city_city_id_seq', schema: 'public' },
+                    startWith: 0,
+                    incrementBy: 1,
+                    minValue: 0,
+                    maxValue: 'no maxvalue',
+                    cache: 1,
+                }
+            }
+        }
     })
 });
