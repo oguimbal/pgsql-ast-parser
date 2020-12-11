@@ -3,7 +3,7 @@ import 'chai';
 import { lexer } from './array-lexer';
 import { expect, assert } from 'chai';
 import { parseArrayLiteral } from '../parser';
-import { Optional } from 'utils';
+import { Optional } from '../utils';
 import { Token } from 'moo';
 
 describe('Array literals', () => {

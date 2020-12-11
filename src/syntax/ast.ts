@@ -607,3 +607,40 @@ export interface AlterSequenceSetSchema {
     type: 'set schema';
     newSchema: string;
 }
+
+export type GeometricLiteral
+    = Point
+    | Line
+    | Segment
+    | Box
+    | Path
+    | Polygon
+    | Circle;
+
+
+export interface Point {
+    x: number;
+    y: number;
+}
+
+/** Line  aX+bY+c */
+export interface Line {
+    a: number;
+    b: number;
+    c: number;
+}
+
+export type Segment = [Point, Point];
+export type Box = [Point, Point];
+
+export interface Path {
+    closed: boolean;
+    path: Point[];
+}
+
+export type Polygon = Point[];
+
+export interface Circle {
+    c: Point;
+    r: number;
+}

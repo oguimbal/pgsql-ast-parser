@@ -1,10 +1,12 @@
-import { Statement, Expr, LOCATION, QName } from './syntax/ast';
+import { Statement, Expr, LOCATION, QName, GeometricLiteral, Point, Line, Segment, Box, Path, Polygon, Circle } from './syntax/ast';
 import { Parser, Grammar } from 'nearley';
 import sqlGrammar from './syntax/main.ne';
 import arrayGrammar from './literal-syntaxes/array.ne';
+import geometricGrammar from './literal-syntaxes/geometric.ne';
 
 let sqlCompiled: Grammar;
 let arrayCompiled: Grammar;
+let geometricCompiled: Grammar;
 
 /** Parse the first SQL statement in the given text (discards the rest), and return its AST */
 export function parseFirst(sql: string): Statement {
@@ -36,6 +38,21 @@ export function parseArrayLiteral(sql: string): string[] {
         arrayCompiled = Grammar.fromCompiled(arrayGrammar);
     }
     return _parse(sql, arrayCompiled);
+}
+
+
+export function parseGeometricLiteral(sql: string, type: 'point'): Point;
+export function parseGeometricLiteral(sql: string, type: 'line'): Line;
+export function parseGeometricLiteral(sql: string, type: 'lseg'): Segment;
+export function parseGeometricLiteral(sql: string, type: 'box'): Box;
+export function parseGeometricLiteral(sql: string, type: 'path'): Path;
+export function parseGeometricLiteral(sql: string, type: 'polygon'): Polygon;
+export function parseGeometricLiteral(sql: string, type: 'circle'): Circle;
+export function parseGeometricLiteral(sql: string, type: 'point' | 'line' | 'lseg' | 'box' | 'path' | 'polygon' | 'circle'): GeometricLiteral {
+    if (!geometricCompiled) {
+        geometricCompiled = Grammar.fromCompiled(geometricGrammar);
+    }
+    return _parse(sql, geometricCompiled, type);
 }
 
 function _parse(sql: string, grammar: Grammar, entry?: string): any {

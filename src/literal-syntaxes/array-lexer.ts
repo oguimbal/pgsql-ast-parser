@@ -19,7 +19,7 @@ export const lexer = compile({
 
 lexer.next = (next => () => {
     let tok;
-    while ((tok = next.call(lexer)) && (tok.type === 'commentLine' || tok.type === 'commentFull' || tok.type === 'space')) {
+    while ((tok = next.call(lexer)) && (tok.type === 'space')) {
     }
     return tok;
 })(lexer.next);
