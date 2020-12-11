@@ -96,6 +96,7 @@ declare var kw_check: any;
 declare var kw_foreign: any;
 declare var kw_references: any;
 declare var kw_on: any;
+declare var kw_full: any;
 declare var kw_null: any;
 declare var kw_default: any;
 declare var kw_collate: any;
@@ -129,6 +130,7 @@ declare var kw_to: any;
 declare var kw_column: any;
 declare var kw_constraint: any;
 declare var kw_default: any;
+declare var kw_as: any;
 declare var kw_from: any;
 declare var kw_returning: any;
 declare var kw_table: any;
@@ -321,6 +323,13 @@ const grammar: Grammar = {
     {"name": "kw_row", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('row')},
     {"name": "kw_rows", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('rows')},
     {"name": "kw_next", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('next')},
+    {"name": "kw_match", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('match')},
+    {"name": "kw_partial", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('partial')},
+    {"name": "kw_simple", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('simple')},
+    {"name": "kw_generated", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('generated')},
+    {"name": "kw_always", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('always')},
+    {"name": "kw_identity", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('identity')},
+    {"name": "kw_name", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('name')},
     {"name": "kw_ifnotexists", "symbols": ["kw_if", (lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), "kw_exists"]},
     {"name": "kw_ifexists", "symbols": ["kw_if", "kw_exists"]},
     {"name": "kw_not_null", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), (lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
@@ -936,16 +945,21 @@ const grammar: Grammar = {
         }) },
     {"name": "createtable_constraint_foreignkey$ebnf$1", "symbols": []},
     {"name": "createtable_constraint_foreignkey$ebnf$1", "symbols": ["createtable_constraint_foreignkey$ebnf$1", "createtable_constraint_foreignkey_onsometing"], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "createtable_constraint_foreignkey", "symbols": [(lexerAny.has("kw_foreign") ? {type: "kw_foreign"} : kw_foreign), "kw_key", "collist_paren", (lexerAny.has("kw_references") ? {type: "kw_references"} : kw_references), "ident", "collist_paren", "createtable_constraint_foreignkey$ebnf$1"], "postprocess":  (x: any[]) => ({
-            type: 'foreign key',
-            localColumns: x[2],
-            foreignTable: unwrap(x[4]),
-            foreignColumns: x[5],
-            onDelete: x[6].filter((v: any) => v.onDelete).map((v: any) => v.value)[0] || 'no action',
-            onUpdate: x[6].filter((v: any) => v.onUpdate).map((v: any) => v.value)[0] || 'no action',
-        }) },
-    {"name": "createtable_constraint_foreignkey_onsometing", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_delete", "createtable_constraint_on_action"], "postprocess": x => ({onDelete: true, value: last(x)})},
-    {"name": "createtable_constraint_foreignkey_onsometing", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_update", "createtable_constraint_on_action"], "postprocess": x => ({onUpdate: true, value: last(x)})},
+    {"name": "createtable_constraint_foreignkey", "symbols": [(lexerAny.has("kw_foreign") ? {type: "kw_foreign"} : kw_foreign), "kw_key", "collist_paren", (lexerAny.has("kw_references") ? {type: "kw_references"} : kw_references), "qualified_name", "collist_paren", "createtable_constraint_foreignkey$ebnf$1"], "postprocess":  (x: any[]) => {
+            return {
+                type: 'foreign key',
+                localColumns: x[2],
+                foreignTable: unwrap(x[4]),
+                foreignColumns: x[5],
+                ...x[6].reduce((a: any, b: any) => ({...a, ...b}), {}),
+            }
+        } },
+    {"name": "createtable_constraint_foreignkey_onsometing", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_delete", "createtable_constraint_on_action"], "postprocess": x => ({onDelete:  last(x)})},
+    {"name": "createtable_constraint_foreignkey_onsometing", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_update", "createtable_constraint_on_action"], "postprocess": x => ({onUpdate: last(x)})},
+    {"name": "createtable_constraint_foreignkey_onsometing$subexpression$1", "symbols": [(lexerAny.has("kw_full") ? {type: "kw_full"} : kw_full)]},
+    {"name": "createtable_constraint_foreignkey_onsometing$subexpression$1", "symbols": ["kw_partial"]},
+    {"name": "createtable_constraint_foreignkey_onsometing$subexpression$1", "symbols": ["kw_simple"]},
+    {"name": "createtable_constraint_foreignkey_onsometing", "symbols": ["kw_match", "createtable_constraint_foreignkey_onsometing$subexpression$1"], "postprocess": x => ({match: toStr(last(x))})},
     {"name": "createtable_constraint_on_action$subexpression$1", "symbols": ["kw_cascade"]},
     {"name": "createtable_constraint_on_action$subexpression$1$subexpression$1", "symbols": ["kw_no", "kw_action"]},
     {"name": "createtable_constraint_on_action$subexpression$1", "symbols": ["createtable_constraint_on_action$subexpression$1$subexpression$1"]},
@@ -1270,11 +1284,38 @@ const grammar: Grammar = {
     {"name": "altercol$subexpression$1", "symbols": ["kw_set"]},
     {"name": "altercol$subexpression$1", "symbols": ["kw_drop"]},
     {"name": "altercol", "symbols": ["altercol$subexpression$1", "kw_not_null"], "postprocess": x => ({type: toStr(x, ' ') })},
+    {"name": "altercol", "symbols": ["altercol_generated"], "postprocess": unwrap},
     {"name": "altertable_add_constraint", "symbols": ["kw_add", "createtable_constraint"], "postprocess":  x => ({
             type: 'add constraint',
             constraint: unwrap(last(x)),
         }) },
     {"name": "altertable_owner", "symbols": ["kw_owner", (lexerAny.has("kw_to") ? {type: "kw_to"} : kw_to), "ident"], "postprocess": x => ({ type:'owner', to: last(x) })},
+    {"name": "altercol_generated$subexpression$1", "symbols": ["kw_add", "kw_generated"]},
+    {"name": "altercol_generated$ebnf$1$subexpression$1", "symbols": ["kw_always"]},
+    {"name": "altercol_generated$ebnf$1$subexpression$1", "symbols": ["kw_by", (lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default)]},
+    {"name": "altercol_generated$ebnf$1", "symbols": ["altercol_generated$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "altercol_generated$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "altercol_generated$subexpression$2", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "kw_identity"]},
+    {"name": "altercol_generated$ebnf$2$subexpression$1", "symbols": ["lparen", "altercol_generated_seq", "rparen"], "postprocess": get(1)},
+    {"name": "altercol_generated$ebnf$2", "symbols": ["altercol_generated$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "altercol_generated$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "altercol_generated", "symbols": ["altercol_generated$subexpression$1", "altercol_generated$ebnf$1", "altercol_generated$subexpression$2", "altercol_generated$ebnf$2"], "postprocess":  x => ({
+            type: 'add generated',
+            ...x[1] && { always: toStr(x[1]) },
+            ...x[3] && { sequence: unwrap(x[3]) },
+        }) },
+    {"name": "altercol_generated_seq$ebnf$1$subexpression$1", "symbols": ["kw_sequence", "kw_name", "qualified_name"], "postprocess": last},
+    {"name": "altercol_generated_seq$ebnf$1", "symbols": ["altercol_generated_seq$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "altercol_generated_seq$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "altercol_generated_seq$ebnf$2", "symbols": []},
+    {"name": "altercol_generated_seq$ebnf$2", "symbols": ["altercol_generated_seq$ebnf$2", "create_sequence_option"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "altercol_generated_seq", "symbols": ["altercol_generated_seq$ebnf$1", "altercol_generated_seq$ebnf$2"], "postprocess":  x => {
+            const ret: any = {
+                ...x[0] && { name:unwrap(x[0]) },
+            };
+            setSeqOpts(ret, x[1]);
+            return ret;
+        }},
     {"name": "delete_statement", "symbols": ["delete_delete"]},
     {"name": "delete_statement", "symbols": ["delete_truncate"]},
     {"name": "delete_delete$subexpression$1", "symbols": ["kw_delete", (lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from)]},

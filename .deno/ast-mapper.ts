@@ -28,6 +28,7 @@ export interface IAstPartialMapper {
     alterColumn?: (change: a.TableAlterationAlterColumn, inTable: a.QNameAliased) => a.TableAlteration | nil
     setColumnType?: (alter: a.AlterColumnSetType, inTable: a.QName, inColumn: string) => a.AlterColumn | nil
     alterColumnSimple?: (alter: a.AlterColumnSimple, inTable: a.QName, inColumn: string) => a.AlterColumn | nil
+    alterColumnAddGenerated?: (alter: a.AlterColumnAddGenerated, inTable: a.QName, inColumn: string) => a.AlterColumn | nil
     setColumnDefault?: (alter: a.AlterColumnSetDefault, inTable: a.QName, inColumn: string) => a.AlterColumn | nil
     addConstraint?: (change: a.TableAlterationAddConstraint, inTable: a.QName) => a.TableAlteration | nil
     addColumn?: (change: a.TableAlterationAddColumn, inTable: a.QName) => a.TableAlteration | nil
@@ -534,6 +535,9 @@ export class AstDefaultMapper implements IAstMapper {
             case 'drop not null':
                 alter = this.alterColumnSimple(change.alter, inTable, change.column);
                 break;
+            case 'add generated':
+                alter = this.alterColumnAddGenerated(change.alter, inTable, change.column);
+                break;
             default:
                 throw NotSupported.never(change.alter);
         }
@@ -550,6 +554,10 @@ export class AstDefaultMapper implements IAstMapper {
         return assignChanged(alter, {
             dataType,
         });
+    }
+
+    alterColumnAddGenerated (alter: a.AlterColumnAddGenerated, inTable: a.QName, inColumn: string): a.AlterColumn | nil {
+        return alter;
     }
 
 

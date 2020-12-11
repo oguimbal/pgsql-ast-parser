@@ -39,11 +39,14 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
         case 'foreign key':
             ret.push('('
                 , ...c.localColumns.map(name).join(', ')
-                , ') REFERENCES '
-                , name(c.foreignTable)
-                , '('
+                , ') REFERENCES ');
+            m.tableRef(c.foreignTable);
+            ret.push( '('
                 , ...c.foreignColumns.map(name).join(', ')
                 , ') ');
+            if (c.match) {
+                ret.push(' MATCH ', c.match.toUpperCase());
+            }
             if (c.onDelete) {
                 ret.push(' ON DELETE ', c.onDelete);
             }
@@ -230,6 +233,26 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     alterColumnSimple: c => ret.push(c.type),
+
+
+
+    alterColumnAddGenerated: (alter, intable, inColu    ) => {
+        ret.push(' ADD GENERATED ');
+        if (alter.always) {
+            ret.push(alter.always.toUpperCase(), ' ');
+        }
+        ret.push('AS IDENTITY ');
+        if (alter.sequence) {
+            ret.push('(');
+            if (alter.sequence.name) {
+                ret.push('SEQUENCE NAME ');
+                visitQualifiedName(alter.sequence.name);
+                ret.push(' ');
+            }
+            visitSeqOpts(m, alter.sequence);
+            ret.push(')');
+        }
+    },
 
     setColumnType: t => {
         ret.push(' SET DATA TYPE ');
