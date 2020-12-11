@@ -63,20 +63,22 @@ createtable_constraint_def_check
 
 createtable_constraint_foreignkey
     -> %kw_foreign kw_key collist_paren
-            %kw_references ident collist_paren
+            %kw_references qualified_name collist_paren
             createtable_constraint_foreignkey_onsometing:*
-        {% (x: any[]) => ({
-            type: 'foreign key',
-            localColumns: x[2],
-            foreignTable: unwrap(x[4]),
-            foreignColumns: x[5],
-            onDelete: x[6].filter((v: any) => v.onDelete).map((v: any) => v.value)[0] || 'no action',
-            onUpdate: x[6].filter((v: any) => v.onUpdate).map((v: any) => v.value)[0] || 'no action',
-        }) %}
+        {% (x: any[]) => {
+            return {
+                type: 'foreign key',
+                localColumns: x[2],
+                foreignTable: unwrap(x[4]),
+                foreignColumns: x[5],
+                ...x[6].reduce((a, b) => ({...a, ...b}), {}),
+            }
+        } %}
 
 createtable_constraint_foreignkey_onsometing
-     -> %kw_on kw_delete createtable_constraint_on_action {% x => ({onDelete: true, value: last(x)}) %}
-     | %kw_on kw_update createtable_constraint_on_action {% x => ({onUpdate: true, value: last(x)}) %}
+     -> %kw_on kw_delete createtable_constraint_on_action {% x => ({onDelete:  last(x)}) %}
+     | %kw_on kw_update createtable_constraint_on_action {% x => ({onUpdate: last(x)}) %}
+     | kw_match (%kw_full | kw_partial | kw_simple) {% x => ({match: toStr(last(x))}) %}
 
 createtable_constraint_on_action
     -> (kw_cascade

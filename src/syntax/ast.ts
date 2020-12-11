@@ -274,10 +274,11 @@ export interface ColumnConstraintDefault {
 export interface ColumnConstraintForeignKey {
     type: 'foreign key';
     constraintName?: string;
-    foreignTable: string;
+    foreignTable: QName;
     foreignColumns: string[];
-    onDelete: ConstraintAction
-    onUpdate: ConstraintAction
+    onDelete?: ConstraintAction;
+    onUpdate?: ConstraintAction;
+    match?: 'full' | 'partial' | 'simple';
 }
 
 

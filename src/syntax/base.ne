@@ -137,6 +137,9 @@ kw_by -> %word {% notReservedKw('by')  %}
 kw_row -> %word {% notReservedKw('row')  %}
 kw_rows -> %word {% notReservedKw('rows')  %}
 kw_next -> %word {% notReservedKw('next')  %}
+kw_match -> %word {% notReservedKw('match')  %}
+kw_partial -> %word {% notReservedKw('partial')  %}
+kw_simple -> %word {% notReservedKw('simple')  %}
 
 
 # === Composite keywords

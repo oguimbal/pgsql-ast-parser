@@ -344,7 +344,7 @@ describe('Create table', () => {
         }],
         constraints: [{
             type: 'foreign key',
-            foreignTable: 'category',
+            foreignTable: { name: 'category' },
             foreignColumns: ['id'],
             localColumns: ['categoryid'],
             onUpdate: 'cascade',

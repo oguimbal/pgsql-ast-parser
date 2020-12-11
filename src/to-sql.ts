@@ -39,11 +39,14 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
         case 'foreign key':
             ret.push('('
                 , ...c.localColumns.map(name).join(', ')
-                , ') REFERENCES '
-                , name(c.foreignTable)
-                , '('
+                , ') REFERENCES ');
+            m.tableRef(c.foreignTable);
+            ret.push( '('
                 , ...c.foreignColumns.map(name).join(', ')
                 , ') ');
+            if (c.match) {
+                ret.push(' MATCH ', c.match.toUpperCase());
+            }
             if (c.onDelete) {
                 ret.push(' ON DELETE ', c.onDelete);
             }

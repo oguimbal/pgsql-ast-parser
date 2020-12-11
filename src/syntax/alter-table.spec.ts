@@ -200,7 +200,7 @@ describe('Alter table', () => {
                 type: 'foreign key',
                 constraintName: 'FK_4494006ff358f754d07df5ccc87',
                 localColumns: ['userId'],
-                foreignTable: 'user',
+                foreignTable: { name: 'user' },
                 foreignColumns: ['id'],
                 onUpdate: 'no action',
                 onDelete: 'no action',
@@ -226,10 +226,29 @@ describe('Alter table', () => {
 
     checkAlterTable(`ALTER TABLE public.tbl OWNER to postgres;`, {
         type: 'alter table',
-        table: { name: 'tbl', schema: 'public'},
+        table: { name: 'tbl', schema: 'public' },
         change: {
             type: 'owner',
             to: 'postgres',
+        }
+    })
+
+    // https://github.com/oguimbal/pg-mem/issues/9
+    checkAlterTable(`ALTER TABLE ONLY public.location
+    ADD CONSTRAINT city_id_fk FOREIGN KEY (city_id) REFERENCES public.city(city_id) MATCH FULL;`, {
+        type: 'alter table',
+        table: { name: 'location', schema: 'public' },
+        only: true,
+        change: {
+            type: 'add constraint',
+            constraint: {
+                type: 'foreign key',
+                constraintName: 'city_id_fk',
+                localColumns: ['city_id'],
+                foreignColumns: ['city_id'],
+                foreignTable: { name: 'city', schema: 'public' },
+                match: 'full',
+            }
         }
     })
 });
