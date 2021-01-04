@@ -637,6 +637,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             );
         }
         ret.push(' ');
+        if (i.overriding) {
+            ret.push('OVERRIDING ', i.overriding.toUpperCase(), ' VALUE ');
+        }
 
         // insert values
         if (i.values) {
@@ -714,6 +717,17 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     selection: s => {
         ret.push('SELECT ');
+
+        if (s.distinct) {
+            if (typeof s.distinct === 'string') {
+                ret.push(s.distinct.toUpperCase());
+            } else {
+                ret.push(' DISTINCT ON ');
+                list(s.distinct, v => m.expr(v), true);
+            }
+            ret.push(' ');
+        }
+
         if (s.columns) {
             list(s.columns, c => m.selectionColumn(c), false);
         }

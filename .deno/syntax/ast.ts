@@ -87,6 +87,7 @@ export interface InsertStatement {
     into: QNameAliased;
     returning?: SelectedColumn[] | nil;
     columns?: string[] | nil;
+    overriding?: 'system' | 'user';
     /** Insert values */
     values?: (Expr | 'default')[][] | nil;
     /** Insert into select */
@@ -339,6 +340,7 @@ export interface SelectStatement {
     groupBy?: Expr[] | nil;
     limit?: LimitStatement | nil;
     orderBy?: OrderByStatement[] | nil;
+    distinct?: 'all' | 'distinct' | Expr[] | nil;
 }
 
 export interface OrderByStatement {
