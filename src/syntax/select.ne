@@ -6,11 +6,11 @@
 
 select_statement
     -> select_what select_from:? select_where:? select_groupby:? select_order_by:? select_limit
-    {% ([columns, from, where, groupBy, orderBy, limit]) => {
+    {% ([what, from, where, groupBy, orderBy, limit]) => {
         from = unwrap(from);
         groupBy = groupBy && (groupBy.length === 1 && groupBy[0].type === 'list' ? groupBy[0].expressions : groupBy);
         return {
-            columns,
+            ...what,
             ...from ? { from: Array.isArray(from) ? from : [from] } : {},
             ...groupBy ? { groupBy } : {},
             ...limit ? { limit } : {},
@@ -69,7 +69,10 @@ select_subject_select_statement -> select_statement_paren ident_aliased {% x => 
 
 
 # SELECT x,y as YY,z
-select_what -> %kw_select select_expr_list_aliased:? {% last %}
+select_what -> %kw_select select_distinct:? select_expr_list_aliased:? {% ([_, distinct, columns]) => ({
+    columns,
+    ...distinct && {distinct},
+}) %}
 
 select_expr_list_aliased -> select_expr_list_item (comma select_expr_list_item {% last %}):* {% ([head, tail]) => {
     return [head, ...(tail || [])];
@@ -79,6 +82,10 @@ select_expr_list_item -> expr ident_aliased:? {% x => ({
     expr: x[0],
     ...x[1] ? {alias: unwrap(x[1]) } : {},
 }) %}
+
+select_distinct
+    -> %kw_all {% () => 'all' %}
+    | %kw_distinct (%kw_on lparen expr_list_raw rparen {% get(2) %}):? {% ([_, e]) => e || 'distinct' %}
 
 # WHERE [expr]
 select_where -> %kw_where expr {% last %}

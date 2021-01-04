@@ -292,4 +292,32 @@ describe('Select statements', () => {
         }]
     })
 
+    checkSelect(['select distinct a from test'], {
+        type: 'select',
+        from: [{ type: 'table', name: 'test' }],
+        distinct: 'distinct',
+        columns: noAlias([{ type: 'ref', name: 'a' }]),
+    });
+
+    checkSelect(['select distinct on (a) a from test'], {
+        type: 'select',
+        from: [{ type: 'table', name: 'test' }],
+        distinct: [{ type: 'ref', name: 'a' }],
+        columns: noAlias([{ type: 'ref', name: 'a' }]),
+    });
+
+    checkSelect(['select distinct on (a, b) a from test'], {
+        type: 'select',
+        from: [{ type: 'table', name: 'test' }],
+        distinct: [{ type: 'ref', name: 'a' }, { type: 'ref', name: 'b' }],
+        columns: noAlias([{ type: 'ref', name: 'a' }]),
+    });
+
+
+    checkSelect(['select all a from test'], {
+        type: 'select',
+        from: [{ type: 'table', name: 'test' }],
+        distinct: 'all',
+        columns: noAlias([{ type: 'ref', name: 'a' }]),
+    });
 });
