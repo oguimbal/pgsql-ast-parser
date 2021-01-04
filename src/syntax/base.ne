@@ -106,6 +106,7 @@ kw_tablespace -> %word {% notReservedKw('tablespace')  %}
 kw_transaction -> %word {% notReservedKw('transaction')  %}
 kw_rollback -> %word {% notReservedKw('rollback')  %}
 kw_insert -> %word {% notReservedKw('insert')  %}
+kw_value -> %word {% notReservedKw('value')  %}
 kw_values -> %word {% notReservedKw('values')  %}
 kw_update -> %word {% notReservedKw('update')  %}
 kw_set -> %word {% notReservedKw('set')  %}
@@ -145,6 +146,8 @@ kw_always -> %word {% notReservedKw('always')  %}
 kw_identity -> %word {% notReservedKw('identity')  %}
 kw_name -> %word {% notReservedKw('name')  %}
 kw_enum -> %word {% notReservedKw('enum')  %}
+kw_overriding -> %word {% notReservedKw('overriding')  %}
+kw_system -> %word {% notReservedKw('system')  %}
 
 
 # === Composite keywords

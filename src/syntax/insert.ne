@@ -6,24 +6,27 @@
 insert_statement -> (kw_insert %kw_into)
                         table_ref_aliased
                     collist_paren:?
+                    (kw_overriding (kw_system | %kw_user) kw_value {% get(1) %}):?
                     (kw_values insert_values {% last %}):?
                     (select_statement | select_statement_paren):?
                     (%kw_on kw_conflict insert_on_conflict {% last %}):?
                     (%kw_returning select_expr_list_aliased {% last %}):?
                     {% x => {
                         const columns = x[2];
-                        const values = x[3];
-                        const select = unwrap(x[4]);
-                        const onConflict = x[5];
-                        const returning = x[6];
+                        const overriding = toStr(x[3]);
+                        const values = x[4];
+                        const select = unwrap(x[5]);
+                        const onConflict = x[6];
+                        const returning = x[7];
                         return {
                             type: 'insert',
                             into: unwrap(x[1]),
-                            ...columns ? { columns } : {},
-                            ...values ? { values } : {},
-                            ...select ? { select } : {},
-                            ...returning ? { returning } : {},
-                            ...onConflict ? { onConflict } : {},
+                            ...overriding && { overriding },
+                            ...columns && { columns },
+                            ...values && { values },
+                            ...select && { select },
+                            ...returning && { returning },
+                            ...onConflict && { onConflict },
                         }
                     } %}
 

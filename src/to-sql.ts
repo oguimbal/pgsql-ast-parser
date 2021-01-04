@@ -637,6 +637,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             );
         }
         ret.push(' ');
+        if (i.overriding) {
+            ret.push('OVERRIDING ', i.overriding.toUpperCase(), ' VALUE ');
+        }
 
         // insert values
         if (i.values) {

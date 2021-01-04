@@ -87,6 +87,7 @@ export interface InsertStatement {
     into: QNameAliased;
     returning?: SelectedColumn[] | nil;
     columns?: string[] | nil;
+    overriding?: 'system' | 'user';
     /** Insert values */
     values?: (Expr | 'default')[][] | nil;
     /** Insert into select */

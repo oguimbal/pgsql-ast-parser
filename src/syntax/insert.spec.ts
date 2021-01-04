@@ -173,4 +173,29 @@ describe('Insert', () => {
         }
             , 'default']]
     });
+
+    checkInsert([`insert into test(a, b) overriding system value values (1, default)`], {
+        type: 'insert',
+        into: { name: 'test' },
+        columns: ['a', 'b'],
+        overriding: 'system',
+        values: [[{
+            type: 'integer',
+            value: 1,
+        }
+            , 'default']]
+    });
+
+
+    checkInsert([`insert into test(a, b) overriding user value values (1, default)`], {
+        type: 'insert',
+        into: { name: 'test' },
+        columns: ['a', 'b'],
+        overriding: 'user',
+        values: [[{
+            type: 'integer',
+            value: 1,
+        }
+            , 'default']]
+    });
 });
