@@ -1531,6 +1531,7 @@ const grammar: Grammar = {
     {"name": "with_statement_statement", "symbols": ["insert_statement"]},
     {"name": "with_statement_statement", "symbols": ["update_statement"]},
     {"name": "with_statement_statement", "symbols": ["delete_statement"]},
+    {"name": "with_statement_statement", "symbols": ["union_statement"]},
     {"name": "createtype_statement$subexpression$1", "symbols": ["createtype_enum"]},
     {"name": "createtype_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "kw_type", "qualified_name", "createtype_statement$subexpression$1"], "postprocess":  x => ({
             name: x[2],

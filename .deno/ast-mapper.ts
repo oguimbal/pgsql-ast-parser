@@ -159,6 +159,7 @@ function withAccepts(val: a.Statement | nil): val is a.WithStatementBinding {
         case 'delete':
         case 'insert':
         case 'update':
+        case 'union':
             return true;
         default:
             return false;
