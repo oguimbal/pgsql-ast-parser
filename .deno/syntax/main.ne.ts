@@ -13,6 +13,7 @@ declare var star: any;
 declare var string: any;
 declare var eString: any;
 declare var kw_primary: any;
+declare var kw_unique: any;
 declare var word: any;
 declare var kw_not: any;
 declare var kw_null: any;
@@ -273,6 +274,7 @@ const grammar: Grammar = {
     {"name": "string", "symbols": ["string$subexpression$1"], "postprocess": x => unwrap(x[0]).value},
     {"name": "ident", "symbols": ["word"], "postprocess": unwrap},
     {"name": "word", "symbols": [(lexerAny.has("kw_primary") ? {type: "kw_primary"} : kw_primary)], "postprocess": () => 'primary'},
+    {"name": "word", "symbols": [(lexerAny.has("kw_unique") ? {type: "kw_unique"} : kw_unique)], "postprocess": () => 'unique'},
     {"name": "word", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess":  x => {
             const val = x[0].value;
             return val[0] === '"' ? val.substr(1, val.length - 2) : val;
