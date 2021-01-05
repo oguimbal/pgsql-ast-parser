@@ -11,6 +11,7 @@ export type Statement = (SelectStatement
     | CommitStatement
     | InsertStatement
     | UpdateStatement
+    | ShowStatement
     | DeleteStatement
     | WithStatement
     | RollbackStatement
@@ -32,6 +33,12 @@ export interface CreateEnumType {
     type: 'create enum',
     name: QName;
     values: string[];
+}
+
+
+export interface ShowStatement {
+    type: 'show';
+    variable: string;
 }
 
 export interface TruncateTableStatement {

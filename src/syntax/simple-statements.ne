@@ -10,6 +10,7 @@ simplestatements_all
     | simplestatements_rollback
     | simplestatements_tablespace
     | simplestatements_set
+    | simplestatements_show
 
 
 
@@ -48,3 +49,6 @@ simplestatements_set_val
 simplestatements_set_val_raw
     -> (string | int) {% x => ({ type: 'value', value: unwrap(x) }) %}
     | (%word | %kw_on | %kw_true | %kw_false) {% x => ({ type: 'identifier', name: unwrap(x).value }) %}
+
+
+simplestatements_show -> kw_show ident {% x => ({ type: 'show', variable: toStr(x[1]) }) %}

@@ -17,6 +17,12 @@ describe('Simple statements', () => {
     });
 
 
+    checkStatement(['show server_version', 'show SERVER_VERSION'], {
+        type: 'show',
+        variable: 'server_version',
+    });
+
+
 
     checkStatement(['tablespace abc'], {
         type: 'tablespace',
