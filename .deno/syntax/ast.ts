@@ -12,6 +12,7 @@ export type Statement = (SelectStatement
     | InsertStatement
     | UpdateStatement
     | DeleteStatement
+    | WithStatement
     | RollbackStatement
     | TablespaceStatement
     | AlterTableStatement
@@ -332,6 +333,15 @@ export interface ColumnConstraintCheck {
     expr: Expr;
 }
 
+export type WithStatementBinding = SelectStatement | InsertStatement | UpdateStatement | DeleteStatement;
+export interface WithStatement {
+    type: 'with';
+    bind: {
+        alias: string;
+        statement: WithStatementBinding;
+    }[];
+    in: WithStatementBinding;
+}
 
 export interface SelectStatement {
     type: 'select',

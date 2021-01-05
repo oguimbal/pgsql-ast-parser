@@ -490,6 +490,17 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    with: w => {
+        ret.push('WITH ');
+        list(w.bind, b => {
+            ret.push(name(b.alias), ' AS (');
+            m.statement(b.statement);
+            ret.push(') ');
+        }, false);
+
+        m.statement(w.in);
+    },
+
     setGlobal: g => {
         ret.push('SET ', name(g.variable), ' = ');
         visitSetVal(g.set);

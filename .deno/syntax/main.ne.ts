@@ -148,6 +148,8 @@ declare var kw_session_user: any;
 declare var kw_current_user: any;
 declare var kw_table: any;
 declare var kw_concurrently: any;
+declare var kw_with: any;
+declare var kw_as: any;
 declare var kw_create: any;
 declare var kw_as: any;
 declare var comma: any;
@@ -1507,6 +1509,25 @@ const grammar: Grammar = {
             type: 'drop index',
             ...x[1] && {concurrently: true },
         }) },
+    {"name": "with_statement", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with), "with_statement_bindings", "with_statement_statement"], "postprocess":  x => ({
+            type: 'with',
+            bind: x[1],
+            in: unwrap(x[2]),
+        }) },
+    {"name": "with_statement_bindings$ebnf$1", "symbols": []},
+    {"name": "with_statement_bindings$ebnf$1$subexpression$1", "symbols": ["comma", "with_statement_binding"], "postprocess": last},
+    {"name": "with_statement_bindings$ebnf$1", "symbols": ["with_statement_bindings$ebnf$1", "with_statement_bindings$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "with_statement_bindings", "symbols": ["with_statement_binding", "with_statement_bindings$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [head, ...(tail || [])];
+        } },
+    {"name": "with_statement_binding", "symbols": ["word", (lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "lparen", "with_statement_statement", "rparen"], "postprocess":  x => ({
+            alias: toStr(x[0]),
+            statement: unwrap(x[3]),
+        }) },
+    {"name": "with_statement_statement", "symbols": ["select_statement"]},
+    {"name": "with_statement_statement", "symbols": ["insert_statement"]},
+    {"name": "with_statement_statement", "symbols": ["update_statement"]},
+    {"name": "with_statement_statement", "symbols": ["delete_statement"]},
     {"name": "createtype_statement$subexpression$1", "symbols": ["createtype_enum"]},
     {"name": "createtype_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "kw_type", "qualified_name", "createtype_statement$subexpression$1"], "postprocess":  x => ({
             name: x[2],
@@ -1568,7 +1589,8 @@ const grammar: Grammar = {
     {"name": "statement", "symbols": ["create_sequence_statement"]},
     {"name": "statement", "symbols": ["alter_sequence_statement"]},
     {"name": "statement", "symbols": ["drop_statement"]},
-    {"name": "statement", "symbols": ["createtype_statement"]}
+    {"name": "statement", "symbols": ["createtype_statement"]},
+    {"name": "statement", "symbols": ["with_statement"]}
   ],
   ParserStart: "main",
 };
