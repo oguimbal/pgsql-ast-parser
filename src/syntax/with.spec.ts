@@ -53,4 +53,32 @@ describe('With clause', () => {
             columns: [{ expr: { type: 'ref', name: 'v' } }],
         }
     });
+
+    checkStatement([`WITH sel AS (select v from data)
+                        SELECT * from sel s union (select * from sel);`], {
+        type: 'with',
+        bind: [
+            {
+                alias: 'sel',
+                statement: {
+                    type: 'select',
+                    from: [{ type: 'table', name: 'data' }],
+                    columns: [{ expr: { type: 'ref', name: 'v' } }],
+                }
+            }
+        ],
+        in: {
+            type: 'union',
+            left: {
+                type: 'select',
+                from: [{ type: 'table', name: 'sel', alias: 's' }],
+                columns: [{ expr: { type: 'ref', name: '*' } }],
+            },
+            right: {
+                type: 'select',
+                from: [{ type: 'table', name: 'sel' }],
+                columns: [{ expr: { type: 'ref', name: '*' } }],
+            },
+        }
+    });
 });
