@@ -495,6 +495,26 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         visitSetVal(g.set);
     },
 
+    setTimezone: g => {
+        ret.push('SET TIME ZONE ');
+        switch (g.to.type) {
+            case 'default':
+            case 'local':
+                ret.push(g.to.type.toUpperCase(), ' ');
+                break;
+            case 'value':
+                ret.push(typeof g.to.value === 'string'
+                    ? literal(g.to.value)
+                    : g.to.value.toString(10));
+                break;
+            case 'interval':
+                ret.push('INTERVAL ', literal(g.to.value), ' HOUR TO MINUTE');
+                break;
+            default:
+                throw NotSupported.never(g.to);
+        }
+    },
+
     dataType: d => {
         if (d?.kind === 'array') {
             m.dataType(d.arrayOf!)

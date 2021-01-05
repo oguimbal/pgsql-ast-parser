@@ -58,4 +58,43 @@ describe('Simple statements', () => {
             name: 'warning',
         }
     })
+
+    checkStatement(`SET TIME ZONE INTERVAL '+00:00' HOUR TO MINUTE`, {
+        type: 'set timezone',
+        to: {
+            type: 'interval',
+            value: '+00:00',
+        },
+    })
+
+    checkStatement(`SET TIME ZONE LOCAL`, {
+        type: 'set timezone',
+        to: {
+            type: 'local',
+        },
+    });
+
+
+    checkStatement(`SET TIME ZONE DEFAULT`, {
+        type: 'set timezone',
+        to: {
+            type: 'default',
+        },
+    });
+
+    checkStatement(`SET TIME ZONE '+8'`, {
+        type: 'set timezone',
+        to: {
+            type: 'value',
+            value: '+8',
+        },
+    });
+
+    checkStatement(`SET TIME ZONE -9`, {
+        type: 'set timezone',
+        to: {
+            type: 'value',
+            value: -9,
+        },
+    });
 });

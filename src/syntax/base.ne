@@ -148,6 +148,12 @@ kw_name -> %word {% notReservedKw('name')  %}
 kw_enum -> %word {% notReservedKw('enum')  %}
 kw_overriding -> %word {% notReservedKw('overriding')  %}
 kw_system -> %word {% notReservedKw('system')  %}
+kw_time -> %word {% notReservedKw('time')  %}
+kw_zone -> %word {% notReservedKw('zone')  %}
+kw_interval -> %word {% notReservedKw('interval')  %}
+kw_hour -> %word {% notReservedKw('hour')  %}
+kw_minute -> %word {% notReservedKw('minute')  %}
+kw_local -> %word {% notReservedKw('local')  %}
 
 
 # === Composite keywords

@@ -25,7 +25,17 @@ simplestatements_rollback -> kw_rollback {% () => ({ type: 'rollback' }) %}
 simplestatements_tablespace -> kw_tablespace word {% ([_, tbl]) => ({ type: 'tablespace', tablespace: tbl }) %}
 
 
-simplestatements_set -> kw_set ident (%op_eq | %kw_to) simplestatements_set_val {% ([_, variable, __, value])  => ({type: 'set', variable, set: value}) %}
+simplestatements_set -> kw_set (simplestatements_set_simple | simplestatements_set_timezone) {% last %}
+
+simplestatements_set_timezone -> kw_time kw_zone simplestatements_set_timezone_val {% x => ({ type: 'set timezone', to: x[2] }) %}
+
+simplestatements_set_timezone_val
+    -> (string | int) {% x => ({ type: 'value', value: unwrap(x[0]) }) %}
+    | kw_local {% () => ({ type: 'local'}) %}
+    | %kw_default  {% () => ({ type: 'default'}) %}
+    | kw_interval string kw_hour %kw_to kw_minute  {% x => ({ type: 'interval', value: x[1] }) %}
+
+simplestatements_set_simple -> ident (%op_eq | %kw_to) simplestatements_set_val {% ([variable, __, value])  => ({type: 'set', variable, set: value}) %}
 
 simplestatements_set_val
     -> simplestatements_set_val_raw {% unwrap %}
