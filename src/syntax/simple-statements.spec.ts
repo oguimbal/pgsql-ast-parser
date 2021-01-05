@@ -50,4 +50,12 @@ describe('Simple statements', () => {
         }
     })
 
+    checkStatement(`SET client_min_messages TO warning`, {
+        type: 'set',
+        variable: 'client_min_messages',
+        set: {
+            type: 'identifier',
+            name: 'warning',
+        }
+    })
 });

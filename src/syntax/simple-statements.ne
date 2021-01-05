@@ -25,7 +25,7 @@ simplestatements_rollback -> kw_rollback {% () => ({ type: 'rollback' }) %}
 simplestatements_tablespace -> kw_tablespace word {% ([_, tbl]) => ({ type: 'tablespace', tablespace: tbl }) %}
 
 
-simplestatements_set -> kw_set ident %op_eq simplestatements_set_val {% ([_, variable, __, value])  => ({type: 'set', variable, set: value}) %}
+simplestatements_set -> kw_set ident (%op_eq | %kw_to) simplestatements_set_val {% ([_, variable, __, value])  => ({type: 'set', variable, set: value}) %}
 
 simplestatements_set_val
     -> simplestatements_set_val_raw {% unwrap %}
