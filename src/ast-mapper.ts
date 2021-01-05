@@ -34,6 +34,7 @@ export interface IAstPartialMapper {
     addConstraint?: (change: a.TableAlterationAddConstraint, inTable: a.QName) => a.TableAlteration | nil
     addColumn?: (change: a.TableAlterationAddColumn, inTable: a.QName) => a.TableAlteration | nil
     createColumn?: (col: a.CreateColumnDef) => a.CreateColumnDef | nil
+    with?: (val: a.WithStatement) => a.Statement | nil
     selection?: (val: a.SelectStatement) => a.SelectStatement | nil
     from?: (from: a.From) => a.From | nil
     fromStatement?: (from: a.FromStatement) => a.From | nil
@@ -150,6 +151,18 @@ export function arrayNilMap<T extends Object>(this: void, collection: T[] | nil,
     return ret;
 }
 
+function withAccepts(val: a.Statement | nil): val is a.WithStatementBinding {
+    switch (val?.type) {
+        case 'select':
+        case 'delete':
+        case 'insert':
+        case 'update':
+            return true;
+        default:
+            return false;
+    }
+}
+
 /**
  * Can be used to modify an AST.
  *
@@ -183,6 +196,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.delete(val);
             case 'insert':
                 return this.insert(val);
+            case 'with':
+                return this.with(val);
             case 'select':
                 return this.selection(val);
             case 'update':
@@ -618,7 +633,7 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     // =========================================
-    // ============== EXPRESSIONS ==============
+    // ============== SELECTIONS ==============
     // =========================================
 
     selection(val: a.SelectStatement): a.SelectStatement | nil {
@@ -647,6 +662,28 @@ export class AstDefaultMapper implements IAstMapper {
             groupBy,
             orderBy,
         });
+    }
+
+    with(val: a.WithStatement): a.Statement | nil {
+        const bind = arrayNilMap(val.bind, s => {
+            const statement = this.statement(s.statement);
+            return withAccepts(statement)
+                ? assignChanged(s, { statement })
+                : null;
+        });
+
+        // no bindngs
+        if (!bind) {
+            return this.statement(val.in);
+        }
+        const _in = this.statement(val.in);
+        if (!withAccepts(_in)) {
+            return null;
+        }
+        return assignChanged(val, {
+            bind,
+            in: _in,
+        })
     }
 
 

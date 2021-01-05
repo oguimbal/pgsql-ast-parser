@@ -17,6 +17,7 @@ import {lexerAny, LOCATION} from '../lexer';
 @include "delete.ne"
 @include "sequence.ne"
 @include "drop.ne"
+@include "with.ne"
 @include "create-type.ne"
 
 # list of statements, separated by ";"
@@ -61,3 +62,4 @@ statement
     | alter_sequence_statement
     | drop_statement
     | createtype_statement
+    | with_statement
