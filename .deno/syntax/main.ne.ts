@@ -153,6 +153,7 @@ declare var kw_as: any;
 declare var kw_create: any;
 declare var kw_as: any;
 declare var comma: any;
+declare var kw_union: any;
 declare var semicolon: any;
 import {lexerAny, LOCATION} from '../lexer.ts';
 
@@ -450,7 +451,9 @@ const grammar: Grammar = {
                 type: 'select',
             }
         } },
-    {"name": "select_statement_paren", "symbols": ["lparen", "select_statement", "rparen"], "postprocess": get(1)},
+    {"name": "select_statement_paren$subexpression$1", "symbols": ["select_statement"]},
+    {"name": "select_statement_paren$subexpression$1", "symbols": ["union_statement"]},
+    {"name": "select_statement_paren", "symbols": ["lparen", "select_statement_paren$subexpression$1", "rparen"], "postprocess": get(1)},
     {"name": "select_from", "symbols": [(lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "select_subject"], "postprocess": last},
     {"name": "select_subject", "symbols": ["select_table_base"], "postprocess": get(0)},
     {"name": "select_subject", "symbols": ["select_subject_joins"], "postprocess": get(0)},
@@ -1544,6 +1547,17 @@ const grammar: Grammar = {
             type: 'create enum',
             values: x[3],
         }) },
+    {"name": "union_item", "symbols": ["select_statement"]},
+    {"name": "union_item", "symbols": ["select_statement_paren"]},
+    {"name": "union_statement$subexpression$1", "symbols": ["union_item"]},
+    {"name": "union_statement$subexpression$1", "symbols": ["union_statement"]},
+    {"name": "union_statement", "symbols": ["union_item", (lexerAny.has("kw_union") ? {type: "kw_union"} : kw_union), "union_statement$subexpression$1"], "postprocess":  ([left,_,right]) => {
+            return {
+                type: 'union',
+                left: unwrap(left),
+                right: unwrap(right),
+            };
+        } },
     {"name": "main$ebnf$1", "symbols": []},
     {"name": "main$ebnf$1", "symbols": ["main$ebnf$1", "statement_separator"], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "main$ebnf$2", "symbols": []},
@@ -1590,7 +1604,8 @@ const grammar: Grammar = {
     {"name": "statement", "symbols": ["alter_sequence_statement"]},
     {"name": "statement", "symbols": ["drop_statement"]},
     {"name": "statement", "symbols": ["createtype_statement"]},
-    {"name": "statement", "symbols": ["with_statement"]}
+    {"name": "statement", "symbols": ["with_statement"]},
+    {"name": "statement", "symbols": ["union_statement"]}
   ],
   ParserStart: "main",
 };

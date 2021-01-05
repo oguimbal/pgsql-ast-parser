@@ -343,7 +343,9 @@ export interface WithStatement {
     in: WithStatementBinding;
 }
 
-export interface SelectStatement {
+export type SelectStatement = SelectFromStatement | SelectFromUnion;
+
+export interface SelectFromStatement {
     type: 'select',
     columns?: SelectedColumn[] | nil;
     from?: From[] | nil;
@@ -352,6 +354,12 @@ export interface SelectStatement {
     limit?: LimitStatement | nil;
     orderBy?: OrderByStatement[] | nil;
     distinct?: 'all' | 'distinct' | Expr[] | nil;
+}
+
+export interface SelectFromUnion {
+    type: 'union',
+    left: SelectStatement;
+    right: SelectStatement;
 }
 
 export interface OrderByStatement {
