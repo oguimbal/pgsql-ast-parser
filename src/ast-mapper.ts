@@ -37,6 +37,7 @@ export interface IAstPartialMapper {
     selection?: (val: a.SelectStatement) => a.SelectStatement | nil
     from?: (from: a.From) => a.From | nil
     fromStatement?: (from: a.FromStatement) => a.From | nil
+    fromValues?: (from: a.FromValues) => a.From | nil;
     fromTable?: (from: a.FromTable) => a.From | nil
     selectionColumn?: (val: a.SelectedColumn) => a.SelectedColumn | nil
     expr?: (val: a.Expr) => a.Expr | nil
@@ -564,7 +565,7 @@ export class AstDefaultMapper implements IAstMapper {
         });
     }
 
-    alterColumnAddGenerated (alter: a.AlterColumnAddGenerated, inTable: a.QName, inColumn: string): a.AlterColumn | nil {
+    alterColumnAddGenerated(alter: a.AlterColumnAddGenerated, inTable: a.QName, inColumn: string): a.AlterColumn | nil {
         return alter;
     }
 
@@ -648,6 +649,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.fromTable(from);
             case 'statement':
                 return this.fromStatement(from);
+            case 'values':
+                return this.fromValues(from);
             default:
                 throw NotSupported.never(from);
         }
@@ -663,6 +666,16 @@ export class AstDefaultMapper implements IAstMapper {
             statement,
             join,
         })
+    }
+
+    fromValues(from: a.FromValues): a.From | nil {
+        const values = arrayNilMap(from.values, x => arrayNilMap(x, y => this.expr(y)));
+        if (!values?.length) {
+            return null; // nothing to select from
+        }
+        return assignChanged(from, {
+            values,
+        });
     }
 
     join(join: a.JoinClause): a.JoinClause | nil {

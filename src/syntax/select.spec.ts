@@ -320,4 +320,67 @@ describe('Select statements', () => {
         distinct: 'all',
         columns: noAlias([{ type: 'ref', name: 'a' }]),
     });
+
+
+    checkSelect([`select * from (values (1, 'one'), (2, 'two')) as vals (num, letter)`], {
+        type: 'select',
+        from: [{
+            type: 'values',
+            alias: 'vals',
+            columnNames: ['num', 'letter'],
+            values: [
+                [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
+                [{ type: 'integer', value: 2 }, { type: 'string', value: 'two' }],
+            ],
+        }],
+        columns: noAlias([{ type: 'ref', name: '*' }])
+    });
+
+    checkSelect([`select * from (values (1, 'one'), (2, 'two')) as vals`], {
+        type: 'select',
+        from: [{
+            type: 'values',
+            alias: 'vals',
+            values: [
+                [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
+                [{ type: 'integer', value: 2 }, { type: 'string', value: 'two' }],
+            ],
+        }],
+        columns: noAlias([{ type: 'ref', name: '*' }])
+    });
+
+    checkSelect([`SELECT t1.id FROM (ta t1 JOIN tb t2 ON ((t1.id = t2.n)));`], {
+        type: 'select',
+        columns: noAlias([{
+            type: 'ref',
+            name: 'id',
+            table: 't1'
+        }]),
+        from: [{
+            type: 'table',
+            name: 'ta',
+            alias: 't1',
+        }, {
+            type: 'table',
+            name: 'tb',
+            alias: 't2',
+            join: {
+                type: 'INNER JOIN',
+                on: {
+                    type: 'binary',
+                    op: '=',
+                    left: {
+                        type: 'ref',
+                        table: 't1',
+                        name: 'id',
+                    },
+                    right: {
+                        type: 'ref',
+                        table: 't2',
+                        name: 'n',
+                    },
+                }
+            }
+        }]
+    })
 });

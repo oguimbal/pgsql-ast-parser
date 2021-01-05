@@ -27,7 +27,11 @@ select_from -> %kw_from select_subject {% last %}
 
 # Table name or another select statement wrapped in parens
 select_subject
-    -> select_table_base select_table_join:* {% ([head, tail]) => {
+    -> select_table_base {% get(0) %}
+    | select_subject_joins  {% get(0) %}
+    | lparen select_subject_joins rparen  {% get(1) %}
+
+select_subject_joins -> select_table_base select_table_join:+ {% ([head, tail]) => {
     return [head, ...(tail || [])];
 } %}
 
@@ -37,6 +41,7 @@ select_table_base
         return { type: 'table', ...x[0]};
     } %}
     | select_subject_select_statement {% unwrap %}
+    | select_subject_select_values {% unwrap %}
 
 # [, othertable] or [join expression]
 # select_table_joined
@@ -67,6 +72,14 @@ select_subject_select_statement -> select_statement_paren ident_aliased {% x => 
     alias: unwrap(x[1])
 }) %}
 
+
+# Select values: select * from (values (1, 'one'), (2, 'two')) as vals (num, letter)
+select_subject_select_values -> lparen kw_values insert_values rparen %kw_as ident collist_paren:? {% x => ({
+    type: 'values',
+    alias: x[5],
+    values: x[2],
+    ...x[6] && {columnNames: x[6]},
+}) %}
 
 # SELECT x,y as YY,z
 select_what -> %kw_select select_distinct:? select_expr_list_aliased:? {% ([_, distinct, columns]) => ({

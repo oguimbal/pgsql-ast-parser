@@ -614,6 +614,20 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(' ');
     },
 
+    fromValues: s => {
+        join(m, s.join, () => {
+            ret.push('(VALUES ');
+            list(s.values, vlist => {
+                list(vlist, e => {
+                    m.expr(e);
+                });
+            }, false);
+            ret.push(') AS ', name(s.alias));
+            if (s.columnNames) {
+                list(s.columnNames, s => ret.push(s), true);
+            }
+        });
+    },
 
     fromTable: s => {
         join(m, s.join, () => {
