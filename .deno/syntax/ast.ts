@@ -17,6 +17,7 @@ export type Statement = (SelectStatement
     | AlterTableStatement
     | AlterSequenceStatement
     | SetGlobalStatement
+    | SetTimezone
     | CreateEnumType
     | TruncateTableStatement
     | DropTableStatement
@@ -572,6 +573,20 @@ export interface SetGlobalStatement {
     variable: string;
     set: SetGlobalValue;
 }
+export interface SetTimezone {
+    type: 'set timezone',
+    to: SetTimezoneValue;
+}
+
+export type SetTimezoneValue = {
+    type: 'value';
+    value: number | string;
+} | {
+    type: 'local' | 'default';
+} | {
+    type: 'interval';
+    value: string;
+};
 
 type SetGlobalValueRaw = {
     type: 'value',

@@ -113,9 +113,9 @@ declare var kw_desc: any;
 declare var kw_create: any;
 declare var kw_with: any;
 declare var kw_from: any;
-declare var op_eq: any;
-declare var kw_to: any;
 declare var kw_default: any;
+declare var kw_to: any;
+declare var op_eq: any;
 declare var word: any;
 declare var kw_on: any;
 declare var kw_true: any;
@@ -342,6 +342,12 @@ const grammar: Grammar = {
     {"name": "kw_enum", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('enum')},
     {"name": "kw_overriding", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('overriding')},
     {"name": "kw_system", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('system')},
+    {"name": "kw_time", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('time')},
+    {"name": "kw_zone", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('zone')},
+    {"name": "kw_interval", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('interval')},
+    {"name": "kw_hour", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('hour')},
+    {"name": "kw_minute", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('minute')},
+    {"name": "kw_local", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('local')},
     {"name": "kw_ifnotexists", "symbols": ["kw_if", (lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), "kw_exists"]},
     {"name": "kw_ifexists", "symbols": ["kw_if", "kw_exists"]},
     {"name": "kw_not_null", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), (lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
@@ -1122,9 +1128,19 @@ const grammar: Grammar = {
     {"name": "simplestatements_commit", "symbols": ["kw_commit"], "postprocess": () => ({ type: 'commit' })},
     {"name": "simplestatements_rollback", "symbols": ["kw_rollback"], "postprocess": () => ({ type: 'rollback' })},
     {"name": "simplestatements_tablespace", "symbols": ["kw_tablespace", "word"], "postprocess": ([_, tbl]) => ({ type: 'tablespace', tablespace: tbl })},
-    {"name": "simplestatements_set$subexpression$1", "symbols": [(lexerAny.has("op_eq") ? {type: "op_eq"} : op_eq)]},
-    {"name": "simplestatements_set$subexpression$1", "symbols": [(lexerAny.has("kw_to") ? {type: "kw_to"} : kw_to)]},
-    {"name": "simplestatements_set", "symbols": ["kw_set", "ident", "simplestatements_set$subexpression$1", "simplestatements_set_val"], "postprocess": ([_, variable, __, value])  => ({type: 'set', variable, set: value})},
+    {"name": "simplestatements_set$subexpression$1", "symbols": ["simplestatements_set_simple"]},
+    {"name": "simplestatements_set$subexpression$1", "symbols": ["simplestatements_set_timezone"]},
+    {"name": "simplestatements_set", "symbols": ["kw_set", "simplestatements_set$subexpression$1"], "postprocess": last},
+    {"name": "simplestatements_set_timezone", "symbols": ["kw_time", "kw_zone", "simplestatements_set_timezone_val"], "postprocess": x => ({ type: 'set timezone', to: x[2] })},
+    {"name": "simplestatements_set_timezone_val$subexpression$1", "symbols": ["string"]},
+    {"name": "simplestatements_set_timezone_val$subexpression$1", "symbols": ["int"]},
+    {"name": "simplestatements_set_timezone_val", "symbols": ["simplestatements_set_timezone_val$subexpression$1"], "postprocess": x => ({ type: 'value', value: unwrap(x[0]) })},
+    {"name": "simplestatements_set_timezone_val", "symbols": ["kw_local"], "postprocess": () => ({ type: 'local'})},
+    {"name": "simplestatements_set_timezone_val", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default)], "postprocess": () => ({ type: 'default'})},
+    {"name": "simplestatements_set_timezone_val", "symbols": ["kw_interval", "string", "kw_hour", (lexerAny.has("kw_to") ? {type: "kw_to"} : kw_to), "kw_minute"], "postprocess": x => ({ type: 'interval', value: x[1] })},
+    {"name": "simplestatements_set_simple$subexpression$1", "symbols": [(lexerAny.has("op_eq") ? {type: "op_eq"} : op_eq)]},
+    {"name": "simplestatements_set_simple$subexpression$1", "symbols": [(lexerAny.has("kw_to") ? {type: "kw_to"} : kw_to)]},
+    {"name": "simplestatements_set_simple", "symbols": ["ident", "simplestatements_set_simple$subexpression$1", "simplestatements_set_val"], "postprocess": ([variable, __, value])  => ({type: 'set', variable, set: value})},
     {"name": "simplestatements_set_val", "symbols": ["simplestatements_set_val_raw"], "postprocess": unwrap},
     {"name": "simplestatements_set_val", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default)], "postprocess": x => ({type: 'default'})},
     {"name": "simplestatements_set_val$ebnf$1$subexpression$1", "symbols": ["comma", "simplestatements_set_val_raw"]},
