@@ -55,7 +55,9 @@ star -> %star {% x => x[0].value %}
 string -> (%string | %eString) {% x => unwrap(x[0]).value %}
 
 ident -> word {% unwrap %}
-word -> %word  {% x => {
+word
+    ->  %kw_primary {% () => 'primary' %}
+    | %word  {% x => {
     const val = x[0].value;
     return val[0] === '"' ? val.substr(1, val.length - 2) : val;
 } %}

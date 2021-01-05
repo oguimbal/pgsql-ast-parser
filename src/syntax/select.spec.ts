@@ -23,6 +23,17 @@ describe('Select statements', () => {
         }]),
     });
 
+    // bugfix
+    checkSelect(['select 42 as primary'], {
+        type: 'select',
+        columns: [{
+            expr: {
+                type: 'integer',
+                value: 42
+            },
+            alias: 'primary',
+        }],
+    });
     checkSelect(['select count(*)'], {
         type: 'select',
         columns: noAlias([{
