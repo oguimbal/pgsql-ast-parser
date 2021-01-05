@@ -372,7 +372,16 @@ export interface SelectedColumn {
     alias?: string;
 }
 
-export type From = FromTable | FromStatement;
+export type From = FromTable | FromStatement | FromValues;
+
+
+export interface FromValues {
+    type: 'values';
+    alias: string;
+    values: Expr[][];
+    columnNames?: string[] | nil;
+    join?: JoinClause | nil;
+}
 
 
 export interface QNameAliased extends QName {

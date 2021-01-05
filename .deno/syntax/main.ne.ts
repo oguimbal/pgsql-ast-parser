@@ -30,6 +30,7 @@ declare var kw_left: any;
 declare var kw_outer: any;
 declare var kw_right: any;
 declare var kw_full: any;
+declare var kw_as: any;
 declare var kw_select: any;
 declare var kw_all: any;
 declare var kw_distinct: any;
@@ -113,6 +114,7 @@ declare var kw_create: any;
 declare var kw_with: any;
 declare var kw_from: any;
 declare var op_eq: any;
+declare var kw_to: any;
 declare var kw_default: any;
 declare var word: any;
 declare var kw_on: any;
@@ -442,15 +444,19 @@ const grammar: Grammar = {
         } },
     {"name": "select_statement_paren", "symbols": ["lparen", "select_statement", "rparen"], "postprocess": get(1)},
     {"name": "select_from", "symbols": [(lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "select_subject"], "postprocess": last},
-    {"name": "select_subject$ebnf$1", "symbols": []},
-    {"name": "select_subject$ebnf$1", "symbols": ["select_subject$ebnf$1", "select_table_join"], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "select_subject", "symbols": ["select_table_base", "select_subject$ebnf$1"], "postprocess":  ([head, tail]) => {
+    {"name": "select_subject", "symbols": ["select_table_base"], "postprocess": get(0)},
+    {"name": "select_subject", "symbols": ["select_subject_joins"], "postprocess": get(0)},
+    {"name": "select_subject", "symbols": ["lparen", "select_subject_joins", "rparen"], "postprocess": get(1)},
+    {"name": "select_subject_joins$ebnf$1", "symbols": ["select_table_join"]},
+    {"name": "select_subject_joins$ebnf$1", "symbols": ["select_subject_joins$ebnf$1", "select_table_join"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "select_subject_joins", "symbols": ["select_table_base", "select_subject_joins$ebnf$1"], "postprocess":  ([head, tail]) => {
             return [head, ...(tail || [])];
         } },
     {"name": "select_table_base", "symbols": ["table_ref_aliased"], "postprocess":  x => {
             return { type: 'table', ...x[0]};
         } },
     {"name": "select_table_base", "symbols": ["select_subject_select_statement"], "postprocess": unwrap},
+    {"name": "select_table_base", "symbols": ["select_subject_select_values"], "postprocess": unwrap},
     {"name": "select_table_join$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "expr"], "postprocess": last},
     {"name": "select_table_join$ebnf$1", "symbols": ["select_table_join$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "select_table_join$ebnf$1", "symbols": [], "postprocess": () => null},
@@ -481,6 +487,14 @@ const grammar: Grammar = {
             type: 'statement',
             statement: unwrap(x[0]),
             alias: unwrap(x[1])
+        }) },
+    {"name": "select_subject_select_values$ebnf$1", "symbols": ["collist_paren"], "postprocess": id},
+    {"name": "select_subject_select_values$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "select_subject_select_values", "symbols": ["lparen", "kw_values", "insert_values", "rparen", (lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "ident", "select_subject_select_values$ebnf$1"], "postprocess":  x => ({
+            type: 'values',
+            alias: x[5],
+            values: x[2],
+            ...x[6] && {columnNames: x[6]},
         }) },
     {"name": "select_what$ebnf$1", "symbols": ["select_distinct"], "postprocess": id},
     {"name": "select_what$ebnf$1", "symbols": [], "postprocess": () => null},
@@ -1108,7 +1122,9 @@ const grammar: Grammar = {
     {"name": "simplestatements_commit", "symbols": ["kw_commit"], "postprocess": () => ({ type: 'commit' })},
     {"name": "simplestatements_rollback", "symbols": ["kw_rollback"], "postprocess": () => ({ type: 'rollback' })},
     {"name": "simplestatements_tablespace", "symbols": ["kw_tablespace", "word"], "postprocess": ([_, tbl]) => ({ type: 'tablespace', tablespace: tbl })},
-    {"name": "simplestatements_set", "symbols": ["kw_set", "ident", (lexerAny.has("op_eq") ? {type: "op_eq"} : op_eq), "simplestatements_set_val"], "postprocess": ([_, variable, __, value])  => ({type: 'set', variable, set: value})},
+    {"name": "simplestatements_set$subexpression$1", "symbols": [(lexerAny.has("op_eq") ? {type: "op_eq"} : op_eq)]},
+    {"name": "simplestatements_set$subexpression$1", "symbols": [(lexerAny.has("kw_to") ? {type: "kw_to"} : kw_to)]},
+    {"name": "simplestatements_set", "symbols": ["kw_set", "ident", "simplestatements_set$subexpression$1", "simplestatements_set_val"], "postprocess": ([_, variable, __, value])  => ({type: 'set', variable, set: value})},
     {"name": "simplestatements_set_val", "symbols": ["simplestatements_set_val_raw"], "postprocess": unwrap},
     {"name": "simplestatements_set_val", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default)], "postprocess": x => ({type: 'default'})},
     {"name": "simplestatements_set_val$ebnf$1$subexpression$1", "symbols": ["comma", "simplestatements_set_val_raw"]},
