@@ -23,17 +23,25 @@ describe('Select statements', () => {
         }]),
     });
 
+
+    function aliased(alias: string): SelectStatement {
+        return  {
+            type: 'select',
+            columns: [{
+                expr: {
+                    type: 'integer',
+                    value: 42
+                },
+                alias,
+            }],
+        };
+    }
     // bugfix
-    checkSelect(['select 42 as primary'], {
-        type: 'select',
-        columns: [{
-            expr: {
-                type: 'integer',
-                value: 42
-            },
-            alias: 'primary',
-        }],
-    });
+    checkSelect(['select 42 as primary'], aliased('primary'));
+
+    checkSelect(['select 42 as unique'], aliased('unique'));
+
+
     checkSelect(['select count(*)'], {
         type: 'select',
         columns: noAlias([{
