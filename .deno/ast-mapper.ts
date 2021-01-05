@@ -11,6 +11,7 @@ export interface IAstPartialMapper {
     dropTable?: (val: a.DropTableStatement) => a.Statement | nil
     createEnum?(val: a.CreateEnumType): a.Statement | nil
     dropIndex?: (val: a.DropIndexStatement) => a.Statement | nil
+    show?: (val: a.ShowStatement) => a.Statement | nil
     dropSequence?: (val: a.DropSequenceStatement) => a.Statement | nil
     createTable?: (val: a.CreateTableStatement) => a.Statement | nil
     truncateTable?: (val: a.TruncateTableStatement) => a.Statement | nil
@@ -227,11 +228,17 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.createEnum(val);
             case 'union':
                 return this.union(val);
+            case 'show':
+                return this.show(val);
             default:
                 throw NotSupported.never(val);
         }
     }
 
+
+    show(val: a.ShowStatement): a.Statement | nil {
+        return val;
+    }
 
     createEnum(val: a.CreateEnumType): a.Statement | nil {
         return val;

@@ -820,6 +820,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    show: s => {
+        ret.push('SHOW ', name(s.variable));
+    },
+
     union: s => {
         ret.push('(');
         m.statement(s.left);
