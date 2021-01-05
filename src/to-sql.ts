@@ -635,7 +635,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         // todo: use 's.db' if defined
         join(m, s.join, () => {
             ret.push('(');
-            m.selection(s.statement);
+            m.select(s.statement);
             ret.push(') ');
             if (s.alias) {
                 ret.push(' AS ', name(s.alias), ' ');
@@ -702,7 +702,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
 
         if (i.select) {
-            m.selection(i.select);
+            m.select(i.select);
             ret.push(' ');
         }
 
@@ -760,6 +760,8 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             , name(r.to));
     },
 
+    select: s => m.super().select(s),
+
     selection: s => {
         ret.push('SELECT ');
 
@@ -815,6 +817,19 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             } else if (typeof s.limit.limit === 'number') {
                 ret.push(`LIMIT ${s.limit.limit} `);
             }
+        }
+    },
+
+    union: s => {
+        ret.push('(');
+        m.statement(s.left);
+        ret.push(') UNION ');
+        if (s.right.type === 'union') {
+            m.union(s.right);
+        } else {
+            ret.push('(');
+            m.statement(s.right);
+            ret.push(')');
         }
     },
 

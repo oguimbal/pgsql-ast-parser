@@ -35,7 +35,9 @@ export interface IAstPartialMapper {
     addColumn?: (change: a.TableAlterationAddColumn, inTable: a.QName) => a.TableAlteration | nil
     createColumn?: (col: a.CreateColumnDef) => a.CreateColumnDef | nil
     with?: (val: a.WithStatement) => a.Statement | nil
-    selection?: (val: a.SelectStatement) => a.SelectStatement | nil
+    union?: (val: a.SelectFromUnion) => a.SelectStatement | nil
+    select?: (val: a.SelectStatement) => a.SelectStatement | nil
+    selection?: (val: a.SelectFromStatement) => a.SelectStatement | nil
     from?: (from: a.From) => a.From | nil
     fromStatement?: (from: a.FromStatement) => a.From | nil
     fromValues?: (from: a.FromValues) => a.From | nil;
@@ -222,6 +224,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.dropTable(val);
             case 'create enum':
                 return this.createEnum(val);
+            case 'union':
+                return this.union(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -310,7 +314,7 @@ export class AstDefaultMapper implements IAstMapper {
             });
         });
 
-        const select = val.select && this.selection(val.select);
+        const select = val.select && this.select(val.select);
 
         if (!values?.length && !select) {
             // nothing to insert
@@ -636,7 +640,18 @@ export class AstDefaultMapper implements IAstMapper {
     // ============== SELECTIONS ==============
     // =========================================
 
-    selection(val: a.SelectStatement): a.SelectStatement | nil {
+    select(val: a.SelectStatement): a.SelectStatement | nil {
+        switch (val.type) {
+            case 'select':
+                return this.selection(val);
+            case 'union':
+                return this.union(val);
+            default:
+                throw NotSupported.never(val);
+        }
+    }
+
+    selection(val: a.SelectFromStatement): a.SelectStatement | nil {
         const from = arrayNilMap(val.from, c => this.from(c));
         const columns = arrayNilMap(val.columns, c => this.selectionColumn(c));
         const where = val.where && this.expr(val.where);
@@ -662,6 +677,18 @@ export class AstDefaultMapper implements IAstMapper {
             groupBy,
             orderBy,
         });
+    }
+
+    union(val: a.SelectFromUnion): a.SelectStatement | nil {
+        const left = this.select(val.left);
+        const right = this.select(val.right);
+        if (!left || !right) {
+            return left ?? right;
+        }
+        return assignChanged(val, {
+            left,
+            right
+        })
     }
 
     with(val: a.WithStatement): a.Statement | nil {
@@ -701,7 +728,7 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     fromStatement(from: a.FromStatement): a.From | nil {
-        const statement = this.selection(from.statement);
+        const statement = this.select(from.statement);
         if (!statement) {
             return null; // nothing to select from
         }
@@ -786,7 +813,8 @@ export class AstDefaultMapper implements IAstMapper {
             case 'ternary':
                 return this.ternary(val);
             case 'select':
-                return this.selection(val);
+            case 'union':
+                return this.select(val);
             case 'keyword':
                 return this.valueKeyword(val);
             default:

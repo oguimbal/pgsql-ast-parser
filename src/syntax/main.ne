@@ -19,6 +19,7 @@ import {lexerAny, LOCATION} from '../lexer';
 @include "drop.ne"
 @include "with.ne"
 @include "create-type.ne"
+@include "union.ne"
 
 # list of statements, separated by ";"
 main -> statement_separator:* statement (statement_separator:+ statement):* statement_separator:*  {% ([_, head, _tail]) => {
@@ -63,3 +64,4 @@ statement
     | drop_statement
     | createtype_statement
     | with_statement
+    | union_statement

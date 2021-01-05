@@ -20,7 +20,7 @@ select_statement
         }
     } %}
 
-select_statement_paren -> lparen select_statement rparen {% get(1) %}
+select_statement_paren -> lparen (select_statement | union_statement) rparen {% get(1) %}
 
 # FROM [subject] [alias?]
 select_from -> %kw_from select_subject {% last %}
