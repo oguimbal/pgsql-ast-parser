@@ -18,6 +18,8 @@ export interface IAstPartialMapper {
     createExtension?: (val: a.CreateExtensionStatement) => a.Statement | nil
     set?: (st: a.SetStatement) => a.SetStatement | nil
     dataType?: (dataType: a.DataTypeDef) => a.DataTypeDef
+    prepare?: (st: a.PrepareStatement) => a.Statement | nil
+    parameter?: (st: a.ExprParameter) => a.Expr | nil
     tableRef?: (st: a.QNameAliased) => a.QNameAliased | nil
     transaction?: (val: a.CommitStatement | a.RollbackStatement | a.StartTransactionStatement) => a.Statement | nil
     createIndex?: (val: a.CreateIndexStatement) => a.Statement | nil
@@ -230,6 +232,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.union(val);
             case 'show':
                 return this.show(val);
+            case 'prepare':
+                return this.prepare(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -484,6 +488,16 @@ export class AstDefaultMapper implements IAstMapper {
         });
     }
 
+    prepare(st: a.PrepareStatement): a.Statement | nil {
+        const statement = this.statement(st.statement);
+        if (!statement) {
+            return null;
+        }
+        return assignChanged(st, {
+            args: arrayNilMap(st.args, a => this.dataType(a)),
+            statement,
+        })
+    }
 
     // =========================================
     // ============== ALTER TABLE ==============
@@ -825,6 +839,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.select(val);
             case 'keyword':
                 return this.valueKeyword(val);
+            case 'parameter':
+                return this.parameter(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -847,6 +863,10 @@ export class AstDefaultMapper implements IAstMapper {
             lo,
             hi,
         });
+    }
+
+    parameter (st: a.ExprParameter): a.Expr | nil {
+        return st;
     }
 
     arrayIndex(val: a.ExprArrayIndex): a.Expr | nil {

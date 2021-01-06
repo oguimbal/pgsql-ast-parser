@@ -66,6 +66,7 @@ declare var lbracket: any;
 declare var rbracket: any;
 declare var op_cast: any;
 declare var dot: any;
+declare var qparam: any;
 declare var kw_like: any;
 declare var kw_ilike: any;
 declare var op_like: any;
@@ -155,6 +156,7 @@ declare var kw_create: any;
 declare var kw_as: any;
 declare var comma: any;
 declare var kw_union: any;
+declare var kw_as: any;
 declare var semicolon: any;
 import {lexerAny, LOCATION} from '../lexer.ts';
 
@@ -355,6 +357,7 @@ const grammar: Grammar = {
     {"name": "kw_hour", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('hour')},
     {"name": "kw_minute", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('minute')},
     {"name": "kw_local", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('local')},
+    {"name": "kw_prepare", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('prepare')},
     {"name": "kw_ifnotexists", "symbols": ["kw_if", (lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), "kw_exists"]},
     {"name": "kw_ifexists", "symbols": ["kw_if", "kw_exists"]},
     {"name": "kw_not_null", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), (lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
@@ -390,6 +393,12 @@ const grammar: Grammar = {
                 }
             }
             return ret;
+        } },
+    {"name": "data_type_list$ebnf$1", "symbols": []},
+    {"name": "data_type_list$ebnf$1$subexpression$1", "symbols": ["comma", "data_type"], "postprocess": last},
+    {"name": "data_type_list$ebnf$1", "symbols": ["data_type_list$ebnf$1", "data_type_list$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "data_type_list", "symbols": ["data_type", "data_type_list$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [head, ...(tail || [])];
         } },
     {"name": "data_type_simple", "symbols": ["data_type_text"], "postprocess": x => ({ name: toStr(x, ' ') })},
     {"name": "data_type_simple", "symbols": ["data_type_numeric"], "postprocess": x => ({ name: toStr(x, ' ') })},
@@ -841,6 +850,7 @@ const grammar: Grammar = {
     {"name": "expr_primary", "symbols": [(lexerAny.has("kw_false") ? {type: "kw_false"} : kw_false)], "postprocess": () => ({ type: 'boolean', value: false })},
     {"name": "expr_primary", "symbols": [(lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)], "postprocess": ([value]) => ({ type: 'null' })},
     {"name": "expr_primary", "symbols": ["value_keyword"]},
+    {"name": "expr_primary", "symbols": [(lexerAny.has("qparam") ? {type: "qparam"} : qparam)], "postprocess": ([value]) => ({ type: 'parameter', name: toStr(value) })},
     {"name": "ops_like", "symbols": ["ops_like_keywors"]},
     {"name": "ops_like", "symbols": ["ops_like_operators"]},
     {"name": "ops_like_keywors$ebnf$1", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not)], "postprocess": id},
@@ -1565,6 +1575,15 @@ const grammar: Grammar = {
                 right: unwrap(right),
             };
         } },
+    {"name": "prepare$ebnf$1$subexpression$1", "symbols": ["lparen", "data_type_list", "rparen"], "postprocess": get(1)},
+    {"name": "prepare$ebnf$1", "symbols": ["prepare$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "prepare$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "prepare", "symbols": ["kw_prepare", "ident", "prepare$ebnf$1", (lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "statement_noprep"], "postprocess":  x => ({
+            type: 'prepare',
+            name: toStr(x[1]),
+            ...x[2] && { args: x[2] },
+            statement: unwrap(last(x)),
+        }) },
     {"name": "main$ebnf$1", "symbols": []},
     {"name": "main$ebnf$1", "symbols": ["main$ebnf$1", "statement_separator"], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "main$ebnf$2", "symbols": []},
@@ -1598,21 +1617,23 @@ const grammar: Grammar = {
             return ret;
         } },
     {"name": "statement_separator", "symbols": [(lexerAny.has("semicolon") ? {type: "semicolon"} : semicolon)]},
-    {"name": "statement", "symbols": ["select_statement"]},
-    {"name": "statement", "symbols": ["createtable_statement"]},
-    {"name": "statement", "symbols": ["createextension_statement"]},
-    {"name": "statement", "symbols": ["createindex_statement"]},
-    {"name": "statement", "symbols": ["simplestatements_all"]},
-    {"name": "statement", "symbols": ["insert_statement"]},
-    {"name": "statement", "symbols": ["update_statement"]},
-    {"name": "statement", "symbols": ["altertable_statement"]},
-    {"name": "statement", "symbols": ["delete_statement"]},
-    {"name": "statement", "symbols": ["create_sequence_statement"]},
-    {"name": "statement", "symbols": ["alter_sequence_statement"]},
-    {"name": "statement", "symbols": ["drop_statement"]},
-    {"name": "statement", "symbols": ["createtype_statement"]},
-    {"name": "statement", "symbols": ["with_statement"]},
-    {"name": "statement", "symbols": ["union_statement"]}
+    {"name": "statement", "symbols": ["statement_noprep"]},
+    {"name": "statement", "symbols": ["prepare"]},
+    {"name": "statement_noprep", "symbols": ["select_statement"]},
+    {"name": "statement_noprep", "symbols": ["createtable_statement"]},
+    {"name": "statement_noprep", "symbols": ["createextension_statement"]},
+    {"name": "statement_noprep", "symbols": ["createindex_statement"]},
+    {"name": "statement_noprep", "symbols": ["simplestatements_all"]},
+    {"name": "statement_noprep", "symbols": ["insert_statement"]},
+    {"name": "statement_noprep", "symbols": ["update_statement"]},
+    {"name": "statement_noprep", "symbols": ["altertable_statement"]},
+    {"name": "statement_noprep", "symbols": ["delete_statement"]},
+    {"name": "statement_noprep", "symbols": ["create_sequence_statement"]},
+    {"name": "statement_noprep", "symbols": ["alter_sequence_statement"]},
+    {"name": "statement_noprep", "symbols": ["drop_statement"]},
+    {"name": "statement_noprep", "symbols": ["createtype_statement"]},
+    {"name": "statement_noprep", "symbols": ["with_statement"]},
+    {"name": "statement_noprep", "symbols": ["union_statement"]}
   ],
   ParserStart: "main",
 };

@@ -12,6 +12,7 @@ export type Statement = (SelectStatement
     | InsertStatement
     | UpdateStatement
     | ShowStatement
+    | PrepareStatement
     | DeleteStatement
     | WithStatement
     | RollbackStatement
@@ -28,6 +29,13 @@ export type Statement = (SelectStatement
     | StartTransactionStatement) & {
         [LOCATION]?: StatementLocation;
     };
+
+export interface PrepareStatement {
+    type: 'prepare';
+    name: string;
+    args?: DataTypeDef[] | nil;
+    statement: Statement;
+}
 
 export interface CreateEnumType {
     type: 'create enum',
@@ -438,6 +446,7 @@ export type JoinType = 'INNER JOIN'
     | 'FULL JOIN';
 
 export type Expr = ExprRef
+    | ExprParameter
     | ExprList
     | ExprNull
     | ExprInteger
@@ -512,6 +521,12 @@ export interface ExprRef {
     table?: string;
     name: string | '*';
 }
+
+export interface ExprParameter {
+    type: 'parameter';
+    name: string;
+}
+
 
 export interface ExprMember {
     type: 'member';
