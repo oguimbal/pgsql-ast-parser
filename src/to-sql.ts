@@ -741,6 +741,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(r.name === '*' ? '*' : name(r.name));
     },
 
+    parameter: p => {
+        ret.push(p.name);
+    },
+
     renameColumn: r => {
         ret.push(' RENAME COLUMN '
             , name(r.column)
@@ -822,6 +826,15 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     show: s => {
         ret.push('SHOW ', name(s.variable));
+    },
+
+    prepare: s => {
+        ret.push('PREPARE ', name(s.name));
+        if (s.args?.length) {
+            list(s.args, a => m.dataType(a), true);
+        }
+        ret.push(' AS ');
+        m.statement(s.statement);
     },
 
     union: s => {

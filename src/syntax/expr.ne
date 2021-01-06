@@ -107,6 +107,7 @@ expr_primary
     | %kw_false {% () => ({ type: 'boolean', value: false }) %}
     | %kw_null {% ([value]) => ({ type: 'null' }) %}
     | value_keyword
+    | %qparam {% ([value]) => ({ type: 'parameter', name: toStr(value) }) %}
 
 
 # LIKE-kind operators

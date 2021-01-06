@@ -76,7 +76,7 @@ function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T,
 
             // check that it is stable through ast modifier
             const modified = mapper(parsed, astMapper(() => ({})));
-            expect(modified).to.equal(parsed, 'It is not stable when passing through a neutral AST mapper');
+            expect(modified).to.equal(parsed, 'It is not stable when passing through a neutral AST mapper -> Should return THE SAME REFERENCE to avoid copying stuff when nothing changed.');
 
 
                 // check that it procuces sql

@@ -20,6 +20,7 @@ import {lexerAny, LOCATION} from '../lexer';
 @include "with.ne"
 @include "create-type.ne"
 @include "union.ne"
+@include "prepare.ne"
 
 # list of statements, separated by ";"
 main -> statement_separator:* statement (statement_separator:+ statement):* statement_separator:*  {% ([_, head, _tail]) => {
@@ -49,7 +50,9 @@ main -> statement_separator:* statement (statement_separator:+ statement):* stat
 statement_separator -> %semicolon
 
 
-statement
+statement -> statement_noprep | prepare
+
+statement_noprep
     -> select_statement
     | createtable_statement
     | createextension_statement

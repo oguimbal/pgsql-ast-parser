@@ -158,6 +158,7 @@ kw_interval -> %word {% notReservedKw('interval')  %}
 kw_hour -> %word {% notReservedKw('hour')  %}
 kw_minute -> %word {% notReservedKw('minute')  %}
 kw_local -> %word {% notReservedKw('local')  %}
+kw_prepare -> %word {% notReservedKw('prepare')  %}
 
 
 # === Composite keywords
@@ -190,6 +191,10 @@ data_type -> data_type_simple (lparen int rparen {% get(1) %}):? (%kw_array | (%
         }
     }
     return ret;
+} %}
+
+data_type_list -> data_type (comma data_type {% last %}):* {% ([head, tail]) => {
+    return [head, ...(tail || [])];
 } %}
 
 data_type_simple

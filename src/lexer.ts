@@ -41,6 +41,9 @@ export const lexer = compile({
                 .replace(/\\./g, m => JSON.parse('"' + m + '"'));
         },
     },
+    qparam: {
+        match: /\$\d+/,
+    },
     star: '*',
     comma: ',',
     space: { match: /[\s\t\n\v\f\r]+/, lineBreaks: true, },
