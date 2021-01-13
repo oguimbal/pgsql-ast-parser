@@ -407,7 +407,8 @@ export interface SelectedColumn {
     alias?: string;
 }
 
-export type From = FromTable | FromStatement | FromValues;
+export type From = FromTable | FromStatement | FromValues | ExprCall;
+
 
 
 export interface FromValues {

@@ -744,6 +744,12 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.fromStatement(from);
             case 'values':
                 return this.fromValues(from);
+            case 'call':
+                const call = this.call(from);
+                if (!call || call.type !== 'call') {
+                    return null;
+                }
+                return call;
             default:
                 throw NotSupported.never(from);
         }

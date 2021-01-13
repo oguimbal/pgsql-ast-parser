@@ -427,10 +427,6 @@ const grammar: Grammar = {
     {"name": "ident_aliased", "symbols": ["ident_aliased$subexpression$1"]},
     {"name": "ident_aliased", "symbols": ["ident"], "postprocess": unwrap},
     {"name": "table_ref", "symbols": ["qualified_name"], "postprocess": unwrap},
-    {"name": "current_schema$ebnf$1$subexpression$1", "symbols": ["lparen", "rparen"]},
-    {"name": "current_schema$ebnf$1", "symbols": ["current_schema$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "current_schema$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "current_schema", "symbols": [(lexerAny.has("kw_current_schema") ? {type: "kw_current_schema"} : kw_current_schema), "current_schema$ebnf$1"], "postprocess": () => 'current_schema'},
     {"name": "table_ref_aliased$ebnf$1", "symbols": ["ident_aliased"], "postprocess": id},
     {"name": "table_ref_aliased$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "table_ref_aliased", "symbols": ["table_ref", "table_ref_aliased$ebnf$1"], "postprocess":  x => {
@@ -449,7 +445,7 @@ const grammar: Grammar = {
             }
             return {name};
         }},
-    {"name": "qualified_name", "symbols": ["current_schema"], "postprocess": () => ({ name: 'current_schema' })},
+    {"name": "qualified_name", "symbols": [(lexerAny.has("kw_current_schema") ? {type: "kw_current_schema"} : kw_current_schema)], "postprocess": () => ({ name: 'current_schema' })},
     {"name": "select_statement$ebnf$1", "symbols": ["select_from"], "postprocess": id},
     {"name": "select_statement$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_statement$ebnf$2", "symbols": ["select_where"], "postprocess": id},
@@ -477,6 +473,7 @@ const grammar: Grammar = {
     {"name": "select_from", "symbols": [(lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "select_subject"], "postprocess": last},
     {"name": "select_subject", "symbols": ["select_table_base"], "postprocess": get(0)},
     {"name": "select_subject", "symbols": ["select_subject_joins"], "postprocess": get(0)},
+    {"name": "select_subject", "symbols": ["expr_call"], "postprocess": get(0)},
     {"name": "select_subject", "symbols": ["lparen", "select_subject_joins", "rparen"], "postprocess": get(1)},
     {"name": "select_subject_joins$ebnf$1", "symbols": ["select_table_join"]},
     {"name": "select_subject_joins$ebnf$1", "symbols": ["select_subject_joins$ebnf$1", "select_table_join"], "postprocess": (d) => d[0].concat([d[1]])},
