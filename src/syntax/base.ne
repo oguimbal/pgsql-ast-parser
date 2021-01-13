@@ -42,6 +42,10 @@
 %}
 # @preprocessor typescript
 
+array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
+    return [head, ...(tail || [])];
+} %}
+
 
 # === Basic constructs
 lparen -> %lparen
@@ -171,13 +175,13 @@ kw_primary_key -> %kw_primary kw_key
 # === Datatype
 
 # https://www.postgresql.org/docs/9.5/datatype.html
-data_type -> data_type_simple (lparen int rparen {% get(1) %}):? (%kw_array | (%lbracket %rbracket):+):? {% x => {
+data_type -> data_type_simple (lparen array_of[int] rparen {% get(1) %}):? (%kw_array | (%lbracket %rbracket):+):? {% x => {
     let asArray = x[2];
     const name = unwrap(x[0]);
     let ret;
     ret = {
         ...name,
-        ... (typeof x[1] === 'number' && x[1] >= 0 ) ? { length: x[1] } : {},
+        ... Array.isArray(x[1]) && x[1].length ? { config: x[1].map(unwrap) } : {},
     };
     if (asArray) {
         if (asArray[0].type === 'kw_array') {
@@ -249,8 +253,3 @@ qualified_name -> (ident dot {% get(0) %}):? ident {% ([schema, name]) => {
         return {name};
     }%}
     | current_schema {% () => ({ name: 'current_schema' }) %}
-
-
-array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
-    return [head, ...(tail || [])];
-} %}

@@ -33,7 +33,20 @@ describe('Create table', () => {
             dataType: {
                 schema: 'pg_catalog',
                 name: 'varchar',
-                length: 12,
+                config: [12],
+            },
+        }],
+    });
+
+
+    checkCreateTable(['create table test(value numeric(1, 2))'], {
+        type: 'create table',
+        name: 'test',
+        columns: [{
+            name: 'value',
+            dataType: {
+                name: 'numeric',
+                config: [1, 2],
             },
         }],
     });
