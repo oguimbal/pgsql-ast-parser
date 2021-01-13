@@ -362,7 +362,14 @@ const grammar: Grammar = {
     {"name": "kw_ifexists", "symbols": ["kw_if", "kw_exists"]},
     {"name": "kw_not_null", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), (lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
     {"name": "kw_primary_key", "symbols": [(lexerAny.has("kw_primary") ? {type: "kw_primary"} : kw_primary), "kw_key"]},
-    {"name": "data_type$ebnf$1$subexpression$1", "symbols": ["lparen", "int", "rparen"], "postprocess": get(1)},
+    {"name": "data_type$ebnf$1$subexpression$1$macrocall$2", "symbols": ["int"]},
+    {"name": "data_type$ebnf$1$subexpression$1$macrocall$1$ebnf$1", "symbols": []},
+    {"name": "data_type$ebnf$1$subexpression$1$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("comma") ? {type: "comma"} : comma), "data_type$ebnf$1$subexpression$1$macrocall$2"], "postprocess": last},
+    {"name": "data_type$ebnf$1$subexpression$1$macrocall$1$ebnf$1", "symbols": ["data_type$ebnf$1$subexpression$1$macrocall$1$ebnf$1", "data_type$ebnf$1$subexpression$1$macrocall$1$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "data_type$ebnf$1$subexpression$1$macrocall$1", "symbols": ["data_type$ebnf$1$subexpression$1$macrocall$2", "data_type$ebnf$1$subexpression$1$macrocall$1$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [head, ...(tail || [])];
+        } },
+    {"name": "data_type$ebnf$1$subexpression$1", "symbols": ["lparen", "data_type$ebnf$1$subexpression$1$macrocall$1", "rparen"], "postprocess": get(1)},
     {"name": "data_type$ebnf$1", "symbols": ["data_type$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "data_type$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "data_type$ebnf$2$subexpression$1", "symbols": [(lexerAny.has("kw_array") ? {type: "kw_array"} : kw_array)]},
@@ -379,7 +386,7 @@ const grammar: Grammar = {
             let ret;
             ret = {
                 ...name,
-                ... (typeof x[1] === 'number' && x[1] >= 0 ) ? { length: x[1] } : {},
+                ... Array.isArray(x[1]) && x[1].length ? { config: x[1].map(unwrap) } : {},
             };
             if (asArray) {
                 if (asArray[0].type === 'kw_array') {

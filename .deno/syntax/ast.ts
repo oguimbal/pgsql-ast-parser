@@ -290,7 +290,8 @@ export interface ArrayDataTypeDef {
 
 export interface BasicDataTypeDef extends QName {
     kind?: undefined;
-    length?: number;
+    /** varchar(length), numeric(precision, scale), ... */
+    config?: number[];
 }
 
 export type ColumnConstraint

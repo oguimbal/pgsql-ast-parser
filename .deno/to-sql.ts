@@ -537,8 +537,8 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             return;
         }
         visitQualifiedName(d);
-        if (d.length) {
-            ret.push('(', d.length.toString(), ')');
+        if (d.config?.length) {
+            list(d.config, v => ret.push(v.toString(10)), true);
         }
     },
 

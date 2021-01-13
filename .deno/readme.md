@@ -1,14 +1,36 @@
-🏃‍♀️ `pgsql-ast-parser` is a Postgres SQL syntax parser. It produces a typed AST (Abstract Syntax Tree), covering the most common syntaxes of pgsql.
 
-**⚠** This parser does not support (yet) PL/pgSQL. It might not even cover some funky syntaxes.
+<p align="center">
+  <a href="https://npmjs.org/package/pgsql-ast-parser"><img src="http://img.shields.io/npm/v/pgsql-ast-parser.svg"></a>
+  <a href="https://npmjs.org/package/pgsql-ast-parser"><img src="https://img.shields.io/npm/dm/pgsql-ast-parser.svg"></a>
+  <a href="https://david-dm.org/oguimbal/pgsql-ast-parser"><img src="https://david-dm.org/oguimbal/pgsql-ast-parser.svg"></a>
+  <img src="https://github.com/oguimbal/pgsql-ast-parser/workflows/CI/badge.svg">
+</p>
 
+
+ <h3 align="center">🏃‍♀️ pgsql-ast-parser is a Postgres SQL syntax parser. It produces a typed AST (Abstract Syntax Tree), covering the most common syntaxes of pgsql.</h3>
+
+<p align="center">
+❤ It works both in node or in browser.
+</p>
+
+<p align="center">
+⚠ This parser does not support (yet) PL/pgSQL. It might not even cover some funky syntaxes.
+</p>
+
+
+<p align="center">
 ❤ Open an issue if you find an bug or unsupported syntax !
+ </p>
 
-🔗 This parser has been created to implement [pg-mem](https://github.com/oguimbal/pg-mem), an in-memory postgres db emulator. 👉 [Play with it here](https://oguimbal.github.io/pg-mem-playground/)
+
+<p align="center">
+  🔗 This parser has been created to implement <a href="https://github.com/oguimbal/pg-mem">pg-mem</a>, an in-memory postgres db emulator. 👉  <a href="https://oguimbal.github.io/pg-mem-playground/">play with it here</a>
+ </p>
 
 
-👉 Dont forget to ⭐ this repo if you like this package :)
-
+<p align="center">
+⭐ this repo if you like this package, it helps to motivate me :)
+</p>
 
 # 📐 Installation
 
