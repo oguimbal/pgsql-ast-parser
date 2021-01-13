@@ -235,7 +235,6 @@ ident_aliased -> (%kw_as ident {% last %}) | ident {% unwrap %}
 
 table_ref -> qualified_name {% unwrap %}
 
-current_schema -> %kw_current_schema (lparen rparen):? {% () => 'current_schema' %}
 
 # Select on tables MAY have an alias
 table_ref_aliased -> table_ref ident_aliased:? {% x => {
@@ -252,4 +251,4 @@ qualified_name -> (ident dot {% get(0) %}):? ident {% ([schema, name]) => {
         }
         return {name};
     }%}
-    | current_schema {% () => ({ name: 'current_schema' }) %}
+    | %kw_current_schema {% () => ({ name: 'current_schema' }) %}

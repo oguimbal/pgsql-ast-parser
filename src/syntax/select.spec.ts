@@ -25,7 +25,7 @@ describe('Select statements', () => {
 
 
     function aliased(alias: string): SelectStatement {
-        return  {
+        return {
             type: 'select',
             columns: [{
                 expr: {
@@ -70,7 +70,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from current_schema()', 'select * from current_schema ( )'], {
         type: 'select',
-        from: [{ type: 'table', name: 'current_schema' }],
+        from: [{ type: 'call', function: { type: 'keyword', keyword: 'current_schema' }, args: [] }],
         columns: noAlias([{ type: 'ref', name: '*' }])
     });
 
@@ -401,5 +401,19 @@ describe('Select statements', () => {
                 }
             }
         }]
+    })
+
+
+    checkSelect([`select * from concat('a', 'b')`], {
+        type: 'select',
+        from: [{
+            type: 'call',
+            function: 'concat',
+            args: [
+                { type: 'string', value: 'a' },
+                { type: 'string', value: 'b' },
+            ]
+        }],
+        columns: noAlias([{ type: 'ref', name: '*' }]),
     })
 });
