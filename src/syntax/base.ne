@@ -39,6 +39,14 @@
     function toStr(e: any, join?: string): string {
         return flattenStr(e).join(join || '');
     }
+
+    function fromEntries(vals: [string, any][]): any {
+        const ret = {} as any;
+        for (const [k, v] of vals) {
+            ret[k] = v;
+        }
+        return ret;
+    }
 %}
 # @preprocessor typescript
 
