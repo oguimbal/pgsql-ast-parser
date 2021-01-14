@@ -157,6 +157,13 @@ declare var kw_as: any;
 declare var comma: any;
 declare var kw_union: any;
 declare var kw_as: any;
+declare var kw_create: any;
+declare var kw_or: any;
+declare var comma: any;
+declare var kw_as: any;
+declare var kw_with: any;
+declare var kw_check: any;
+declare var op_eq: any;
 declare var semicolon: any;
 import {lexerAny, LOCATION} from '../lexer.ts';
 
@@ -341,6 +348,12 @@ const grammar: Grammar = {
     {"name": "kw_rows", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('rows')},
     {"name": "kw_next", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('next')},
     {"name": "kw_match", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('match')},
+    {"name": "kw_replace", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('replace')},
+    {"name": "kw_recursive", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('recursive')},
+    {"name": "kw_view", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('view')},
+    {"name": "kw_cascaded", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('cascaded')},
+    {"name": "kw_option", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('option')},
+    {"name": "kw_materialized", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('materialized')},
     {"name": "kw_partial", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('partial')},
     {"name": "kw_simple", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('simple')},
     {"name": "kw_generated", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('generated')},
@@ -1588,6 +1601,90 @@ const grammar: Grammar = {
             ...x[2] && { args: x[2] },
             statement: unwrap(last(x)),
         }) },
+    {"name": "create_view_statements", "symbols": ["create_view"]},
+    {"name": "create_view_statements", "symbols": ["create_materialized_view"]},
+    {"name": "create_view$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_or") ? {type: "kw_or"} : kw_or), "kw_replace"]},
+    {"name": "create_view$ebnf$1", "symbols": ["create_view$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "create_view$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "create_view$ebnf$2$subexpression$1", "symbols": ["kw_temp"]},
+    {"name": "create_view$ebnf$2$subexpression$1", "symbols": ["kw_temporary"]},
+    {"name": "create_view$ebnf$2", "symbols": ["create_view$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "create_view$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "create_view$ebnf$3", "symbols": ["kw_recursive"], "postprocess": id},
+    {"name": "create_view$ebnf$3", "symbols": [], "postprocess": () => null},
+    {"name": "create_view$ebnf$4$subexpression$1$macrocall$2", "symbols": ["ident"]},
+    {"name": "create_view$ebnf$4$subexpression$1$macrocall$1$ebnf$1", "symbols": []},
+    {"name": "create_view$ebnf$4$subexpression$1$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("comma") ? {type: "comma"} : comma), "create_view$ebnf$4$subexpression$1$macrocall$2"], "postprocess": last},
+    {"name": "create_view$ebnf$4$subexpression$1$macrocall$1$ebnf$1", "symbols": ["create_view$ebnf$4$subexpression$1$macrocall$1$ebnf$1", "create_view$ebnf$4$subexpression$1$macrocall$1$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "create_view$ebnf$4$subexpression$1$macrocall$1", "symbols": ["create_view$ebnf$4$subexpression$1$macrocall$2", "create_view$ebnf$4$subexpression$1$macrocall$1$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [unwrap(head), ...(tail.map(unwrap) || [])];
+        } },
+    {"name": "create_view$ebnf$4$subexpression$1", "symbols": ["lparen", "create_view$ebnf$4$subexpression$1$macrocall$1", "rparen"], "postprocess": get(1)},
+    {"name": "create_view$ebnf$4", "symbols": ["create_view$ebnf$4$subexpression$1"], "postprocess": id},
+    {"name": "create_view$ebnf$4", "symbols": [], "postprocess": () => null},
+    {"name": "create_view$ebnf$5", "symbols": ["create_view_opts"], "postprocess": id},
+    {"name": "create_view$ebnf$5", "symbols": [], "postprocess": () => null},
+    {"name": "create_view$ebnf$6$subexpression$1$subexpression$1", "symbols": ["kw_local"]},
+    {"name": "create_view$ebnf$6$subexpression$1$subexpression$1", "symbols": ["kw_cascaded"]},
+    {"name": "create_view$ebnf$6$subexpression$1", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with), "create_view$ebnf$6$subexpression$1$subexpression$1", (lexerAny.has("kw_check") ? {type: "kw_check"} : kw_check), "kw_option"], "postprocess": get(1)},
+    {"name": "create_view$ebnf$6", "symbols": ["create_view$ebnf$6$subexpression$1"], "postprocess": id},
+    {"name": "create_view$ebnf$6", "symbols": [], "postprocess": () => null},
+    {"name": "create_view", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "create_view$ebnf$1", "create_view$ebnf$2", "create_view$ebnf$3", "kw_view", "qualified_name", "create_view$ebnf$4", "create_view$ebnf$5", (lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "select_statement", "create_view$ebnf$6"], "postprocess":  x => {
+            return {
+                type: 'create view',
+                ... x[1] && {orReplace: true},
+                ... x[2] && {temp: true},
+                ... x[3] && {recursive: true},
+                ... x[5], // name
+                ... x[6] && {columnNames: x[6]},
+                ... x[7] && {parameters: Object.fromEntries(x[7])},
+                query: x[9],
+                ... x[10] && { checkOption: toStr(x[10]) },
+            }
+        } },
+    {"name": "create_view_opt", "symbols": ["ident", (lexerAny.has("op_eq") ? {type: "op_eq"} : op_eq), "ident"], "postprocess": ([a, _, b]) => [toStr(a), toStr(b)]},
+    {"name": "create_view_opts$macrocall$2", "symbols": ["create_view_opt"]},
+    {"name": "create_view_opts$macrocall$1$ebnf$1", "symbols": []},
+    {"name": "create_view_opts$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("comma") ? {type: "comma"} : comma), "create_view_opts$macrocall$2"], "postprocess": last},
+    {"name": "create_view_opts$macrocall$1$ebnf$1", "symbols": ["create_view_opts$macrocall$1$ebnf$1", "create_view_opts$macrocall$1$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "create_view_opts$macrocall$1", "symbols": ["create_view_opts$macrocall$2", "create_view_opts$macrocall$1$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [unwrap(head), ...(tail.map(unwrap) || [])];
+        } },
+    {"name": "create_view_opts", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with), "create_view_opts$macrocall$1"], "postprocess": last},
+    {"name": "create_materialized_view$ebnf$1", "symbols": ["kw_ifnotexists"], "postprocess": id},
+    {"name": "create_materialized_view$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "create_materialized_view$ebnf$2$subexpression$1$macrocall$2", "symbols": ["ident"]},
+    {"name": "create_materialized_view$ebnf$2$subexpression$1$macrocall$1$ebnf$1", "symbols": []},
+    {"name": "create_materialized_view$ebnf$2$subexpression$1$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("comma") ? {type: "comma"} : comma), "create_materialized_view$ebnf$2$subexpression$1$macrocall$2"], "postprocess": last},
+    {"name": "create_materialized_view$ebnf$2$subexpression$1$macrocall$1$ebnf$1", "symbols": ["create_materialized_view$ebnf$2$subexpression$1$macrocall$1$ebnf$1", "create_materialized_view$ebnf$2$subexpression$1$macrocall$1$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "create_materialized_view$ebnf$2$subexpression$1$macrocall$1", "symbols": ["create_materialized_view$ebnf$2$subexpression$1$macrocall$2", "create_materialized_view$ebnf$2$subexpression$1$macrocall$1$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [unwrap(head), ...(tail.map(unwrap) || [])];
+        } },
+    {"name": "create_materialized_view$ebnf$2$subexpression$1", "symbols": ["lparen", "create_materialized_view$ebnf$2$subexpression$1$macrocall$1", "rparen"], "postprocess": get(1)},
+    {"name": "create_materialized_view$ebnf$2", "symbols": ["create_materialized_view$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "create_materialized_view$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "create_materialized_view$ebnf$3", "symbols": ["create_view_opts"], "postprocess": id},
+    {"name": "create_materialized_view$ebnf$3", "symbols": [], "postprocess": () => null},
+    {"name": "create_materialized_view$ebnf$4$subexpression$1", "symbols": ["kw_tablespace", "ident"], "postprocess": last},
+    {"name": "create_materialized_view$ebnf$4", "symbols": ["create_materialized_view$ebnf$4$subexpression$1"], "postprocess": id},
+    {"name": "create_materialized_view$ebnf$4", "symbols": [], "postprocess": () => null},
+    {"name": "create_materialized_view$ebnf$5$subexpression$1$ebnf$1", "symbols": ["kw_no"], "postprocess": id},
+    {"name": "create_materialized_view$ebnf$5$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "create_materialized_view$ebnf$5$subexpression$1", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with), "create_materialized_view$ebnf$5$subexpression$1$ebnf$1", "kw_data"]},
+    {"name": "create_materialized_view$ebnf$5", "symbols": ["create_materialized_view$ebnf$5$subexpression$1"], "postprocess": id},
+    {"name": "create_materialized_view$ebnf$5", "symbols": [], "postprocess": () => null},
+    {"name": "create_materialized_view", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "kw_materialized", "kw_view", "create_materialized_view$ebnf$1", "qualified_name", "create_materialized_view$ebnf$2", "create_materialized_view$ebnf$3", "create_materialized_view$ebnf$4", (lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "select_statement", "create_materialized_view$ebnf$5"], "postprocess":  x => {
+            return {
+                type: 'create materialized view',
+                ... x[3] && {ifNotExists: true},
+                ... x[4], // name
+                ... x[5] && {columnNames: x[6]},
+                ... x[6] && {parameters: Object.fromEntries(x[6])},
+                ... x[7] && {tablespace: toStr(x[7]) },
+                query: x[9],
+                ... x[10] && { withData: toStr(x[10][1]) !== 'no' },
+            }
+        } },
     {"name": "main$ebnf$1", "symbols": []},
     {"name": "main$ebnf$1", "symbols": ["main$ebnf$1", "statement_separator"], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "main$ebnf$2", "symbols": []},
@@ -1637,7 +1734,8 @@ const grammar: Grammar = {
     {"name": "statement_noprep", "symbols": ["drop_statement"]},
     {"name": "statement_noprep", "symbols": ["createtype_statement"]},
     {"name": "statement_noprep", "symbols": ["with_statement"]},
-    {"name": "statement_noprep", "symbols": ["union_statement"]}
+    {"name": "statement_noprep", "symbols": ["union_statement"]},
+    {"name": "statement_noprep", "symbols": ["create_view_statements"]}
   ],
   ParserStart: "main",
 };

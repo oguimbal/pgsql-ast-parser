@@ -17,6 +17,8 @@ export type Statement = (SelectStatement
     | WithStatement
     | RollbackStatement
     | TablespaceStatement
+    | CreateViewStatement
+    | CreateMaterializedViewStatement
     | AlterTableStatement
     | AlterSequenceStatement
     | SetGlobalStatement
@@ -258,10 +260,30 @@ export interface IndexExpression {
     nulls?: 'first' | 'last';
 }
 
-export interface CreateTableStatement {
+
+export interface CreateViewStatementBase extends QName {
+    columnNames?: string[];
+    query: SelectStatement;
+    parameters?: {[name: string]: string};
+}
+export interface CreateViewStatement extends CreateViewStatementBase {
+    type: 'create view';
+    orReplace?: boolean;
+    recursive?: boolean;
+    temp?: boolean;
+    checkOption?: 'local' | 'cascaded';
+}
+
+export interface CreateMaterializedViewStatement extends CreateViewStatementBase {
+    type: 'create materialized view';
+    tablespace?: string;
+    withData?: boolean;
+    ifNotExists?: boolean;
+}
+
+
+export interface CreateTableStatement extends QName {
     type: 'create table';
-    schema?: string;
-    name: string;
     ifNotExists?: true;
     columns: CreateColumnDef[];
     /** Constraints not defined inline */

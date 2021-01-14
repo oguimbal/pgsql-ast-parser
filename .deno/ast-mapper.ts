@@ -41,6 +41,8 @@ export interface IAstPartialMapper {
     union?: (val: a.SelectFromUnion) => a.SelectStatement | nil
     select?: (val: a.SelectStatement) => a.SelectStatement | nil
     selection?: (val: a.SelectFromStatement) => a.SelectStatement | nil
+    createView?: (val: a.CreateViewStatement) => a.Statement | nil
+    createMaterializedView?: (val: a.CreateMaterializedViewStatement) => a.Statement | nil
     from?: (from: a.From) => a.From | nil
     fromStatement?: (from: a.FromStatement) => a.From | nil
     fromValues?: (from: a.FromValues) => a.From | nil;
@@ -234,11 +236,45 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.show(val);
             case 'prepare':
                 return this.prepare(val);
+            case 'create view':
+                return this.createView(val);
+            case 'create materialized view':
+                return this.createMaterializedView(val);
             default:
                 throw NotSupported.never(val);
         }
     }
 
+
+    createView(val: a.CreateViewStatement): a.Statement | nil {
+        const query = this.select(val.query);
+        if (!query) {
+            return null;
+        }
+        const ref = this.tableRef(val);
+        if (!ref) {
+            return null;
+        }
+        return assignChanged(val, {
+            query,
+            ...ref,
+        });
+    }
+
+    createMaterializedView(val: a.CreateMaterializedViewStatement): a.Statement | nil {
+        const query = this.select(val.query);
+        if (!query) {
+            return null;
+        }
+        const ref = this.tableRef(val);
+        if (!ref) {
+            return null;
+        }
+        return assignChanged(val, {
+            query,
+            ...ref,
+        });
+    }
 
     show(val: a.ShowStatement): a.Statement | nil {
         return val;
