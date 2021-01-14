@@ -413,4 +413,19 @@ describe('Select statements', () => {
         }],
         columns: columns({ type: 'ref', name: '*' }),
     })
+
+
+    checkSelect([`select * from concat('a', 'b') as tbl`], {
+        type: 'select',
+        from: [{
+            type: 'call',
+            function: 'concat',
+            alias: 'tbl',
+            args: [
+                { type: 'string', value: 'a' },
+                { type: 'string', value: 'b' },
+            ]
+        }],
+        columns: columns({ type: 'ref', name: '*' }),
+    })
 });

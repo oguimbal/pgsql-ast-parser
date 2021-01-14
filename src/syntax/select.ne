@@ -29,7 +29,7 @@ select_from -> %kw_from select_subject {% last %}
 select_subject
     -> select_table_base {% get(0) %}
     | select_subject_joins  {% get(0) %}
-    | expr_call  {% get(0) %}
+    | expr_call (%kw_as ident {% last %}):?  {% x => !x[1] ? x[0] : {...x[0], alias: toStr(x[1])} %}
     | lparen select_subject_joins rparen  {% get(1) %}
 
 select_subject_joins -> select_table_base select_table_join:+ {% ([head, tail]) => {

@@ -628,7 +628,13 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(name(t.column));
     },
 
-    from: t => m.super().from(t),
+    from: t => {
+        const f = m.super().from(t);
+        if (t.alias && t.type === 'call') {
+            ret.push(' AS ', name(t.alias), ' ');
+        }
+        return f;
+    },
 
     fromStatement: s => {
 
