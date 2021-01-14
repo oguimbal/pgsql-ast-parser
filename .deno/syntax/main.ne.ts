@@ -24,6 +24,7 @@ declare var kw_with: any;
 declare var kw_as: any;
 declare var kw_current_schema: any;
 declare var kw_from: any;
+declare var kw_as: any;
 declare var kw_join: any;
 declare var kw_on: any;
 declare var kw_inner: any;
@@ -31,7 +32,6 @@ declare var kw_left: any;
 declare var kw_outer: any;
 declare var kw_right: any;
 declare var kw_full: any;
-declare var kw_as: any;
 declare var kw_select: any;
 declare var kw_all: any;
 declare var kw_distinct: any;
@@ -486,7 +486,10 @@ const grammar: Grammar = {
     {"name": "select_from", "symbols": [(lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "select_subject"], "postprocess": last},
     {"name": "select_subject", "symbols": ["select_table_base"], "postprocess": get(0)},
     {"name": "select_subject", "symbols": ["select_subject_joins"], "postprocess": get(0)},
-    {"name": "select_subject", "symbols": ["expr_call"], "postprocess": get(0)},
+    {"name": "select_subject$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "ident"], "postprocess": last},
+    {"name": "select_subject$ebnf$1", "symbols": ["select_subject$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "select_subject$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "select_subject", "symbols": ["expr_call", "select_subject$ebnf$1"], "postprocess": x => !x[1] ? x[0] : {...x[0], alias: toStr(x[1])}},
     {"name": "select_subject", "symbols": ["lparen", "select_subject_joins", "rparen"], "postprocess": get(1)},
     {"name": "select_subject_joins$ebnf$1", "symbols": ["select_table_join"]},
     {"name": "select_subject_joins$ebnf$1", "symbols": ["select_subject_joins$ebnf$1", "select_table_join"], "postprocess": (d) => d[0].concat([d[1]])},

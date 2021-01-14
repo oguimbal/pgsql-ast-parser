@@ -429,7 +429,7 @@ export interface SelectedColumn {
     alias?: string;
 }
 
-export type From = FromTable | FromStatement | FromValues | ExprCall;
+export type From = FromTable | FromStatement | FromValues | ExprCall & { alias?: string; };
 
 
 
