@@ -2,26 +2,26 @@ import { Parser, Grammar } from 'nearley';
 import { expect, assert } from 'chai';
 import grammar from '../syntax/main.ne';
 import { trimNullish } from '../utils';
-import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, DropTableStatement } from './ast';
+import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, DropTableStatement, SelectedColumn } from './ast';
 import { astMapper, IAstMapper } from '../ast-mapper';
 import { IAstVisitor } from '../ast-visitor';
 import { toSql, IAstToSql } from '../to-sql';
 
-export function checkSelect(value: string | string[], expected: SelectStatement)  {
+export function checkSelect(value: string | string[], expected: SelectStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 
-export function checkCreateSequence(value: string | string[], expected: CreateSequenceStatement)  {
+export function checkCreateSequence(value: string | string[], expected: CreateSequenceStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 
-export function checkCreateTable(value: string | string[], expected: CreateTableStatement)  {
+export function checkCreateTable(value: string | string[], expected: CreateTableStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
-export function checkCreateIndex(value: string | string[], expected: CreateIndexStatement)  {
+export function checkCreateIndex(value: string | string[], expected: CreateIndexStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
-export function checkAlterSequence(value: string | string[], expected: AlterSequenceStatement)  {
+export function checkAlterSequence(value: string | string[], expected: AlterSequenceStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 
@@ -29,22 +29,22 @@ export function checkCreateExtension(value: string | string[], expected: CreateE
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 
-export function checkInsert(value: string | string[], expected: InsertStatement)  {
+export function checkInsert(value: string | string[], expected: InsertStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
-export function checkDelete(value: string | string[], expected: DeleteStatement)  {
-    checkTree(value, expected, (p, m) => m.statement(p));
-}
-
-export function checkAlterTable(value: string | string[], expected: AlterTableStatement)  {
+export function checkDelete(value: string | string[], expected: DeleteStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 
-export function checkUpdate(value: string | string[], expected: UpdateStatement)  {
+export function checkAlterTable(value: string | string[], expected: AlterTableStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 
-export function checkStatement(value: string | string[], expected: Statement)  {
+export function checkUpdate(value: string | string[], expected: UpdateStatement) {
+    checkTree(value, expected, (p, m) => m.statement(p));
+}
+
+export function checkStatement(value: string | string[], expected: Statement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 
@@ -79,7 +79,7 @@ function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T,
             expect(modified).to.equal(parsed, 'It is not stable when passing through a neutral AST mapper -> Should return THE SAME REFERENCE to avoid copying stuff when nothing changed.');
 
 
-                // check that it procuces sql
+            // check that it procuces sql
             let newSql: string;
             try {
                 newSql = mapper(parsed, toSql);
@@ -136,4 +136,11 @@ export function checkInvalidExpr(sql: string) {
 
 export function checkTreeExpr(value: string | string[], expected: Expr) {
     checkTree(value, expected, (p, m) => m.expr(p), 'expr');
+}
+
+
+export function columns(...vals: (Expr | string)[]): SelectedColumn[] {
+    return vals.map<SelectedColumn>(expr => typeof expr === 'string'
+        ? { expr: { type: 'ref', name: expr } }
+        : { expr });
 }

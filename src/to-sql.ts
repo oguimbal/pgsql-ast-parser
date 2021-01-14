@@ -764,6 +764,58 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             , name(r.to));
     },
 
+    createView: c => {
+        ret.push('CREATE ');
+        if (c.orReplace) {
+            ret.push('OR REPLACE ');
+        }
+        if (c.temp) {
+            ret.push('TEMP ');
+        }
+        if (c.recursive) {
+            ret.push('RECURSIVE ');
+        }
+        ret.push('VIEW ');
+        m.tableRef(c);
+        if (c.columnNames) {
+            list(c.columnNames, c => ret.push(c), true);
+        }
+        const opts = c.parameters && Object.entries(c.parameters);
+        if (opts?.length) {
+            ret.push(' WITH ');
+            list(opts, ([k, v]) => ret.push(k, '=', v), false);
+        }
+        ret.push(' AS ');
+        m.select(c.query);
+        if (c.checkOption) {
+            ret.push(' WITH ', c.checkOption.toUpperCase(), ' CHECK OPTION');
+        }
+    },
+
+    createMaterializedView: c => {
+        ret.push('CREATE MATERIALIZED VIEW ');
+        if (c.ifNotExists) {
+            ret.push('IF NOT EXISTS ');
+        }
+        m.tableRef(c);
+        if (c.columnNames) {
+            list(c.columnNames, c => ret.push(c), true);
+        }
+        const opts = c.parameters && Object.entries(c.parameters);
+        if (opts?.length) {
+            ret.push(' WITH ');
+            list(opts, ([k, v]) => ret.push(k, '=', v), false);
+        }
+        if(c.tablespace) {
+            ret.push(' TABLESPACE ', name(c.tablespace));
+        }
+        ret.push(' AS ');
+        m.select(c.query);
+        if (typeof c.withData === 'boolean') {
+            ret.push(c.withData ? ' WITH DATA' : ' WITH NO DATA');
+        }
+    },
+
     select: s => m.super().select(s),
 
     selection: s => {

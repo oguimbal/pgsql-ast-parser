@@ -146,6 +146,12 @@ kw_row -> %word {% notReservedKw('row')  %}
 kw_rows -> %word {% notReservedKw('rows')  %}
 kw_next -> %word {% notReservedKw('next')  %}
 kw_match -> %word {% notReservedKw('match')  %}
+kw_replace -> %word {% notReservedKw('replace')  %}
+kw_recursive -> %word {% notReservedKw('recursive')  %}
+kw_view -> %word {% notReservedKw('view')  %}
+kw_cascaded -> %word {% notReservedKw('cascaded')  %}
+kw_option -> %word {% notReservedKw('option')  %}
+kw_materialized -> %word {% notReservedKw('materialized')  %}
 kw_partial -> %word {% notReservedKw('partial')  %}
 kw_simple -> %word {% notReservedKw('simple')  %}
 kw_generated -> %word {% notReservedKw('generated')  %}

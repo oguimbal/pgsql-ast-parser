@@ -1,14 +1,9 @@
 import 'mocha';
 import 'chai';
-import { checkSelect, checkInvalid } from './spec-utils';
+import { checkSelect, checkInvalid, columns } from './spec-utils';
 import { SelectedColumn, Expr, ExprBinary, JoinType, SelectStatement, Statement, LOCATION } from './ast';
 
 describe('Union statement', () => {
-
-
-    function noAlias(x: Expr[]): SelectedColumn[] {
-        return x.map(expr => ({ expr }));
-    }
 
     checkSelect(`select * from (values (1,'one')) as fst union (select * from (values (2,'two')) as snd)`, {
         type: 'union',
@@ -21,7 +16,7 @@ describe('Union statement', () => {
                     [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
                 ],
             }],
-            columns: noAlias([{ type: 'ref', name: '*' }])
+            columns: columns({ type: 'ref', name: '*' })
         },
         right: {
 
@@ -33,7 +28,7 @@ describe('Union statement', () => {
                     [{ type: 'integer', value: 2 }, { type: 'string', value: 'two' }],
                 ],
             }],
-            columns: noAlias([{ type: 'ref', name: '*' }])
+            columns: columns({ type: 'ref', name: '*' })
         }
     });
 
@@ -45,19 +40,19 @@ describe('Union statement', () => {
         type: 'union',
         left: {
             type: 'select',
-            columns: noAlias([{ type: 'ref', name: '*' }]),
+            columns: columns({ type: 'ref', name: '*' }),
             from: [{ type: 'table', name: 'ta' }],
         },
         right: {
             type: 'union',
             left: {
                 type: 'select',
-                columns: noAlias([{ type: 'ref', name: '*' }]),
+                columns: columns({ type: 'ref', name: '*' }),
                 from: [{ type: 'table', name: 'tb' }],
             },
             right: {
                 type: 'select',
-                columns: noAlias([{ type: 'ref', name: '*' }]),
+                columns: columns({ type: 'ref', name: '*' }),
                 from: [{ type: 'table', name: 'tc' }],
             }
         }
@@ -69,16 +64,16 @@ describe('Union statement', () => {
             type: 'union',
             left: {
                 type: 'select',
-                columns: noAlias([{ type: 'string', value: 'a' }]),
+                columns: columns({ type: 'string', value: 'a' }),
             },
             right: {
                 type: 'select',
-                columns: noAlias([{ type: 'null' }]),
+                columns: columns({ type: 'null' }),
             },
         },
         right: {
             type: 'select',
-            columns: noAlias([{ type: 'string', value: 'b' }]),
+            columns: columns({ type: 'string', value: 'b' }),
         },
     })
 
