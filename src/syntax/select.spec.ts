@@ -414,6 +414,42 @@ describe('Select statements', () => {
         columns: columns({ type: 'ref', name: '*' }),
     })
 
+    checkSelect([`select * from concat('a') as a join concat('b') as b on b=a`], {
+        type: 'select',
+        from: [{
+            type: 'call',
+            function: 'concat',
+            alias: 'a',
+            args: [
+                { type: 'string', value: 'a' },
+            ]
+        }, {
+            type: 'call',
+            function: 'concat',
+            args: [
+                { type: 'string', value: 'b' },
+            ],
+            alias: 'b',
+            join: {
+                type: 'INNER JOIN',
+                on: {
+                    type: 'binary',
+                    op: '=',
+                    left: {
+                        type: 'ref',
+                        name: 'b',
+                    },
+                    right: {
+                        type: 'ref',
+                        name: 'a',
+                    },
+                }
+            },
+        }],
+        columns: columns({ type: 'ref', name: '*' }),
+
+    })
+
 
     checkSelect([`select * from concat('a', 'b') as tbl`], {
         type: 'select',

@@ -208,6 +208,14 @@ import {lexerAny, LOCATION} from '../lexer.ts';
         return flattenStr(e).join(join || '');
     }
 
+    function fromEntries(vals: [string, any][]): any {
+        const ret = {} as any;
+        for (const [k, v] of vals) {
+            ret[k] = v;
+        }
+        return ret;
+    }
+
 
  const kwSensitivity = { sensitivity: 'accent' };
  const eqInsensitive = (a: string, b: string) => a.localeCompare(b, undefined, kwSensitivity) === 0;
@@ -1640,7 +1648,7 @@ const grammar: Grammar = {
                 ... x[3] && {recursive: true},
                 ... x[5], // name
                 ... x[6] && {columnNames: x[6]},
-                ... x[7] && {parameters: Object.fromEntries(x[7])},
+                ... x[7] && {parameters: fromEntries(x[7])},
                 query: x[9],
                 ... x[10] && { checkOption: toStr(x[10]) },
             }
@@ -1682,7 +1690,7 @@ const grammar: Grammar = {
                 ... x[3] && {ifNotExists: true},
                 ... x[4], // name
                 ... x[5] && {columnNames: x[6]},
-                ... x[6] && {parameters: Object.fromEntries(x[6])},
+                ... x[6] && {parameters: fromEntries(x[6])},
                 ... x[7] && {tablespace: toStr(x[7]) },
                 query: x[9],
                 ... x[10] && { withData: toStr(x[10][1]) !== 'no' },
