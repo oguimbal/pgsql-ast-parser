@@ -44,6 +44,7 @@ export interface IAstPartialMapper {
     createView?: (val: a.CreateViewStatement) => a.Statement | nil
     createMaterializedView?: (val: a.CreateMaterializedViewStatement) => a.Statement | nil
     from?: (from: a.From) => a.From | nil
+    fromCall?: (from: a.FromCall) => a.From | nil
     fromStatement?: (from: a.FromStatement) => a.From | nil
     fromValues?: (from: a.FromValues) => a.From | nil;
     fromTable?: (from: a.FromTable) => a.From | nil
@@ -781,15 +782,20 @@ export class AstDefaultMapper implements IAstMapper {
             case 'values':
                 return this.fromValues(from);
             case 'call':
-                const call = this.call(from);
-                if (!call || call.type !== 'call') {
-                    return null;
-                }
-                return call;
+                return this.fromCall(from);
             default:
                 throw NotSupported.never(from);
         }
     }
+
+    fromCall(from: a.FromCall): a.From | nil {
+        const call = this.call(from);
+        if (!call || call.type !== 'call') {
+            return null;
+        }
+        return assignChanged(from, call);
+    }
+
 
     fromStatement(from: a.FromStatement): a.From | nil {
         const statement = this.select(from.statement);
@@ -907,7 +913,7 @@ export class AstDefaultMapper implements IAstMapper {
         });
     }
 
-    parameter (st: a.ExprParameter): a.Expr | nil {
+    parameter(st: a.ExprParameter): a.Expr | nil {
         return st;
     }
 

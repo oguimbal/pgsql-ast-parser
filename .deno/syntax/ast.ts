@@ -264,7 +264,7 @@ export interface IndexExpression {
 export interface CreateViewStatementBase extends QName {
     columnNames?: string[];
     query: SelectStatement;
-    parameters?: {[name: string]: string};
+    parameters?: { [name: string]: string };
 }
 export interface CreateViewStatement extends CreateViewStatementBase {
     type: 'create view';
@@ -429,7 +429,13 @@ export interface SelectedColumn {
     alias?: string;
 }
 
-export type From = FromTable | FromStatement | FromValues | ExprCall & { alias?: string; };
+export type From = FromTable | FromStatement | FromValues | FromCall
+
+
+export interface FromCall extends ExprCall {
+    alias?: string;
+    join?: JoinClause | nil;
+};
 
 
 
