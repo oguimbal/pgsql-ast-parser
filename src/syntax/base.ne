@@ -144,6 +144,7 @@ kw_delete -> %word {% notReservedKw('delete')  %}
 kw_cache -> %word {% notReservedKw('cache')  %}
 kw_cascade -> %word {% notReservedKw('cascade')  %}
 kw_no -> %word {% notReservedKw('no')  %}
+kw_timestamp -> %word {% notReservedKw('timestamp')  %}
 kw_cycle -> %word {% notReservedKw('cycle')  %}
 kw_action -> %word {% notReservedKw('action')  %}
 kw_restrict -> %word {% notReservedKw('restrict')  %}

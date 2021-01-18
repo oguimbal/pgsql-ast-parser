@@ -385,6 +385,12 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(v.keyword, ' ');
     },
 
+    extract: v => {
+        ret.push('EXTRACT (', v.field.toUpperCase(), ' FROM ');
+        m.expr(v.from);
+        ret.push(') ');
+    },
+
     createColumn: c => {
         ret.push(name(c.name), ' ');
         m.dataType(c.dataType);

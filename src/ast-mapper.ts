@@ -53,6 +53,7 @@ export interface IAstPartialMapper {
     ternary?: (val: a.ExprTernary) => a.Expr | nil
     arrayIndex?: (val: a.ExprArrayIndex) => a.Expr | nil
     member?: (val: a.ExprMember) => a.Expr | nil
+    extract?: (st: a.ExprExtract) => a.Expr | nil
     case?: (val: a.ExprCase) => a.Expr | nil
     cast?: (val: a.ExprCast) => a.Expr | nil
     call?: (val: a.ExprCall) => a.Expr | nil
@@ -889,11 +890,21 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.valueKeyword(val);
             case 'parameter':
                 return this.parameter(val);
+            case 'extract':
+                return this.extract(val);
             default:
                 throw NotSupported.never(val);
         }
     }
 
+
+    extract(st: a.ExprExtract): a.Expr | nil {
+        const from = this.expr(st.from);
+        if (!from) {
+            return null;
+        }
+        return assignChanged(st, { from })
+    }
 
     valueKeyword(val: a.ExprValueKeyword): a.Expr | nil {
         return val;

@@ -461,6 +461,25 @@ line`,
             },
         });
 
+        checkTreeExpr(`timestamp 'value'`, {
+            type: 'cast',
+            to: { name: 'timestamp' },
+            operand: { type: 'string', value: 'value' },
+        });
+
+        checkTreeExpr(`time 'value'`, {
+            type: 'cast',
+            to: { name: 'time' },
+            operand: { type: 'string', value: 'value' },
+        });
+
+
+        checkTreeExpr(`interval 'value'`, {
+            type: 'cast',
+            to: { name: 'interval' },
+            operand: { type: 'string', value: 'value' },
+        });
+
         checkTreeExpr(['"a"+"b"::"JSONB"'], {
             type: 'binary',
             op: '+',
@@ -788,6 +807,16 @@ line`,
                 value: false,
             }]
         })
+
+        checkTreeExpr([`extract (century from timestamp 'value')`, `EXTRACT (CENTURY FROM 'value'::TIMESTAMP)`], {
+            type: 'extract',
+            field: 'century',
+            from: {
+                type: 'cast',
+                to: { name: 'timestamp' },
+                operand: { type: 'string', value: 'value' },
+            },
+        });
     });
 
 

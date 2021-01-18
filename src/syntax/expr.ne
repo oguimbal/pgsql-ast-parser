@@ -77,7 +77,9 @@ expr_array_index
 expr_member
     -> (expr_member | expr_paren) ops_member (string | int) {% ([operand, op, member]) => ({ type: 'member', operand: unwrap(operand), op, member: unwrap(member)}) %}
     | (expr_member | expr_paren) %op_cast data_type {% ([operand, _, to]) => ({ type: 'cast', operand: unwrap(operand), to }) %}
+    | data_type string  {% ([to, value]) => ({ type: 'cast', operand: { type: 'string', value}, to }) %}
     | expr_dot {% unwrap %}
+
 
 expr_dot
     -> word %dot (word | star) {% ([operand, _, member]) => ({ type: 'ref', table: unwrap(operand), name: unwrap(member)}) %}
@@ -91,6 +93,7 @@ expr_final
 expr_basic
     -> expr_call
     | expr_case
+    | expr_extract
     | word {% ([value]) => ({ type: 'ref', name: unwrap(value) }) %}
 
 expr_call -> expr_fn_name lparen expr_list_raw:? rparen {% x => ({
@@ -98,6 +101,14 @@ expr_call -> expr_fn_name lparen expr_list_raw:? rparen {% x => ({
         ...unwrap(x[0]),
         args: x[2] || [],
     }) %}
+
+
+# https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-EXTRACT
+expr_extract -> (word {% kw('extract') %}) lparen word %kw_from expr rparen {% x => ({
+    type: 'extract',
+    field: toStr(x[2]),
+    from: x[4],
+}) %}
 
 expr_primary
     -> float {% ([value]) => ({ type: 'numeric', value: value }) %}
