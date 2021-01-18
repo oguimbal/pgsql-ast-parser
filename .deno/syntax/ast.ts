@@ -479,6 +479,7 @@ export type Expr = ExprRef
     | ExprParameter
     | ExprList
     | ExprNull
+    | ExprExtract
     | ExprInteger
     | ExprMember
     | ExprValueKeyword
@@ -589,6 +590,13 @@ export interface ExprCall {
     /** Function namespace (ex: pg_catalog) */
     namespace?: string;
     args: Expr[];
+}
+
+
+export interface ExprExtract {
+    type: 'extract';
+    field: string;
+    from: Expr;
 }
 
 export interface ExprList {
