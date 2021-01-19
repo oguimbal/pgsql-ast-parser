@@ -224,6 +224,14 @@ if (newArray === array) {
 }
 ```
 
+# Parsing literal values
+
+Postgres implements several literal syntaxes (string-to-something converters), whiches parsers are exposed as helper functions by this pgsql-ast-parser:
+
+- `parseArrayLiteral()` parses arrays literals syntaxes (for instance `{a,b,c}`)
+- `parseGeometricLiteral()` parses [geometric types](https://www.postgresql.org/docs/current/datatype-geometric.html)  (for instance, things like `(1,2)` or `<(1,2),3>`)
+- `parseIntervalLiteral()` parses [interval inputs](https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-INTERVAL-INPUT) literals (such as `P1Y2DT1H` or `1 yr 2 days 1 hr`)
+
 # Development
 
 Pull requests are welcome :)
