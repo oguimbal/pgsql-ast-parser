@@ -2,10 +2,11 @@ import { Parser, Grammar } from 'nearley';
 import { expect, assert } from 'chai';
 import grammar from '../syntax/main.ne';
 import { trimNullish } from '../utils';
-import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, DropTableStatement, SelectedColumn } from './ast';
+import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, DropTableStatement, SelectedColumn, Interval } from './ast';
 import { astMapper, IAstMapper } from '../ast-mapper';
-import { IAstVisitor } from '../ast-visitor';
 import { toSql, IAstToSql } from '../to-sql';
+import { parseIntervalLiteral } from '../parser';
+import { normalizeInterval } from '../literal-syntaxes/interval-builder';
 
 export function checkSelect(value: string | string[], expected: SelectStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
@@ -143,4 +144,15 @@ export function columns(...vals: (Expr | string)[]): SelectedColumn[] {
     return vals.map<SelectedColumn>(expr => typeof expr === 'string'
         ? { expr: { type: 'ref', name: expr } }
         : { expr });
+}
+
+
+export function checkInterval(input: string | string[], expected: Interval) {
+
+    for (const v of Array.isArray(input) ? input : [input]) {
+        it('parses interval "' + v + '"', () => {
+            expect(normalizeInterval(parseIntervalLiteral(v)))
+                .to.deep.equal(expected);
+        })
+    }
 }

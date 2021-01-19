@@ -1,12 +1,17 @@
-import { Statement, Expr, LOCATION, QName, GeometricLiteral, Point, Line, Segment, Box, Path, Polygon, Circle } from './syntax/ast';
+import { Statement, Expr, LOCATION, QName, GeometricLiteral, Point, Line, Segment, Box, Path, Polygon, Circle, Interval } from './syntax/ast';
 import { Parser, Grammar } from 'nearley';
 import sqlGrammar from './syntax/main.ne';
 import arrayGrammar from './literal-syntaxes/array.ne';
 import geometricGrammar from './literal-syntaxes/geometric.ne';
+import intervalTextGrammar from './literal-syntaxes/interval.ne';
+import intervalIsoGrammar from './literal-syntaxes/interval-iso.ne';
+import { buildInterval } from './literal-syntaxes/interval-builder';
 
 let sqlCompiled: Grammar;
 let arrayCompiled: Grammar;
 let geometricCompiled: Grammar;
+let intervalTextCompiled: Grammar;
+let intervalIsoCompiled: Grammar;
 
 /** Parse the first SQL statement in the given text (discards the rest), and return its AST */
 export function parseFirst(sql: string): Statement {
@@ -38,6 +43,21 @@ export function parseArrayLiteral(sql: string): string[] {
         arrayCompiled = Grammar.fromCompiled(arrayGrammar);
     }
     return _parse(sql, arrayCompiled);
+}
+
+export function parseIntervalLiteral(literal: string): Interval {
+    if (literal.startsWith('P')) {
+        if (!intervalIsoCompiled) {
+            intervalIsoCompiled = Grammar.fromCompiled(intervalIsoGrammar);
+        }
+        return buildInterval(literal, _parse(literal, intervalIsoCompiled));
+    } else {
+        if (!intervalTextCompiled) {
+            intervalTextCompiled = Grammar.fromCompiled(intervalTextGrammar);
+        }
+        const low = literal.toLowerCase(); // full text syntax is case insensitive
+        return buildInterval(literal, _parse(low, intervalTextCompiled));
+    }
 }
 
 
