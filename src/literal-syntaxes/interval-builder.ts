@@ -56,6 +56,12 @@ export function normalizeInterval(value: Interval): Interval {
         ret[k] = int;
     }
 
+    if (ret.months || ret.years) {
+        const m = (ret.months ?? 0) + (ret.years ?? 0) * 12;
+        ret.months = m % 12;
+        ret.years = (m - ret.months) / 12;
+    }
+
     // normalize time
     let t = (ret.hours ?? 0) * 3600
         + (ret.minutes ?? 0) * 60
