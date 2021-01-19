@@ -9,7 +9,7 @@ export const lexer = compile({
     months: /(?:mon(?:th)?s?)\b/,
     days: /(?:d|days?)\b/,
     hours: /(?:h|hrs?|hours?)\b/,
-    minutes: /(?:m|mins?)\b/,
+    minutes: /(?:m|mins?|minutes?)\b/,
     seconds: /(?:s|secs?|seconds?)\b/,
     milliseconds: /(?:ms|milliseconds?)\b/,
     space: { match: /[\s\t\n\v\f\r]+/, lineBreaks: true, },

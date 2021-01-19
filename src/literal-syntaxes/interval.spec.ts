@@ -86,6 +86,8 @@ describe('Interval literals', () => {
 
     checkInterval('1:2.003 4y', { minutes: 1, seconds: 2, milliseconds: 3, years: 4 });
 
+    checkInterval('1 year 40 days 1 minute', { years: 1, days: 40, minutes: 1 });
+
 
     it('produces a string', () => {
         expect(intervalToString({ years: 1 })).to.equal('1 year');
