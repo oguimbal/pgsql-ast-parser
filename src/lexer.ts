@@ -82,7 +82,7 @@ export const lexer = compile({
     op_compare: {
         // group other comparison operators
         // ... to add: "IN" and "NOT IN" that are matched by keywords
-        match: ['>', '>=', '<', '<=', '@>', '<@', '?', '?|', '?&'],
+        match: ['>', '>=', '<', '<=', '@>', '<@', '?', '?|', '?&', '#>>'],
     },
 });
 

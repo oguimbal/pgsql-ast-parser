@@ -228,6 +228,20 @@ line`,
             }
         });
 
+
+        checkTreeExpr(`a#>>b`, {
+            type: 'binary',
+            op: '#>>',
+            left: {
+                type: 'ref',
+                name: 'a',
+            },
+            right: {
+                type: 'ref',
+                name: 'b',
+            },
+        });
+
         checkTreeExpr(`a->>-1`, {
             type: 'member',
             op: '->>',
