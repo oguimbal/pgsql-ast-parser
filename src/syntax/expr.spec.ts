@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkTreeExpr, checkInvalidExpr } from './spec-utils';
+import { checkTreeExpr, checkInvalidExpr, checkInvalid } from './spec-utils';
 
 
 describe('Expressions', () => {
@@ -729,6 +729,8 @@ line`,
     // =============== TERNARIES ==========
     // ====================================
     describe('Ternaries', () => {
+
+        // === RANGE: between
         checkTreeExpr(['a between b and 42', '"a"between"b"and 42'], {
             type: 'ternary',
             op: 'BETWEEN',
@@ -744,6 +746,42 @@ line`,
             lo: { type: 'ref', name: 'b' },
             hi: { type: 'integer', value: 42 },
         });
+
+        // SUBSTRING FROM-FOR
+        checkTreeExpr(`substring('val' from 2 for 3)`, {
+            type: 'substring',
+            value: {type: 'string', value: 'val'},
+            from: { type: 'integer', value: 2 },
+            for: { type: 'integer', value: 3 },
+        });
+        checkTreeExpr(`substring('val' from 2)`, {
+            type: 'substring',
+            value: {type: 'string', value: 'val'},
+            from: { type: 'integer', value: 2 },
+        });
+
+        checkTreeExpr(`substring('val' for 2)`, {
+            type: 'substring',
+            value: {type: 'string', value: 'val'},
+            for: { type: 'integer', value: 2 },
+        });
+
+        // OVERLAY
+        checkTreeExpr(`overlay('12345678' placing 'ab' from 2 for 4)`, {
+            type: 'overlay',
+            value: { type: 'string', value: '12345678'},
+            placing: {type: 'string', value: 'ab'},
+            from: { type: 'integer', value: 2 },
+            for: { type: 'integer', value: 4 },
+        });
+        checkTreeExpr(`overlay('12345678' placing 'ab' from 2)`, {
+            type: 'overlay',
+            value: { type: 'string', value: '12345678'},
+            placing: {type: 'string', value: 'ab'},
+            from: { type: 'integer', value: 2 },
+        });
+        checkInvalid(`overlay('12345678' placing 'ab' for 4)`);
+        checkInvalid(`overlay('12345678' from 2 for 4)`);
     });
 
 

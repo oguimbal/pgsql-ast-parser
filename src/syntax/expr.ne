@@ -91,7 +91,8 @@ expr_final
     | expr_primary
 
 expr_basic
-    -> expr_call
+    -> expr_special_calls
+    | expr_call
     | expr_array
     | expr_case
     | expr_extract
@@ -199,3 +200,30 @@ _value_keyword
         |   %kw_session_user
         |   %kw_user
         |   %kw_current_user
+
+expr_special_calls -> spe_overlay
+                    | spe_substring
+
+spe_overlay -> (word {% kw('overlay') %})
+            (%lparen expr_nostar)
+            (%kw_placing expr_nostar)
+            (%kw_from expr_nostar)
+            (%kw_for expr_nostar):?
+            %rparen {% x => ({
+                type: 'overlay',
+                value: x[1][1],
+                placing: x[2][1],
+                from: x[3][1],
+                ...x[4] && {for: x[4][1]},
+            }) %}
+
+spe_substring -> (word {% kw('substring') %})
+            (%lparen expr_nostar)
+            (%kw_from expr_nostar):?
+            (%kw_for expr_nostar):?
+            %rparen {% x => ({
+                type: 'substring',
+                value: x[1][1],
+                ...x[2] && {from: x[2][1]},
+                ...x[3] && {for: x[3][1]},
+            }) %}

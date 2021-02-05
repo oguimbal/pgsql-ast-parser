@@ -544,8 +544,30 @@ export type Expr = ExprRef
     | ExprCall
     | SelectStatement
     | ExprConstant
-    | ExprTernary;
+    | ExprTernary
+    | ExprOverlay
+    | ExprSubstring;
 
+
+/**
+ * Handle special syntax: overlay('12345678' placing 'ab' from 2 for 4)
+ */
+export interface ExprOverlay {
+    type: 'overlay';
+    value: Expr;
+    placing: Expr;
+    from: Expr;
+    for?: Expr | nil;
+}
+
+
+/** Handle special syntax: substring('val' from 2 for 3) */
+export interface ExprSubstring {
+    type: 'substring';
+    value: Expr;
+    from?: Expr | nil;
+    for?: Expr | nil;
+}
 
 export type LogicOperator = 'OR' | 'AND';
 export type EqualityOperator = 'IN' | 'NOT IN' | 'LIKE' | 'NOT LIKE' | 'ILIKE' | 'NOT ILIKE' | '=' | '!=';

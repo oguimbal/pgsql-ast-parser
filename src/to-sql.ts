@@ -316,6 +316,34 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(')');
     },
 
+    callOverlay: o => {
+        ret.push('OVERLAY(');
+        m.expr(o.value);
+        ret.push(' PLACING ');
+        m.expr(o.placing);
+        ret.push(' FROM ');
+        m.expr(o.from);
+        if (o.for) {
+            ret.push(' FOR ');
+            m.expr(o.for);
+        }
+        ret.push(')');
+    },
+
+    callSubstring: s => {
+        ret.push('SUBSTRING(');
+        m.expr(s.value);
+        if (s.from) {
+            ret.push(' FROM ');
+            m.expr(s.from);
+        }
+        if (s.for) {
+            ret.push(' FOR ');
+            m.expr(s.for);
+        }
+        ret.push(')');
+    },
+
     binary: v => {
         m.expr(v.left);
         ret.push(' ', v.op, ' ');
