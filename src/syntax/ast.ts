@@ -28,9 +28,16 @@ export type Statement = (SelectStatement
     | DropTableStatement
     | DropSequenceStatement
     | DropIndexStatement
+    | CreateSchemaStatement
     | StartTransactionStatement) & {
         [LOCATION]?: StatementLocation;
     };
+
+export interface CreateSchemaStatement {
+    type: 'create schema';
+    name: string;
+    ifNotExists?: boolean;
+}
 
 export interface PrepareStatement {
     type: 'prepare';

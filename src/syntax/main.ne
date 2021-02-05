@@ -70,3 +70,4 @@ statement_noprep
     | with_statement
     | union_statement
     | create_view_statements
+    | create_schema

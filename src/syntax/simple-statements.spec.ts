@@ -103,4 +103,16 @@ describe('Simple statements', () => {
             value: -9,
         },
     });
+
+
+    checkStatement(['create schema test'], {
+        type: 'create schema',
+        name: 'test',
+    });
+
+    checkStatement(['create schema if not exists test'], {
+        type: 'create schema',
+        name: 'test',
+        ifNotExists: true,
+    });
 });

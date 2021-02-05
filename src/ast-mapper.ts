@@ -8,6 +8,7 @@ export interface IAstPartialMapper {
     update?: (val: a.UpdateStatement) => a.Statement | nil
     insert?: (val: a.InsertStatement) => a.Statement | nil
     delete?: (val: a.DeleteStatement) => a.Statement | nil
+    createSchema?: (val: a.CreateSchemaStatement) => a.Statement | nil
     dropTable?: (val: a.DropTableStatement) => a.Statement | nil
     createEnum?(val: a.CreateEnumType): a.Statement | nil
     dropIndex?: (val: a.DropIndexStatement) => a.Statement | nil
@@ -242,6 +243,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.createView(val);
             case 'create materialized view':
                 return this.createMaterializedView(val);
+            case 'create schema':
+                return this.createSchema(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -411,6 +414,9 @@ export class AstDefaultMapper implements IAstMapper {
         });
     }
 
+    createSchema(val: a.CreateSchemaStatement): a.Statement | nil {
+        return val;
+    }
 
     createTable(val: a.CreateTableStatement): a.Statement | nil {
         const columns = arrayNilMap(val.columns, col => {

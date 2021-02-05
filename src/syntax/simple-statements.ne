@@ -52,3 +52,11 @@ simplestatements_set_val_raw
 
 
 simplestatements_show -> kw_show ident {% x => ({ type: 'show', variable: toStr(x[1]) }) %}
+
+
+# https://www.postgresql.org/docs/current/sql-createschema.html
+create_schema -> (%kw_create kw_schema) kw_ifnotexists:? ident {% x => ({
+    type: 'create schema',
+    name: toStr(x[2]),
+    ... !!x[1] ? { ifNotExists: true } : {},
+}) %}

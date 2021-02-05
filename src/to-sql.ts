@@ -599,6 +599,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(')');
     },
 
+    createSchema: s => {
+        ret.push(s.ifNotExists ? 'CREATE SCHEMA IF NOT EXISTS ' : 'CREATE SCHEMA ');
+        ret.push(name(s.name));
+    },
+
     truncateTable: t => {
         ret.push('TRUNCATE TABLE ');
         let first = true;
