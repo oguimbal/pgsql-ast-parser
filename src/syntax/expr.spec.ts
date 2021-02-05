@@ -218,6 +218,14 @@ line`,
             }
         });
 
+        checkTreeExpr(`ARRAY[1, '2']`, {
+            type: 'array',
+            expressions: [
+                { type: 'integer', value: 1 },
+                { type: 'string', value: '2' },
+            ]
+        });
+
         checkTreeExpr(`a->>42`, {
             type: 'member',
             op: '->>',

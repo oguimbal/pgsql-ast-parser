@@ -292,7 +292,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     array: v => {
-        list(v.expressions, e => m.expr(e), true);
+        ret.push(v.type === 'array' ? 'ARRAY[' : '(');
+        list(v.expressions, e => m.expr(e), false);
+        ret.push(v.type === 'array' ? ']' : ')');
     },
 
     arrayIndex: v => {

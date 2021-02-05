@@ -900,6 +900,7 @@ export class AstDefaultMapper implements IAstMapper {
             case 'null':
                 return this.constant(val);
             case 'list':
+            case 'array':
                 return this.array(val);
             case 'call':
                 return this.call(val);

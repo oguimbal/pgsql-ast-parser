@@ -650,7 +650,7 @@ export interface ExprExtract {
 }
 
 export interface ExprList {
-    type: 'list';
+    type: 'list' | 'array';
     expressions: Expr[];
 }
 

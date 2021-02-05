@@ -92,9 +92,15 @@ expr_final
 
 expr_basic
     -> expr_call
+    | expr_array
     | expr_case
     | expr_extract
     | word {% ([value]) => ({ type: 'ref', name: unwrap(value) }) %}
+
+expr_array -> %kw_array %lbracket expr_list_raw %rbracket {% x => ({
+    type: 'array',
+    expressions: x[2],
+}) %}
 
 expr_call -> expr_fn_name lparen expr_list_raw:? rparen {% x => ({
         type: 'call',
