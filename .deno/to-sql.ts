@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper.ts';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor.ts';
 import { NotSupported, nil, ReplaceReturnType } from './utils.ts';
-import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated } from './syntax/ast.ts';
+import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn } from './syntax/ast.ts';
 import { literal } from './pg-escape.ts';
 
 
@@ -15,7 +15,7 @@ function name(nm: string) {
 }
 
 
-function list<T>(elems: T[], act: (e: T) => any, addParen = true) {
+function list<T>(elems: T[], act: (e: T) => any, addParen: boolean) {
     if (addParen) {
         ret.push('(');
     }
@@ -163,10 +163,7 @@ function visitSeqOpts(m: IAstVisitor, cs: AlterSequenceSetOptions | CreateSequen
         ret.push('OWNED BY NONE ');
     } else if (cs.ownedBy) {
         ret.push('OWNED BY ');
-        if (cs.ownedBy.schema) {
-            ret.push(name(cs.ownedBy.schema), '.');
-        }
-        ret.push(name(cs.ownedBy.table), '.', name(cs.ownedBy.column), ' ');
+        visitQColumn(cs.ownedBy);
     }
 
     if ('restart' in cs) {
@@ -176,6 +173,13 @@ function visitSeqOpts(m: IAstVisitor, cs: AlterSequenceSetOptions | CreateSequen
             ret.push('RESTART WITH ', cs.restart.toString(), ' ');
         }
     }
+}
+
+function visitQColumn(col: QColumn) {
+    if (col.schema) {
+        ret.push(name(col.schema), '.');
+    }
+    ret.push(name(col.table), '.', name(col.column), ' ');
 }
 
 function join(m: IAstVisitor, j: JoinClause | nil, tbl: () => void) {
@@ -253,7 +257,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push('CREATE TYPE ');
         visitQualifiedName(t.name);
         ret.push(' AS ENUM ');
-        list(t.values, x => ret.push(literal(x)));
+        list(t.values, x => ret.push(literal(x)), true);
         ret.push(' ');
     },
 
@@ -288,7 +292,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     array: v => {
-        list(v.expressions, e => m.expr(e));
+        list(v.expressions, e => m.expr(e), true);
     },
 
     arrayIndex: v => {
@@ -325,7 +329,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         } else {
             ret.push(v.function.keyword);
         }
-        list(v.args, e => m.expr(e));
+        list(v.args, e => m.expr(e), true);
     },
 
     case: c => {
@@ -383,6 +387,19 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     valueKeyword: v => {
         ret.push(v.keyword, ' ');
+    },
+
+    comment: c => {
+        ret.push('COMMENT ON ', c.on.type.toUpperCase(), ' ');
+        switch (c.on.type) {
+            case 'column':
+                visitQColumn(c.on.column);
+                break;
+            default:
+                visitQualifiedName(c.on.name);
+                break;
+        }
+        ret.push(' IS ', literal(c.comment),' ');
     },
 
     extract: v => {
@@ -577,7 +594,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             if (e.nulls) {
                 ret.push('nulls ', e.nulls, ' ');
             }
-        });
+        }, true);
         ret.push(' ');
     },
 
@@ -597,6 +614,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             }, false)
         }
         ret.push(')');
+    },
+
+    createSchema: s => {
+        ret.push(s.ifNotExists ? 'CREATE SCHEMA IF NOT EXISTS ' : 'CREATE SCHEMA ');
+        ret.push(name(s.name));
     },
 
     truncateTable: t => {
@@ -669,7 +691,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             list(s.values, vlist => {
                 list(vlist, e => {
                     m.expr(e);
-                });
+                }, true);
             }, false);
             ret.push(') AS ', name(s.alias));
             if (s.columnNames) {
@@ -714,7 +736,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                     } else {
                         m.expr(e);
                     }
-                });
+                }, true);
             }, false);
             ret.push(' ');
         }
@@ -727,7 +749,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (i.onConflict) {
             ret.push('ON CONFLICT ');
             if (i.onConflict.on) {
-                list(i.onConflict.on, e => m.expr(e));
+                list(i.onConflict.on, e => m.expr(e), true);
             }
             if (i.onConflict.do === 'do nothing') {
                 ret.push(' DO NOTHING');
@@ -742,6 +764,27 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push(' RETURNING ');
             list(i.returning, r => m.selectionColumn(r), false);
         }
+    },
+
+    raise: r => {
+        ret.push('RAISE ');
+        if (r.level) {
+            ret.push(r.level.toUpperCase(), ' ');
+        }
+        ret.push(literal(r.format), ' ');
+
+        if (r.formatExprs?.length) {
+            ret.push(', ');
+            list(r.formatExprs, e => m.expr(e), false);
+        }
+        if (r.using?.length) {
+            ret.push(' USING ');
+            list(r.using, ({type, value}) => {
+                ret.push(type.toUpperCase(), '=');
+                m.expr(value);
+            }, false);
+        }
+        ret.push(' ');
     },
 
     member: e => {

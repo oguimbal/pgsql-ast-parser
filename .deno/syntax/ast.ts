@@ -28,9 +28,53 @@ export type Statement = (SelectStatement
     | DropTableStatement
     | DropSequenceStatement
     | DropIndexStatement
+    | CommentStatement
+    | CreateSchemaStatement
+    | RaiseStatement
     | StartTransactionStatement) & {
         [LOCATION]?: StatementLocation;
     };
+
+
+export interface CommentStatement {
+    type: 'comment';
+    comment: string;
+    /** This is not exhaustive compared to https://www.postgresql.org/docs/13/sql-comment.html
+     * But this is what's supported. File an issue if you want more.
+     */
+    on: {
+        type: 'table' | 'database' | 'index' | 'materialized view' | 'trigger' | 'type' | 'view';
+        name: QName;
+    } | {
+        type: 'column';
+        column: QColumn;
+    };
+}
+
+export interface RaiseStatement {
+    type: 'raise';
+    level?: 'debug' | 'log' | 'info' | 'notice' | 'warning' | 'exception';
+    format: string;
+    formatExprs?: Expr[] | nil;
+    using?: {
+        type: 'message'
+        | 'detail'
+        | 'hint'
+        | 'errcode'
+        | 'column'
+        | 'constraint'
+        | 'datatype'
+        | 'table'
+        | 'schema';
+        value: Expr;
+    }[] | nil;
+}
+
+export interface CreateSchemaStatement {
+    type: 'create schema';
+    name: string;
+    ifNotExists?: boolean;
+}
 
 export interface PrepareStatement {
     type: 'prepare';
@@ -300,6 +344,12 @@ export interface CreateColumnDef {
 
 export interface QName {
     name: string;
+    schema?: string;
+}
+
+export interface QColumn {
+    table: string;
+    column: string;
     schema?: string;
 }
 
@@ -696,11 +746,7 @@ export interface CreateSequenceOptions {
     startWith?: number;
     cache?: number;
     cycle?: 'cycle' | 'no cycle';
-    ownedBy?: 'none' | {
-        table: string;
-        column: string;
-        schema?: string;
-    };
+    ownedBy?: 'none' | QColumn;
 }
 
 
