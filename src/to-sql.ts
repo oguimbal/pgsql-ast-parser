@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor';
 import { NotSupported, nil, ReplaceReturnType } from './utils';
-import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated } from './syntax/ast';
+import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn } from './syntax/ast';
 import { literal } from './pg-escape';
 
 
@@ -163,10 +163,7 @@ function visitSeqOpts(m: IAstVisitor, cs: AlterSequenceSetOptions | CreateSequen
         ret.push('OWNED BY NONE ');
     } else if (cs.ownedBy) {
         ret.push('OWNED BY ');
-        if (cs.ownedBy.schema) {
-            ret.push(name(cs.ownedBy.schema), '.');
-        }
-        ret.push(name(cs.ownedBy.table), '.', name(cs.ownedBy.column), ' ');
+        visitQColumn(cs.ownedBy);
     }
 
     if ('restart' in cs) {
@@ -176,6 +173,13 @@ function visitSeqOpts(m: IAstVisitor, cs: AlterSequenceSetOptions | CreateSequen
             ret.push('RESTART WITH ', cs.restart.toString(), ' ');
         }
     }
+}
+
+function visitQColumn(col: QColumn) {
+    if (col.schema) {
+        ret.push(name(col.schema), '.');
+    }
+    ret.push(name(col.table), '.', name(col.column), ' ');
 }
 
 function join(m: IAstVisitor, j: JoinClause | nil, tbl: () => void) {
@@ -383,6 +387,19 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     valueKeyword: v => {
         ret.push(v.keyword, ' ');
+    },
+
+    comment: c => {
+        ret.push('COMMENT ON ', c.on.type.toUpperCase(), ' ');
+        switch (c.on.type) {
+            case 'column':
+                visitQColumn(c.on.column);
+                break;
+            default:
+                visitQualifiedName(c.on.name);
+                break;
+        }
+        ret.push(' IS ', literal(c.comment),' ');
     },
 
     extract: v => {

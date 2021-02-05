@@ -168,4 +168,40 @@ describe('Simple statements', () => {
         ],
     });
 
+    checkStatement(`COMMENT ON TABLE groups is 'some text'`, {
+        type: 'comment',
+        comment: 'some text',
+        on: {
+            type: 'table',
+            name: { name: 'groups' }
+        }
+    })
+
+    checkStatement(`COMMENT ON TABLE public.groups is 'some text'`, {
+        type: 'comment',
+        comment: 'some text',
+        on: {
+            type: 'table',
+            name: { schema: 'public', name: 'groups', }
+        }
+    })
+
+    checkStatement(`COMMENT ON COLUMN groups.members is 'some text'`, {
+        type: 'comment',
+        comment: 'some text',
+        on: {
+            type: 'column',
+            column: { table: 'groups', column: 'members', }
+        }
+    })
+
+    checkStatement(`COMMENT ON COLUMN public.groups.members is 'some text'`, {
+        type: 'comment',
+        comment: 'some text',
+        on: {
+            type: 'column',
+            column: { schema: 'public', table: 'groups', column: 'members', }
+        }
+    })
+
 });

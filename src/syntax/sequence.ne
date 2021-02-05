@@ -60,12 +60,7 @@ create_sequence_maxvalue
 create_sequence_owned_by
     -> kw_owned kw_by (
             kw_none
-            | ident dot ident (dot ident {% last %}):? {% x => {
-                if (!x[3]) {
-                    return { table: x[0], column: x[2] };
-                }
-                return { schema: x[0], table: x[2], column: x[3] };
-            } %}
+            | qcolumn
         ) {% last %}
 
 

@@ -171,6 +171,7 @@ kw_enum -> %word {% notReservedKw('enum')  %}
 kw_show -> %word {% notReservedKw('show')  %}
 kw_overriding -> %word {% notReservedKw('overriding')  %}
 kw_system -> %word {% notReservedKw('system')  %}
+kw_comment -> %word {% notReservedKw('comment')  %}
 kw_time -> %word {% notReservedKw('time')  %}
 kw_zone -> %word {% notReservedKw('zone')  %}
 kw_interval -> %word {% notReservedKw('interval')  %}
@@ -250,6 +251,13 @@ data_type_date
 ident_aliased -> (%kw_as ident {% last %}) | ident {% unwrap %}
 
 table_ref -> qualified_name {% unwrap %}
+
+qcolumn -> ident dot ident (dot ident {% last %}):? {% x => {
+                if (!x[3]) {
+                    return { table: x[0], column: x[2] };
+                }
+                return { schema: x[0], table: x[2], column: x[3] };
+            } %}
 
 
 # Select on tables MAY have an alias

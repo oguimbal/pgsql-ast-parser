@@ -72,3 +72,4 @@ statement_noprep
     | create_view_statements
     | create_schema
     | raise_statement
+    | comment_statement

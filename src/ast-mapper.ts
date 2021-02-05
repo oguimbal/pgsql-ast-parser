@@ -8,6 +8,7 @@ export interface IAstPartialMapper {
     update?: (val: a.UpdateStatement) => a.Statement | nil
     insert?: (val: a.InsertStatement) => a.Statement | nil
     delete?: (val: a.DeleteStatement) => a.Statement | nil
+    comment?: (val: a.CommentStatement) => a.Statement | nil
     raise?: (val: a.RaiseStatement) => a.Statement | nil
     createSchema?: (val: a.CreateSchemaStatement) => a.Statement | nil
     dropTable?: (val: a.DropTableStatement) => a.Statement | nil
@@ -250,11 +251,17 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.createSchema(val);
             case 'raise':
                 return this.raise(val);
+            case 'comment':
+                return this.comment(val);
             default:
                 throw NotSupported.never(val);
         }
     }
 
+    comment(val: a.CommentStatement): a.Statement | nil {
+        // not really supported :/
+        return val;
+    }
 
     createView(val: a.CreateViewStatement): a.Statement | nil {
         const query = this.select(val.query);

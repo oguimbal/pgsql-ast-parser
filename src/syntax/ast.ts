@@ -28,11 +28,28 @@ export type Statement = (SelectStatement
     | DropTableStatement
     | DropSequenceStatement
     | DropIndexStatement
+    | CommentStatement
     | CreateSchemaStatement
     | RaiseStatement
     | StartTransactionStatement) & {
         [LOCATION]?: StatementLocation;
     };
+
+
+export interface CommentStatement {
+    type: 'comment';
+    comment: string;
+    /** This is not exhaustive compared to https://www.postgresql.org/docs/13/sql-comment.html
+     * But this is what's supported. File an issue if you want more.
+     */
+    on: {
+        type: 'table' | 'database' | 'index' | 'materialized view' | 'trigger' | 'type' | 'view';
+        name: QName;
+    } | {
+        type: 'column';
+        column: QColumn;
+    };
+}
 
 export interface RaiseStatement {
     type: 'raise';
@@ -327,6 +344,12 @@ export interface CreateColumnDef {
 
 export interface QName {
     name: string;
+    schema?: string;
+}
+
+export interface QColumn {
+    table: string;
+    column: string;
     schema?: string;
 }
 
@@ -723,11 +746,7 @@ export interface CreateSequenceOptions {
     startWith?: number;
     cache?: number;
     cycle?: 'cycle' | 'no cycle';
-    ownedBy?: 'none' | {
-        table: string;
-        column: string;
-        schema?: string;
-    };
+    ownedBy?: 'none' | QColumn;
 }
 
 
