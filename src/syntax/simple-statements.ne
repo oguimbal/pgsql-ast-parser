@@ -107,7 +107,7 @@ comment_what -> comment_what_col | comment_what_nm
 
 comment_what_nm -> (%kw_table
                     | kw_materialized kw_view
-                    | %word {% anyKw('database' | 'index' | 'trigger' | 'type' | 'view') %})
+                    | %word {% anyKw('database', 'index', 'trigger', 'type', 'view') %})
                 qualified_name {% x => ({
                     type: toStr(x[0]),
                     name: x[1],
