@@ -29,9 +29,29 @@ export type Statement = (SelectStatement
     | DropSequenceStatement
     | DropIndexStatement
     | CreateSchemaStatement
+    | RaiseStatement
     | StartTransactionStatement) & {
         [LOCATION]?: StatementLocation;
     };
+
+export interface RaiseStatement {
+    type: 'raise';
+    level?: 'debug' | 'log' | 'info' | 'notice' | 'warning' | 'exception';
+    format: string;
+    formatExprs?: Expr[] | nil;
+    using?: {
+        type: 'message'
+        | 'detail'
+        | 'hint'
+        | 'errcode'
+        | 'column'
+        | 'constraint'
+        | 'datatype'
+        | 'table'
+        | 'schema';
+        value: Expr;
+    }[] | nil;
+}
 
 export interface CreateSchemaStatement {
     type: 'create schema';

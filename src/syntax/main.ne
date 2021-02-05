@@ -71,3 +71,4 @@ statement_noprep
     | union_statement
     | create_view_statements
     | create_schema
+    | raise_statement

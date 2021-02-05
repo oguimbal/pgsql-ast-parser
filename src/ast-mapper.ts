@@ -8,6 +8,7 @@ export interface IAstPartialMapper {
     update?: (val: a.UpdateStatement) => a.Statement | nil
     insert?: (val: a.InsertStatement) => a.Statement | nil
     delete?: (val: a.DeleteStatement) => a.Statement | nil
+    raise?: (val: a.RaiseStatement) => a.Statement | nil
     createSchema?: (val: a.CreateSchemaStatement) => a.Statement | nil
     dropTable?: (val: a.DropTableStatement) => a.Statement | nil
     createEnum?(val: a.CreateEnumType): a.Statement | nil
@@ -109,13 +110,15 @@ export type MapperBuilder = (defaultImplem: IAstMapper) => IAstPartialMapper;
 
 
 
-
+type PartialNil<T> = {
+    [P in keyof T]?: T[P] | nil;
+};
 /**
  * An helper function that returns a copy of an object with modified properties
  * (similar to Object.assign()), but ONLY if thos properties have changed.
  * Will return the original object if not.
  */
-export function assignChanged<T>(orig: T, assign: Partial<T>): T {
+export function assignChanged<T>(orig: T, assign: PartialNil<T>): T {
     let changed = false;
     for (const k of Object.keys(assign)) {
         if ((orig as any)[k] !== (assign as any)[k]) {
@@ -245,6 +248,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.createMaterializedView(val);
             case 'create schema':
                 return this.createSchema(val);
+            case 'raise':
+                return this.raise(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -394,6 +399,18 @@ export class AstDefaultMapper implements IAstMapper {
             onConflict: !ocdo ? val.onConflict : assignChanged(val.onConflict, {
                 do: ocdo,
                 on: onConflictOn,
+            }),
+        });
+    }
+
+
+    raise(val: a.RaiseStatement): a.Statement | nil {
+        return assignChanged(val, {
+            formatExprs: val.formatExprs && arrayNilMap(val.formatExprs, x => this.expr(x)),
+            using: val.using && arrayNilMap(val.using, u => {
+                return assignChanged(u, {
+                    value: this.expr(u.value),
+                })
             }),
         });
     }

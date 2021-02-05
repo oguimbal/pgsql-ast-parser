@@ -13,6 +13,10 @@ simplestatements_all
     | simplestatements_show
 
 
+array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
+    return [unwrap(head), ...(tail.map(unwrap) || [])];
+} %}
+
 
 # https://www.postgresql.org/docs/12/sql-start-transaction.html
 simplestatements_start_transaction -> (kw_start kw_transaction | kw_begin) {% () => ({ type: 'start transaction' }) %}
@@ -60,3 +64,34 @@ create_schema -> (%kw_create kw_schema) kw_ifnotexists:? ident {% x => ({
     name: toStr(x[2]),
     ... !!x[1] ? { ifNotExists: true } : {},
 }) %}
+
+
+# https://www.postgresql.org/docs/13/plpgsql-errors-and-messages.html
+raise_statement -> kw_raise
+            (%word {% anyKw('debug', 'log', 'info', 'notice', 'warning', 'exception') %}):?
+            string
+            (comma expr_list_raw {% last %}):?
+            raise_using:? {% x => ({
+                type: 'raise',
+                format: toStr(x[2]),
+                ...x[1] && { level: toStr(x[1]) },
+                ...x[3] && x[3].length && { formatExprs: x[3] },
+                ...x[4] && x[4].length && { using: x[4] },
+            }) %}
+
+raise_using -> %kw_using array_of[raise_using_one] {% last %}
+
+raise_using_one -> raise_using_what %op_eq expr {% ([x, _, y]) => ({
+                type: toStr(x),
+                value: y,
+            }) %}
+
+raise_using_what -> %kw_table
+                | %word {% anyKw('message',
+                                'detail',
+                                'hint',
+                                'errcode',
+                                'column',
+                                'constraint',
+                                'datatype',
+                                'schema') %}

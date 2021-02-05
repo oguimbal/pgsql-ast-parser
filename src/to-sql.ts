@@ -15,7 +15,7 @@ function name(nm: string) {
 }
 
 
-function list<T>(elems: T[], act: (e: T) => any, addParen = true) {
+function list<T>(elems: T[], act: (e: T) => any, addParen: boolean) {
     if (addParen) {
         ret.push('(');
     }
@@ -253,7 +253,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push('CREATE TYPE ');
         visitQualifiedName(t.name);
         ret.push(' AS ENUM ');
-        list(t.values, x => ret.push(literal(x)));
+        list(t.values, x => ret.push(literal(x)), true);
         ret.push(' ');
     },
 
@@ -288,7 +288,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     array: v => {
-        list(v.expressions, e => m.expr(e));
+        list(v.expressions, e => m.expr(e), true);
     },
 
     arrayIndex: v => {
@@ -325,7 +325,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         } else {
             ret.push(v.function.keyword);
         }
-        list(v.args, e => m.expr(e));
+        list(v.args, e => m.expr(e), true);
     },
 
     case: c => {
@@ -577,7 +577,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             if (e.nulls) {
                 ret.push('nulls ', e.nulls, ' ');
             }
-        });
+        }, true);
         ret.push(' ');
     },
 
@@ -674,7 +674,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             list(s.values, vlist => {
                 list(vlist, e => {
                     m.expr(e);
-                });
+                }, true);
             }, false);
             ret.push(') AS ', name(s.alias));
             if (s.columnNames) {
@@ -719,7 +719,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                     } else {
                         m.expr(e);
                     }
-                });
+                }, true);
             }, false);
             ret.push(' ');
         }
@@ -732,7 +732,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (i.onConflict) {
             ret.push('ON CONFLICT ');
             if (i.onConflict.on) {
-                list(i.onConflict.on, e => m.expr(e));
+                list(i.onConflict.on, e => m.expr(e), true);
             }
             if (i.onConflict.do === 'do nothing') {
                 ret.push(' DO NOTHING');
@@ -747,6 +747,27 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push(' RETURNING ');
             list(i.returning, r => m.selectionColumn(r), false);
         }
+    },
+
+    raise: r => {
+        ret.push('RAISE ');
+        if (r.level) {
+            ret.push(r.level.toUpperCase(), ' ');
+        }
+        ret.push(literal(r.format), ' ');
+
+        if (r.formatExprs?.length) {
+            ret.push(', ');
+            list(r.formatExprs, e => m.expr(e), false);
+        }
+        if (r.using?.length) {
+            ret.push(' USING ');
+            list(r.using, ({type, value}) => {
+                ret.push(type.toUpperCase(), '=');
+                m.expr(value);
+            }, false);
+        }
+        ret.push(' ');
     },
 
     member: e => {

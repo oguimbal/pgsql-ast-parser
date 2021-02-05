@@ -115,4 +115,57 @@ describe('Simple statements', () => {
         name: 'test',
         ifNotExists: true,
     });
+
+    checkStatement(`RAISE 'message'`, {
+        type: 'raise',
+        format: 'message',
+    });
+
+    checkStatement(`RAISE NOTICE 'message'`, {
+        type: 'raise',
+        level: 'notice',
+        format: 'message',
+    });
+
+    checkStatement(`RAISE NOTICE 'message', 42`, {
+        type: 'raise',
+        level: 'notice',
+        format: 'message',
+        formatExprs: [{ type: 'integer', value: 42 }],
+    });
+
+    checkStatement(`RAISE NOTICE 'message', 2+2, 42`, {
+        type: 'raise',
+        level: 'notice',
+        format: 'message',
+        formatExprs: [{
+            type: 'binary',
+            op: '+',
+            left: { type: 'integer', value: 2 },
+            right: { type: 'integer', value: 2 },
+        }, { type: 'integer', value: 42 }],
+    });
+
+    checkStatement(`RAISE NOTICE 'message' USING hint='some hint'`, {
+        type: 'raise',
+        level: 'notice',
+        format: 'message',
+        using: [{
+            type: 'hint',
+            value: { type: 'string', value: 'some hint' },
+        }]
+    });
+
+
+    checkStatement(`RAISE WARNING 'message', 42  USING hint='some hint', message='some message'`, {
+        type: 'raise',
+        level: 'warning',
+        format: 'message',
+        formatExprs: [{ type: 'integer', value: 42 }],
+        using: [
+            { type: 'hint', value: { type: 'string', value: 'some hint' }, },
+            { type: 'message', value: { type: 'string', value: 'some message' }, },
+        ],
+    });
+
 });
