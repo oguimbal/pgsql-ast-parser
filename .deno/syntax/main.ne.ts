@@ -94,6 +94,10 @@ declare var kw_localtime: any;
 declare var kw_session_user: any;
 declare var kw_user: any;
 declare var kw_current_user: any;
+declare var lparen: any;
+declare var kw_placing: any;
+declare var kw_for: any;
+declare var rparen: any;
 declare var kw_create: any;
 declare var kw_table: any;
 declare var kw_constraint: any;
@@ -881,6 +885,7 @@ const grammar: Grammar = {
     {"name": "expr_dot", "symbols": ["expr_final"], "postprocess": unwrap},
     {"name": "expr_final", "symbols": ["expr_basic"]},
     {"name": "expr_final", "symbols": ["expr_primary"]},
+    {"name": "expr_basic", "symbols": ["expr_special_calls"]},
     {"name": "expr_basic", "symbols": ["expr_call"]},
     {"name": "expr_basic", "symbols": ["expr_array"]},
     {"name": "expr_basic", "symbols": ["expr_case"]},
@@ -1006,6 +1011,36 @@ const grammar: Grammar = {
     {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_session_user") ? {type: "kw_session_user"} : kw_session_user)]},
     {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_user") ? {type: "kw_user"} : kw_user)]},
     {"name": "_value_keyword", "symbols": [(lexerAny.has("kw_current_user") ? {type: "kw_current_user"} : kw_current_user)]},
+    {"name": "expr_special_calls", "symbols": ["spe_overlay"]},
+    {"name": "expr_special_calls", "symbols": ["spe_substring"]},
+    {"name": "spe_overlay$subexpression$1", "symbols": ["word"], "postprocess": kw('overlay')},
+    {"name": "spe_overlay$subexpression$2", "symbols": [(lexerAny.has("lparen") ? {type: "lparen"} : lparen), "expr_nostar"]},
+    {"name": "spe_overlay$subexpression$3", "symbols": [(lexerAny.has("kw_placing") ? {type: "kw_placing"} : kw_placing), "expr_nostar"]},
+    {"name": "spe_overlay$subexpression$4", "symbols": [(lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "expr_nostar"]},
+    {"name": "spe_overlay$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_for") ? {type: "kw_for"} : kw_for), "expr_nostar"]},
+    {"name": "spe_overlay$ebnf$1", "symbols": ["spe_overlay$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "spe_overlay$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "spe_overlay", "symbols": ["spe_overlay$subexpression$1", "spe_overlay$subexpression$2", "spe_overlay$subexpression$3", "spe_overlay$subexpression$4", "spe_overlay$ebnf$1", (lexerAny.has("rparen") ? {type: "rparen"} : rparen)], "postprocess":  x => ({
+            type: 'overlay',
+            value: x[1][1],
+            placing: x[2][1],
+            from: x[3][1],
+            ...x[4] && {for: x[4][1]},
+        }) },
+    {"name": "spe_substring$subexpression$1", "symbols": ["word"], "postprocess": kw('substring')},
+    {"name": "spe_substring$subexpression$2", "symbols": [(lexerAny.has("lparen") ? {type: "lparen"} : lparen), "expr_nostar"]},
+    {"name": "spe_substring$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "expr_nostar"]},
+    {"name": "spe_substring$ebnf$1", "symbols": ["spe_substring$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "spe_substring$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "spe_substring$ebnf$2$subexpression$1", "symbols": [(lexerAny.has("kw_for") ? {type: "kw_for"} : kw_for), "expr_nostar"]},
+    {"name": "spe_substring$ebnf$2", "symbols": ["spe_substring$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "spe_substring$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "spe_substring", "symbols": ["spe_substring$subexpression$1", "spe_substring$subexpression$2", "spe_substring$ebnf$1", "spe_substring$ebnf$2", (lexerAny.has("rparen") ? {type: "rparen"} : rparen)], "postprocess":  x => ({
+            type: 'substring',
+            value: x[1][1],
+            ...x[2] && {from: x[2][1]},
+            ...x[3] && {for: x[3][1]},
+        }) },
     {"name": "createtable_statement$ebnf$1", "symbols": ["kw_ifnotexists"], "postprocess": id},
     {"name": "createtable_statement$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "createtable_statement$ebnf$2$subexpression$1", "symbols": ["ident", "dot"], "postprocess": get(0)},

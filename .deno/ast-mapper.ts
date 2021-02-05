@@ -60,6 +60,8 @@ export interface IAstPartialMapper {
     case?: (val: a.ExprCase) => a.Expr | nil
     cast?: (val: a.ExprCast) => a.Expr | nil
     call?: (val: a.ExprCall) => a.Expr | nil
+    callSubstring?: (val: a.ExprSubstring) => a.Expr | nil
+    callOverlay?: (val: a.ExprOverlay) => a.Expr | nil
     array?: (val: a.ExprList) => a.Expr | nil
     constant?: (value: a.ExprLiteral) => a.Expr | nil
     ref?: (val: a.ExprRef) => a.Expr | nil
@@ -884,7 +886,10 @@ export class AstDefaultMapper implements IAstMapper {
     // ============== EXPRESSIONS ==============
     // =========================================
 
-    expr(val: a.Expr): a.Expr | nil {
+    expr(val: a.Expr | nil): a.Expr | nil {
+        if (!val) {
+            return val;
+        }
         switch (val.type) {
             case 'binary':
                 return this.binary(val);
@@ -923,6 +928,10 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.parameter(val);
             case 'extract':
                 return this.extract(val);
+            case 'overlay':
+                return this.callOverlay(val);
+            case 'substring':
+                return this.callSubstring(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -1031,6 +1040,22 @@ export class AstDefaultMapper implements IAstMapper {
             function: fn,
             args,
         });
+    }
+
+    callSubstring(val: a.ExprSubstring): a.Expr | nil {
+        return assignChanged(val, {
+            value: this.expr(val.value),
+            from: this.expr(val.from),
+            for: this.expr(val.for),
+        })
+    }
+    callOverlay(val: a.ExprOverlay): a.Expr | nil {
+        return assignChanged(val, {
+            value: this.expr(val.value),
+            placing: this.expr(val.placing),
+            from: this.expr(val.from),
+            for: this.expr(val.for),
+        })
     }
 
     array(val: a.ExprList): a.Expr | nil {
