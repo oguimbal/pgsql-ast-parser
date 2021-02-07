@@ -181,6 +181,7 @@ expr_fn_name -> ((word %dot):?  word_or_keyword {% ([ns, fn]) => ({
 
 word_or_keyword
     -> word {% unwrap %}
+    | %kw_distinct {% x => toStr(x) %}
     | value_keyword
 
 value_keyword -> _value_keyword {% x => ({

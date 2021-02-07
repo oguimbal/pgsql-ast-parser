@@ -330,6 +330,35 @@ describe('Select statements', () => {
     });
 
 
+    checkSelect(['select count(distinct("userId")) from photo'], {
+        type: 'select',
+        from: [{ type: 'table', name: 'photo' }],
+        columns: columns({
+            type: 'call',
+            function: 'count',
+            args: [{
+                type: 'call',
+                function: 'distinct',
+                args: [{ type: 'ref', name: 'userId' }],
+            }],
+        })
+    });
+
+    checkSelect(['select max(distinct("userId")) from photo'], {
+        type: 'select',
+        from: [{ type: 'table', name: 'photo' }],
+        columns: columns({
+            type: 'call',
+            function: 'max',
+            args: [{
+                type: 'call',
+                function: 'distinct',
+                args: [{ type: 'ref', name: 'userId' }],
+            }],
+        })
+    });
+
+
     checkSelect(['select all a from test'], {
         type: 'select',
         from: [{ type: 'table', name: 'test' }],
