@@ -995,6 +995,7 @@ const grammar: Grammar = {
         })},
     {"name": "expr_fn_name", "symbols": ["expr_fn_name$subexpression$2"]},
     {"name": "word_or_keyword", "symbols": ["word"], "postprocess": unwrap},
+    {"name": "word_or_keyword", "symbols": [(lexerAny.has("kw_distinct") ? {type: "kw_distinct"} : kw_distinct)], "postprocess": x => toStr(x)},
     {"name": "word_or_keyword", "symbols": ["value_keyword"]},
     {"name": "value_keyword", "symbols": ["_value_keyword"], "postprocess":  x => ({
             type: 'keyword',
