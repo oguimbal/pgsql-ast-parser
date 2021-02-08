@@ -429,7 +429,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 visitQualifiedName(c.on.name);
                 break;
         }
-        ret.push(' IS ', literal(c.comment),' ');
+        ret.push(' IS ', literal(c.comment), ' ');
     },
 
     extract: v => {
@@ -543,6 +543,81 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    do: d => {
+        ret.push('DO');
+        if (d.language) {
+            ret.push(' LANGUAGE ', d.language);
+        }
+        ret.push(' $$', d.code, '$$');
+    },
+
+    createFunction: c => {
+        ret.push(c.orReplace ? 'CREATE OR REPLACE FUNCTION ' : 'CREATE FUNCTION ');
+
+        visitQualifiedName(c);
+
+        // args
+        list(c.arguments, a => {
+            if (a.mode) {
+                ret.push(a.mode, ' ');
+            }
+            if (a.name) {
+                ret.push(name(a.name), ' ');
+            }
+            m.dataType(a.type);
+        }, true);
+
+        // ret type
+        if (c.returns) {
+            switch (c.returns.kind) {
+                case 'table':
+                    ret.push(' RETURNS TABLE ');
+                    list(c.returns.columns, t => {
+                        ret.push(name(t.name), ' ');
+                        m.dataType(t.type);
+                    }, true);
+                    break;
+                case undefined:
+                case null:
+                case 'array':
+                    ret.push(' RETURNS ');
+                    m.dataType(c.returns);
+                    break;
+                default:
+                    throw NotSupported.never(c.returns);
+            }
+        }
+
+        ret.push(' AS $$', c.code, '$$');
+
+        // function settings
+        if (c.language) {
+            ret.push('LANGUAGE ', c.language, ' ');
+        }
+        if (c.purity) {
+            ret.push(c.purity.toUpperCase(), ' ');
+        }
+        if (typeof c.leakproof === 'boolean') {
+            ret.push(c.leakproof ? 'LEAKPROOF ' : 'NOT LEAKPROOF ');
+        }
+        switch (c.onNullInput) {
+            case 'call':
+                ret.push('CALLED ON NULL INPUT ');
+                break;
+            case 'null':
+                ret.push('RETURNS NULL ON NULL INPUT ');
+                break;
+            case 'strict':
+                ret.push('STRICT ');
+                break;
+            case null:
+            case undefined:
+                break;
+            default:
+                throw NotSupported.never(c.onNullInput);
+        }
+    },
+
     with: w => {
         ret.push('WITH ');
         list(w.bind, b => {
@@ -643,7 +718,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 addConstraint(c, m);
             }, false)
         }
-        ret.push(')');
+        ret.push(') ');
+        if (t.inherits?.length) {
+            ret.push(' INHERITS ');
+            list(t.inherits, i => visitQualifiedName(i), true);
+        }
     },
 
     createSchema: s => {
@@ -686,7 +765,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(name(t.column));
     },
 
-    from: t =>  m.super().from(t),
+    from: t => m.super().from(t),
 
     fromCall: s => {
 
@@ -809,7 +888,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
         if (r.using?.length) {
             ret.push(' USING ');
-            list(r.using, ({type, value}) => {
+            list(r.using, ({ type, value }) => {
                 ret.push(type.toUpperCase(), '=');
                 m.expr(value);
             }, false);
@@ -897,7 +976,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push(' WITH ');
             list(opts, ([k, v]) => ret.push(k, '=', v), false);
         }
-        if(c.tablespace) {
+        if (c.tablespace) {
             ret.push(' TABLESPACE ', name(c.tablespace));
         }
         ret.push(' AS ');

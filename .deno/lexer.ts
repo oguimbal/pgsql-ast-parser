@@ -1,4 +1,4 @@
-import {compile, keywords} from 'https://deno.land/x/moo@0.5.1-deno.2/mod.ts';
+import { compile, keywords } from 'https://deno.land/x/moo@0.5.1-deno.2/mod.ts';
 import { sqlKeywords } from './keywords.ts';
 export { LOCATION } from './syntax/ast.ts';
 
@@ -83,6 +83,11 @@ export const lexer = compile({
         // group other comparison operators
         // ... to add: "IN" and "NOT IN" that are matched by keywords
         match: ['>', '>=', '<', '<=', '@>', '<@', '?', '?|', '?&', '#>>'],
+    },
+    codeblock: {
+        match: /\$\$(?:.|[\s\t\n\v\f\r])*\$\$/s,
+        lineBreaks: true,
+        value: (x: string) => x.substr(2, x.length - 4),
     },
 });
 
