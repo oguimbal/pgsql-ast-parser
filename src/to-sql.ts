@@ -718,7 +718,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 addConstraint(c, m);
             }, false)
         }
-        ret.push(')');
+        ret.push(') ');
+        if (t.inherits?.length) {
+            ret.push(' INHERITS ');
+            list(t.inherits, i => visitQualifiedName(i), true);
+        }
     },
 
     createSchema: s => {

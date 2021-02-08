@@ -366,6 +366,7 @@ export interface CreateTableStatement extends QName {
     columns: CreateColumnDef[];
     /** Constraints not defined inline */
     constraints?: TableConstraint[];
+    inherits?: QName[];
 }
 
 export interface CreateColumnDef {

@@ -2,8 +2,12 @@
 @include "base.ne"
 
 
+array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
+    return [unwrap(head), ...(tail.map(unwrap) || [])];
+} %}
+
 # https://www.postgresql.org/docs/12/sql-createtable.html
-createtable_statement -> %kw_create %kw_table kw_ifnotexists:? (ident dot {% get(0) %}):? word lparen createtable_declarationlist rparen
+createtable_statement -> %kw_create %kw_table kw_ifnotexists:? (ident dot {% get(0) %}):? word lparen createtable_declarationlist rparen createtable_opts:?
      {% x => {
 
         const cols = x[6].filter((v: any) => 'dataType' in v);
@@ -16,9 +20,9 @@ createtable_statement -> %kw_create %kw_table kw_ifnotexists:? (ident dot {% get
             name: x[4],
             columns: cols,
             ...constraints.length ? { constraints } : {},
+            ...last(x),
         }
     } %}
-
 
 
 createtable_declarationlist -> createtable_declaration (comma createtable_declaration {% last %}):* {% ([head, tail]) => {
@@ -121,3 +125,9 @@ createtable_column_constraint_def
 
 createtable_collate
     -> %kw_collate qualified_name {% last %}
+
+
+
+# ========================== OPTIONS =======================
+
+createtable_opts -> (word {% kw('inherits') %}) lparen array_of[qname] rparen {% x => ({ inherits: x[2] }) %}

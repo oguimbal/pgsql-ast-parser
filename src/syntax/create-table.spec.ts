@@ -25,6 +25,25 @@ describe('Create table', () => {
         }],
     });
 
+    checkCreateTable(`CREATE TABLE capitals (
+        state           char(2)
+    ) INHERITS (cities)`, {
+        type: 'create table',
+        name: 'capitals',
+        columns: [{ name: 'state', dataType: { name: 'char', config: [2] } }],
+        inherits: [{ name: 'cities' }],
+    });
+
+
+    checkCreateTable(`CREATE TABLE capitals (
+        state           char(2)
+    ) INHERITS (global.cities, named)`, {
+        type: 'create table',
+        name: 'capitals',
+        columns: [{ name: 'state', dataType: { name: 'char', config: [2] } }],
+        inherits: [{ name: 'cities', schema: 'global' }, { name: 'named' }],
+    });
+
     checkCreateTable(['create table test(value pg_catalog.varchar(12))'], {
         type: 'create table',
         name: 'test',
