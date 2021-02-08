@@ -45,7 +45,7 @@ func_argopts -> func_argmod word:? {% x => ({
                     }) %}
                 | word {% (x, rej) => {
                     const name = toStr(x);
-                    if (name === 'out' | name === 'inout' || name === 'variadic') {
+                    if (name === 'out' || name === 'inout' || name === 'variadic') {
                         return rej; // avoid ambiguous syntax
                     }
                     return {name}
