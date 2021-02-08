@@ -9,6 +9,8 @@ export interface IAstPartialMapper {
     insert?: (val: a.InsertStatement) => a.Statement | nil
     delete?: (val: a.DeleteStatement) => a.Statement | nil
     comment?: (val: a.CommentStatement) => a.Statement | nil
+    do?: (val: a.DoStatement) => a.Statement | nil
+    createFunction?: (val: a.CreateFunctionStatement) => a.Statement | nil
     raise?: (val: a.RaiseStatement) => a.Statement | nil
     createSchema?: (val: a.CreateSchemaStatement) => a.Statement | nil
     dropTable?: (val: a.DropTableStatement) => a.Statement | nil
@@ -255,6 +257,10 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.raise(val);
             case 'comment':
                 return this.comment(val);
+            case 'do':
+                return this.do(val);
+            case 'create function':
+                return this.createFunction(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -292,6 +298,45 @@ export class AstDefaultMapper implements IAstMapper {
         return assignChanged(val, {
             query,
             ...ref,
+        });
+    }
+
+
+    do(val: a.DoStatement): a.Statement | nil {
+        return val;
+    }
+
+    createFunction(val: a.CreateFunctionStatement): a.Statement | nil {
+        // process arguments
+        const args = arrayNilMap(val.arguments, a => {
+            const type = this.dataType(a.type);
+            return assignChanged(a, { type });
+        });
+
+        // process return type
+        let returns: typeof val.returns;
+        if (val.returns) {
+            switch (val.returns.kind) {
+                case 'table':
+                    returns = assignChanged(val.returns, {
+                        columns: arrayNilMap(val.returns.columns, v => {
+                            const type = this.dataType(v.type);
+                            return type && assignChanged(v, { type })
+                        })
+                    });
+                    break;
+                case undefined:
+                case null:
+                case 'array':
+                    returns = this.dataType(val.returns);
+                    break;
+                default:
+                    throw NotSupported.never(val.returns);
+            }
+        }
+        return assignChanged(val, {
+            returns,
+            arguments: args,
         });
     }
 

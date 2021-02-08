@@ -22,6 +22,7 @@ import {lexerAny, LOCATION} from '../lexer';
 @include "union.ne"
 @include "prepare.ne"
 @include "create-view.ne"
+@include "functions.ne"
 
 # list of statements, separated by ";"
 main -> statement_separator:* statement (statement_separator:+ statement):* statement_separator:*  {% ([_, head, _tail]) => {
@@ -73,3 +74,4 @@ statement_noprep
     | create_schema
     | raise_statement
     | comment_statement
+    | functions_statements

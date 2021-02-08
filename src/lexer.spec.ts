@@ -11,6 +11,7 @@ describe('Lexer', () => {
         /^word$/,
         /^int$/,
         /^float$/,
+        /^codeblock$/,
     ]
     function next(expected: any) {
         const result = lexer.next() as Optional<Token>;
@@ -147,5 +148,19 @@ describe('Lexer', () => {
         next({ type: 'comma' });
         next({ type: 'string' });
         next({ type: 'comma' });
+    })
+
+    it ('tokenizes code block', () => {
+        lexer.reset(`before $$ code $ block $$ after`);
+        next({ type: 'word', value: 'before' });
+        next({ type: 'codeblock', value: ' code $ block ' });
+        next({ type: 'word', value: 'after' });
+    })
+
+    it ('tokenizes multiline code block', () => {
+        const multi = `code
+        block`;
+        lexer.reset(`$$${multi}$$`);
+        next({ type: 'codeblock', value: multi });
     })
 });

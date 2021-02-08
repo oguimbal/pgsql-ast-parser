@@ -31,10 +31,44 @@ export type Statement = (SelectStatement
     | CommentStatement
     | CreateSchemaStatement
     | RaiseStatement
+    | CreateFunctionStatement
+    | DoStatement
     | StartTransactionStatement) & {
         [LOCATION]?: StatementLocation;
     };
 
+
+export interface DoStatement {
+    type: 'do';
+    language?: string;
+    code: string;
+}
+
+export interface CreateFunctionStatement extends QName {
+    type: 'create function';
+    code: string;
+    orReplace?: boolean;
+    language?: string;
+    arguments: FunctionArgument[];
+    returns?: DataTypeDef | ReturnsTable;
+    purity?: 'immutable' | 'stable' | 'volatile';
+    leakproof?: boolean;
+    onNullInput?: 'call' | 'null' | 'strict';
+}
+
+export interface ReturnsTable {
+    kind: 'table';
+    columns: { name: string; type: DataTypeDef }[];
+}
+
+export type FunctionArgumentMode = 'in' | 'out' | 'inout' | 'variadic';
+
+export interface FunctionArgument {
+    name?: string;
+    type: DataTypeDef;
+    default?: Expr;
+    mode?: FunctionArgumentMode;
+}
 
 export interface CommentStatement {
     type: 'comment';
