@@ -10,8 +10,8 @@ array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
 createtable_statement -> %kw_create %kw_table kw_ifnotexists:? (ident dot {% get(0) %}):? word lparen createtable_declarationlist rparen createtable_opts:?
      {% x => {
 
-        const cols = x[6].filter((v: any) => 'dataType' in v);
-        const constraints = x[6].filter((v: any) => !('dataType' in v));
+        const cols = x[6].filter((v: any) => 'kind' in v);
+        const constraints = x[6].filter((v: any) => !('kind' in v));
 
         return {
             type: 'create table',
@@ -29,7 +29,7 @@ createtable_declarationlist -> createtable_declaration (comma createtable_declar
     return [head, ...(tail || [])];
 } %}
 
-createtable_declaration -> (createtable_constraint | createtable_column) {% unwrap %}
+createtable_declaration -> (createtable_constraint | createtable_column | createtable_like) {% unwrap %}
 
 # ================= TABLE CONSTRAINT =======================
 createtable_named_constraint[CST]
@@ -100,6 +100,7 @@ createtable_collist -> ident (comma ident {% last %}):* {% ([head, tail]) => {
 
 createtable_column -> word data_type createtable_collate:? createtable_column_constraint:* {% x => {
     return {
+        kind: 'column',
         name: x[0],
         dataType: x[1],
         ...x[2] ? { collate: x[2] }: {},
@@ -107,6 +108,22 @@ createtable_column -> word data_type createtable_collate:? createtable_column_co
     }
 } %}
 
+
+# ================== LIKE ==================
+createtable_like -> %kw_like qname createtable_like_opt:* {% x => ({
+                        kind: 'like table',
+                        like: x[1],
+                        options: x[2],
+                }) %}
+
+createtable_like_opt -> (kw_including | kw_excluding)
+                         createtable_like_opt_val {% x => ({
+                            verb: toStr(x[0]),
+                            option: toStr(x[1]),
+                        }) %}
+
+createtable_like_opt_val -> word {% anyKw('defaults', 'constraints', 'indexes', 'storage', 'comments') %}
+                        |  %kw_all
 
 # ======================== COLUMN CONSTRAINT =================================
 

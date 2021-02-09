@@ -134,6 +134,8 @@ kw_temporary -> %word {% notReservedKw('temporary')  %}
 kw_add -> %word {% notReservedKw('add')  %}
 kw_owner -> %word {% notReservedKw('owner')  %}
 kw_owned -> %word {% notReservedKw('owned')  %}
+kw_including -> %word {% notReservedKw('including')  %}
+kw_excluding -> %word {% notReservedKw('excluding')  %}
 kw_none -> %word {% notReservedKw('none')  %}
 kw_drop -> %word {% notReservedKw('drop')  %}
 kw_minvalue -> %word {% notReservedKw('minvalue')  %}

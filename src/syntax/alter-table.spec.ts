@@ -60,6 +60,7 @@ describe('Alter table', () => {
         change: {
             type: 'add column',
             column: {
+                kind: 'column',
                 name: 'a',
                 dataType: { name: 'jsonb' },
                 constraints: [{ type: 'not null' }],
@@ -74,6 +75,7 @@ describe('Alter table', () => {
             type: 'add column',
             ifNotExists: true,
             column: {
+                kind: 'column',
                 name: 'a',
                 dataType: { name: 'jsonb' },
                 constraints: [{ type: 'not null' }],
