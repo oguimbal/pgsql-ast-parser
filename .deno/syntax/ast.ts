@@ -363,13 +363,25 @@ export interface CreateMaterializedViewStatement extends CreateViewStatementBase
 export interface CreateTableStatement extends QName {
     type: 'create table';
     ifNotExists?: true;
-    columns: CreateColumnDef[];
+    columns: (CreateColumnDef | CreateColumnsLikeTable)[];
     /** Constraints not defined inline */
     constraints?: TableConstraint[];
     inherits?: QName[];
 }
 
+export interface CreateColumnsLikeTable {
+    kind: 'like table';
+    like: QName;
+    options: CreateColumnsLikeTableOpt[];
+}
+
+export interface CreateColumnsLikeTableOpt {
+    verb: 'including' | 'excluding';
+    option: 'defaults' | 'constraints' | 'indexes' | 'storage' | 'comments' | 'all';
+}
+
 export interface CreateColumnDef {
+    kind: 'column';
     name: string;
     dataType: DataTypeDef;
     constraints?: ColumnConstraint[];

@@ -109,6 +109,8 @@ declare var kw_on: any;
 declare var kw_full: any;
 declare var kw_null: any;
 declare var kw_default: any;
+declare var kw_like: any;
+declare var kw_all: any;
 declare var kw_collate: any;
 declare var comma: any;
 declare var kw_create: any;
@@ -359,6 +361,8 @@ const grammar: Grammar = {
     {"name": "kw_add", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('add')},
     {"name": "kw_owner", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('owner')},
     {"name": "kw_owned", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('owned')},
+    {"name": "kw_including", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('including')},
+    {"name": "kw_excluding", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('excluding')},
     {"name": "kw_none", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('none')},
     {"name": "kw_drop", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('drop')},
     {"name": "kw_minvalue", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('minvalue')},
@@ -1070,8 +1074,8 @@ const grammar: Grammar = {
     {"name": "createtable_statement$ebnf$3", "symbols": [], "postprocess": () => null},
     {"name": "createtable_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), (lexerAny.has("kw_table") ? {type: "kw_table"} : kw_table), "createtable_statement$ebnf$1", "createtable_statement$ebnf$2", "word", "lparen", "createtable_declarationlist", "rparen", "createtable_statement$ebnf$3"], "postprocess":  x => {
         
-            const cols = x[6].filter((v: any) => 'dataType' in v);
-            const constraints = x[6].filter((v: any) => !('dataType' in v));
+            const cols = x[6].filter((v: any) => 'kind' in v);
+            const constraints = x[6].filter((v: any) => !('kind' in v));
         
             return {
                 type: 'create table',
@@ -1091,6 +1095,7 @@ const grammar: Grammar = {
         } },
     {"name": "createtable_declaration$subexpression$1", "symbols": ["createtable_constraint"]},
     {"name": "createtable_declaration$subexpression$1", "symbols": ["createtable_column"]},
+    {"name": "createtable_declaration$subexpression$1", "symbols": ["createtable_like"]},
     {"name": "createtable_declaration", "symbols": ["createtable_declaration$subexpression$1"], "postprocess": unwrap},
     {"name": "createtable_constraint$macrocall$2", "symbols": ["createtable_constraint_def"]},
     {"name": "createtable_constraint$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_constraint") ? {type: "kw_constraint"} : kw_constraint), "word"], "postprocess": last},
@@ -1157,12 +1162,28 @@ const grammar: Grammar = {
     {"name": "createtable_column$ebnf$2", "symbols": ["createtable_column$ebnf$2", "createtable_column_constraint"], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "createtable_column", "symbols": ["word", "data_type", "createtable_column$ebnf$1", "createtable_column$ebnf$2"], "postprocess":  x => {
             return {
+                kind: 'column',
                 name: x[0],
                 dataType: x[1],
                 ...x[2] ? { collate: x[2] }: {},
                 ...x[3] && x[3].length ? { constraints: x[3] }: {},
             }
         } },
+    {"name": "createtable_like$ebnf$1", "symbols": []},
+    {"name": "createtable_like$ebnf$1", "symbols": ["createtable_like$ebnf$1", "createtable_like_opt"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "createtable_like", "symbols": [(lexerAny.has("kw_like") ? {type: "kw_like"} : kw_like), "qname", "createtable_like$ebnf$1"], "postprocess":  x => ({
+                kind: 'like table',
+                like: x[1],
+                options: x[2],
+        }) },
+    {"name": "createtable_like_opt$subexpression$1", "symbols": ["kw_including"]},
+    {"name": "createtable_like_opt$subexpression$1", "symbols": ["kw_excluding"]},
+    {"name": "createtable_like_opt", "symbols": ["createtable_like_opt$subexpression$1", "createtable_like_opt_val"], "postprocess":  x => ({
+            verb: toStr(x[0]),
+            option: toStr(x[1]),
+        }) },
+    {"name": "createtable_like_opt_val", "symbols": ["word"], "postprocess": anyKw('defaults', 'constraints', 'indexes', 'storage', 'comments')},
+    {"name": "createtable_like_opt_val", "symbols": [(lexerAny.has("kw_all") ? {type: "kw_all"} : kw_all)]},
     {"name": "createtable_column_constraint$macrocall$2", "symbols": ["createtable_column_constraint_def"]},
     {"name": "createtable_column_constraint$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_constraint") ? {type: "kw_constraint"} : kw_constraint), "word"], "postprocess": last},
     {"name": "createtable_column_constraint$macrocall$1$ebnf$1", "symbols": ["createtable_column_constraint$macrocall$1$ebnf$1$subexpression$1"], "postprocess": id},

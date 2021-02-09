@@ -42,6 +42,7 @@ export interface IAstPartialMapper {
     addConstraint?: (change: a.TableAlterationAddConstraint, inTable: a.QName) => a.TableAlteration | nil
     addColumn?: (change: a.TableAlterationAddColumn, inTable: a.QName) => a.TableAlteration | nil
     createColumn?: (col: a.CreateColumnDef) => a.CreateColumnDef | nil
+    likeTable?: (col: a.CreateColumnsLikeTable) => a.CreateColumnDef | a.CreateColumnsLikeTable | nil
     with?: (val: a.WithStatement) => a.Statement | nil
     union?: (val: a.SelectFromUnion) => a.SelectStatement | nil
     select?: (val: a.SelectStatement) => a.SelectStatement | nil
@@ -491,16 +492,14 @@ export class AstDefaultMapper implements IAstMapper {
 
     createTable(val: a.CreateTableStatement): a.Statement | nil {
         const columns = arrayNilMap(val.columns, col => {
-            const dataType = this.dataType(col.dataType);
-            if (!dataType) {
-                return null; // no data type => remove column
+            switch (col.kind) {
+                case 'column':
+                    return this.createColumn(col);
+                case 'like table':
+                    return this.likeTable(col);
+                default:
+                    throw NotSupported.never(col);
             }
-            const constraints = arrayNilMap(col.constraints, m => this.constraint(m))
-                ?? undefined;
-            return assignChanged(col, {
-                dataType,
-                constraints,
-            });
         })
         if (!columns?.length) {
             return null; // no column to create
@@ -509,6 +508,15 @@ export class AstDefaultMapper implements IAstMapper {
             columns,
         });
     }
+
+    likeTable(col: a.CreateColumnsLikeTable): a.CreateColumnDef | a.CreateColumnsLikeTable | nil {
+        const like = this.tableRef(col.like);
+        if (!like) {
+            return null;
+        }
+        return assignChanged(col, { like });
+    }
+
 
     truncateTable(val: a.TruncateTableStatement): a.Statement | nil {
         return val;
@@ -765,6 +773,9 @@ export class AstDefaultMapper implements IAstMapper {
     createColumn(col: a.CreateColumnDef): a.CreateColumnDef | nil {
         // to be overriden
         const dataType = this.dataType(col.dataType);
+        if (!dataType) {
+            return null; // no data type => remove column
+        }
         const constraints = arrayNilMap(col.constraints, m => this.constraint(m))
             ?? undefined;
         return assignChanged(col, {

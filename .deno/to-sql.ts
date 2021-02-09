@@ -707,7 +707,16 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(t.ifNotExists ? 'CREATE TABLE IF NOT EXISTS ' : 'CREATE TABLE ');
         m.tableRef(t);
         ret.push('(');
-        list(t.columns, c => m.createColumn(c), false);
+        list(t.columns, c => {
+            switch (c.kind) {
+                case 'column':
+                    return m.createColumn(c);
+                case 'like table':
+                    return m.likeTable(c);
+                default:
+                    throw NotSupported.never(c);
+            }
+        }, false);
         if (t.constraints) {
             ret.push(', ');
             list(t.constraints, c => {
@@ -722,6 +731,15 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (t.inherits?.length) {
             ret.push(' INHERITS ');
             list(t.inherits, i => visitQualifiedName(i), true);
+        }
+    },
+
+    likeTable: l => {
+        ret.push(' LIKE ');
+        m.tableRef(l.like);
+        ret.push(' ');
+        for (const {verb, option} of l.options) {
+            ret.push(verb.toUpperCase(), ' ', option.toUpperCase(), ' ');
         }
     },
 
