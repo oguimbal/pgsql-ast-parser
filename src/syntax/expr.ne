@@ -150,7 +150,7 @@ expr_list_raw -> (expr_or_select | expr_star) (comma (expr_or_select | expr_star
 expr_list_raw_many -> expr_or_select (comma expr_or_select {% last %}):+ {% ([head, tail]) => {
     return [unwrap(head), ...(tail || []).map(unwrap)];
 } %}
-expr_or_select -> (expr_nostar | select_statement) {% unwrap %}
+expr_or_select -> (expr_nostar | select_statement | with_statement) {% unwrap %}
 
 expr_list_many -> expr_list_raw_many {% x => ({
     type: 'list',

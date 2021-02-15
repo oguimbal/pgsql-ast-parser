@@ -15,7 +15,7 @@ select_statement
             ...groupBy ? { groupBy } : {},
             ...limit ? { limit } : {},
             ...orderBy ? { orderBy } : {},
-            where,
+            ...where ? { where } : {},
             type: 'select',
         }
     } %}

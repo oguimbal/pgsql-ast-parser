@@ -493,4 +493,35 @@ describe('Select statements', () => {
         }],
         columns: columns({ type: 'ref', name: '*' }),
     })
+
+    checkSelect(`SELECT
+    (
+        WITH x AS (select val from example)
+        SELECT lower(val)
+        FROM x
+    )`, {
+        type: 'select',
+        columns: columns({
+            type: 'with',
+            bind: [{
+                alias: 'x',
+                statement: {
+                    type: 'select',
+                    columns: [{ expr: { type: 'ref', name: 'val' } }],
+                    from: [{ type: 'table', name: 'example' }],
+                },
+            }],
+            in: {
+                type: 'select',
+                columns: [{
+                    expr: {
+                        type: 'call',
+                        function: 'lower',
+                        args: [{ type: 'ref', name: 'val' }],
+                    }
+                }],
+                from: [{ type: 'table', name: 'x' }],
+            }
+        }),
+    });
 });
