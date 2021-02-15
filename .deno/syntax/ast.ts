@@ -478,7 +478,9 @@ export interface WithStatement {
     in: WithStatementBinding;
 }
 
-export type SelectStatement = SelectFromStatement | SelectFromUnion;
+export type SelectStatement = SelectFromStatement
+    | SelectFromUnion
+    | WithStatement;
 
 export interface SelectFromStatement {
     type: 'select',
@@ -590,6 +592,7 @@ export type Expr = ExprRef
     | ExprBool
     | ExprCall
     | SelectStatement
+    | WithStatement
     | ExprConstant
     | ExprTernary
     | ExprOverlay

@@ -43,7 +43,7 @@ export interface IAstPartialMapper {
     addColumn?: (change: a.TableAlterationAddColumn, inTable: a.QName) => a.TableAlteration | nil
     createColumn?: (col: a.CreateColumnDef) => a.CreateColumnDef | nil
     likeTable?: (col: a.CreateColumnsLikeTable) => a.CreateColumnDef | a.CreateColumnsLikeTable | nil
-    with?: (val: a.WithStatement) => a.Statement | nil
+    with?: (val: a.WithStatement) => a.SelectStatement | nil
     union?: (val: a.SelectFromUnion) => a.SelectStatement | nil
     select?: (val: a.SelectStatement) => a.SelectStatement | nil
     selection?: (val: a.SelectFromStatement) => a.SelectStatement | nil
@@ -794,6 +794,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.selection(val);
             case 'union':
                 return this.union(val);
+            case 'with':
+                return this.with(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -839,7 +841,7 @@ export class AstDefaultMapper implements IAstMapper {
         })
     }
 
-    with(val: a.WithStatement): a.Statement | nil {
+    with(val: a.WithStatement): a.SelectStatement | nil {
         const bind = arrayNilMap(val.bind, s => {
             const statement = this.statement(s.statement);
             return withAccepts(statement)
@@ -849,7 +851,7 @@ export class AstDefaultMapper implements IAstMapper {
 
         // no bindngs
         if (!bind) {
-            return this.statement(val.in);
+            return null;
         }
         const _in = this.statement(val.in);
         if (!withAccepts(_in)) {
@@ -977,6 +979,7 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.ternary(val);
             case 'select':
             case 'union':
+            case 'with':
                 return this.select(val);
             case 'keyword':
                 return this.valueKeyword(val);

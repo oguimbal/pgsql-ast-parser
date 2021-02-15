@@ -530,7 +530,7 @@ const grammar: Grammar = {
                 ...groupBy ? { groupBy } : {},
                 ...limit ? { limit } : {},
                 ...orderBy ? { orderBy } : {},
-                where,
+                ...where ? { where } : {},
                 type: 'select',
             }
         } },
@@ -983,6 +983,7 @@ const grammar: Grammar = {
         } },
     {"name": "expr_or_select$subexpression$1", "symbols": ["expr_nostar"]},
     {"name": "expr_or_select$subexpression$1", "symbols": ["select_statement"]},
+    {"name": "expr_or_select$subexpression$1", "symbols": ["with_statement"]},
     {"name": "expr_or_select", "symbols": ["expr_or_select$subexpression$1"], "postprocess": unwrap},
     {"name": "expr_list_many", "symbols": ["expr_list_raw_many"], "postprocess":  x => ({
             type: 'list',
