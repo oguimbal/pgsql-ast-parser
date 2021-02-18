@@ -226,6 +226,13 @@ line`,
             ]
         });
 
+        checkTreeExpr(`ARRAY[]`, {
+            type: 'array',
+            expressions: [
+            ]
+        });
+
+
         checkTreeExpr(`a->>42`, {
             type: 'member',
             op: '->>',
