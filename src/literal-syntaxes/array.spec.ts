@@ -44,6 +44,11 @@ describe('Array literals', () => {
         expect(parseArrayLiteral('{a, b}')).to.deep.equal(['a', 'b'])
     })
 
+
+    it ('parses empty array', () => {
+        expect(parseArrayLiteral('{}')).to.deep.equal([]);
+    })
+
     it ('parses two dimensions', () => {
         expect(parseArrayLiteral('{{a}, {b, c}}')).to.deep.equal([['a'], ['b', 'c']])
     })

@@ -9,7 +9,7 @@ import {lexerAny} from './array-lexer';
     const last = (x: any[]) => x && x[x.length - 1];
 %}
 
-main -> %start_list elements %end_list {% x => x[1] %}
+main -> %start_list elements:? %end_list {% x => x[1] || [] %}
 
 elements -> elt (%comma elt {% last %}):* {% ([head, tail]) => {
     return [head, ...(tail || [])];
