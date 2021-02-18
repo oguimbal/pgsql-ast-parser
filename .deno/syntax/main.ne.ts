@@ -914,9 +914,11 @@ const grammar: Grammar = {
     {"name": "expr_basic", "symbols": ["expr_case"]},
     {"name": "expr_basic", "symbols": ["expr_extract"]},
     {"name": "expr_basic", "symbols": ["word"], "postprocess": ([value]) => ({ type: 'ref', name: unwrap(value) })},
-    {"name": "expr_array", "symbols": [(lexerAny.has("kw_array") ? {type: "kw_array"} : kw_array), (lexerAny.has("lbracket") ? {type: "lbracket"} : lbracket), "expr_list_raw", (lexerAny.has("rbracket") ? {type: "rbracket"} : rbracket)], "postprocess":  x => ({
+    {"name": "expr_array$ebnf$1", "symbols": ["expr_list_raw"], "postprocess": id},
+    {"name": "expr_array$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "expr_array", "symbols": [(lexerAny.has("kw_array") ? {type: "kw_array"} : kw_array), (lexerAny.has("lbracket") ? {type: "lbracket"} : lbracket), "expr_array$ebnf$1", (lexerAny.has("rbracket") ? {type: "rbracket"} : rbracket)], "postprocess":  x => ({
             type: 'array',
-            expressions: x[2],
+            expressions: x[2] || [],
         }) },
     {"name": "expr_call$ebnf$1", "symbols": ["expr_list_raw"], "postprocess": id},
     {"name": "expr_call$ebnf$1", "symbols": [], "postprocess": () => null},
