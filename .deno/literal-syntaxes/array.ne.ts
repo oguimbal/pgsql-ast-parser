@@ -42,7 +42,9 @@ interface Grammar {
 const grammar: Grammar = {
   Lexer: lexerAny,
   ParserRules: [
-    {"name": "main", "symbols": [(lexerAny.has("start_list") ? {type: "start_list"} : start_list), "elements", (lexerAny.has("end_list") ? {type: "end_list"} : end_list)], "postprocess": x => x[1]},
+    {"name": "main$ebnf$1", "symbols": ["elements"], "postprocess": id},
+    {"name": "main$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "main", "symbols": [(lexerAny.has("start_list") ? {type: "start_list"} : start_list), "main$ebnf$1", (lexerAny.has("end_list") ? {type: "end_list"} : end_list)], "postprocess": x => x[1] || []},
     {"name": "elements$ebnf$1", "symbols": []},
     {"name": "elements$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("comma") ? {type: "comma"} : comma), "elt"], "postprocess": last},
     {"name": "elements$ebnf$1", "symbols": ["elements$ebnf$1", "elements$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
