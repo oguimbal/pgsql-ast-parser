@@ -2,7 +2,7 @@
 
 # https://www.postgresql.org/docs/current/queries-with.html
 
-with_statement -> %kw_with with_statement_bindings with_statement_statement {% x => ({
+with_statement -> %kw_with with_statement_bindings with_statement_statement {% x => track(x, {
     type: 'with',
     bind: x[1],
     in: unwrap(x[2]),
@@ -14,7 +14,7 @@ with_statement_bindings -> with_statement_binding (comma with_statement_binding 
 } %}
 
 
-with_statement_binding -> word %kw_as lparen with_statement_statement rparen {% x => ({
+with_statement_binding -> word %kw_as lparen with_statement_statement rparen {% x => track(x, {
     alias: toStr(x[0]),
     statement: unwrap(x[3]),
 }) %}

@@ -1,13 +1,19 @@
 import 'mocha';
 import 'chai';
-import { checkAlterTable, checkInvalid } from './spec-utils';
+import { checkAlterTable, checkAlterTableLoc, checkInvalid } from './spec-utils';
+import { LOCATION } from './ast';
 
 describe('Alter table', () => {
 
-    checkAlterTable(['alter table test rename to newname'], {
+    checkAlterTableLoc(['alter table test rename to newname'], {
+        [LOCATION]: { start: 0, end: 34 },
         type: 'alter table',
-        table: { name: 'test' },
+        table: {
+            [LOCATION]: { start: 12, end: 16 },
+            name: 'test'
+        },
         change: {
+            [LOCATION]: { start: 17, end: 34 },
             type: 'rename',
             to: 'newname'
         }
@@ -153,19 +159,32 @@ describe('Alter table', () => {
     // "check" constraint must be surounded by parenthesis
     checkInvalid(`ALTER TABLE tbl ADD CONSTRAINT "cname" check a > 0`);
 
-    checkAlterTable(`ALTER TABLE tbl ADD CONSTRAINT "cname" check (a > 0)`, {
+    checkAlterTableLoc(`ALTER TABLE tbl ADD CONSTRAINT "cname" check (a > 0)`, {
+        [LOCATION]: { start: 0, end: 51 },
         type: 'alter table',
-        table: { name: 'tbl' },
+        table: {
+            [LOCATION]: { start: 12, end: 15 },
+            name: 'tbl'
+        },
         change: {
             type: 'add constraint',
+            [LOCATION]: { start: 16, end: 51 },
             constraint: {
+                [LOCATION]: { start: 16, end: 51 },
                 type: 'check',
                 constraintName: 'cname',
                 expr: {
+                    [LOCATION]: { start: 46, end: 51 },
                     type: 'binary',
-                    left: { type: 'ref', name: 'a' },
+                    left: {
+                        [LOCATION]: { start: 46, end: 47 },
+                        type: 'ref', name: 'a'
+                    },
                     op: '>',
-                    right: { type: 'integer', value: 0 },
+                    right: {
+                        [LOCATION]: { start: 50, end: 51 },
+                        type: 'integer', value: 0
+                    },
                 }
             },
         }

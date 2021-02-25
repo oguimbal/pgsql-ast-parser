@@ -10,14 +10,14 @@ array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
 
 createtype_statement -> %kw_create kw_type qualified_name (
         createtype_enum
-        ) {% x => ({
+        ) {% x => track(x, {
             name: x[2],
             ...unwrap(x[3]),
         }) %}
 
 
 
-createtype_enum -> %kw_as kw_enum lparen array_of[string] rparen {% x => ({
+createtype_enum -> %kw_as kw_enum lparen array_of[string] rparen {% x => track(x, {
     type: 'create enum',
     values: x[3],
 }) %}

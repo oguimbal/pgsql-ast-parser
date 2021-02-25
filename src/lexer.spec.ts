@@ -81,7 +81,7 @@ describe('Lexer', () => {
         next({ type: 'word', value: '"Name"' });
     });
 
-    it ('lowers non quoted names', () => {
+    it('lowers non quoted names', () => {
         lexer.reset(`Name`);
         next({ type: 'word', value: 'name' });
     })
@@ -150,17 +150,30 @@ describe('Lexer', () => {
         next({ type: 'comma' });
     })
 
-    it ('tokenizes code block', () => {
+    it('tokenizes code block', () => {
         lexer.reset(`before $$ code $ block $$ after`);
         next({ type: 'word', value: 'before' });
         next({ type: 'codeblock', value: ' code $ block ' });
         next({ type: 'word', value: 'after' });
     })
 
-    it ('tokenizes multiline code block', () => {
+    it('tokenizes multiline code block', () => {
         const multi = `code
         block`;
         lexer.reset(`$$${multi}$$`);
         next({ type: 'codeblock', value: multi });
+    })
+
+    it('can parse multiple full comments', () => {
+        lexer.reset('select /* comment a */ * from /* comment b */ tbl');
+        next({ type: 'kw_select' });
+        next({ type: 'star' });
+        next({ type: 'kw_from' });
+        next({ type: 'word', value: 'tbl' });
+    });
+
+    it ('can parse an empty full comment', () => {
+        lexer.reset('/**/ select');
+        next({ type: 'kw_select' });
     })
 });

@@ -1,5 +1,13 @@
 @lexer lexerAny
 @{%
+    import {track, box, unbox} from '../lexer';
+
+    // usage ex:  replace track(whatever) with debug(track)(whatever)
+    function debug<T>(fn: T): T {
+        debugger;
+        return fn;
+    }
+
     function unwrap(e: any[]): any {
         if (Array.isArray(e) && e.length === 1) {
             e = unwrap(e[0]);
@@ -7,10 +15,10 @@
         if (Array.isArray(e) && !e.length) {
             return null;
         }
-        return e;
+        return unbox(e);
     }
-    const get = (i: number) => (x: any[]) => x[i];
-    const last = (x: any[]) => Array.isArray(x) ? x[x.length - 1] : x;
+    const get = (i: number) => (x: any[]) => track(x, x[i]);
+    const last = (x: any[]) => Array.isArray(x) ? track(x, x[x.length - 1]) : x;
     const trim = (x: string | null | undefined) => x && x.trim();
     const value = (x: any) => x && x.value;
     function flatten(e: any): any[] {
@@ -26,12 +34,14 @@
         }
         return [e];
     }
+    function asStr(value: any) {
+        value = unbox(value);
+        return value?.value ?? value;
+    }
     function flattenStr(e: any): string[] {
-        const fl = flatten(e);
+        const fl = flatten(unbox(e));
         return fl.filter(x => !!x)
-                    .map(x => typeof x === 'string' ? x
-                            : 'value' in x ? x.value
-                            : x)
+                    .map(x => asStr(x))
                     .filter(x => typeof x === 'string')
                     .map(x => x.trim())
                     .filter(x => !!x);
@@ -47,6 +57,7 @@
         }
         return ret;
     }
+
 %}
 # @preprocessor typescript
 
@@ -58,21 +69,21 @@ array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
 # === Basic constructs
 lparen -> %lparen
 rparen -> %rparen
-number -> (float | int) {%unwrap%}
+number -> (float | int) {% unwrap %}
 dot -> %dot {% id %}
-float -> %float  {% args => parseFloat(unwrap(args)) %}
-int -> %int {% arg => parseInt(unwrap(arg), 10) %}
+float -> %float  {% x => box(x, parseFloat(unwrap(x))) %}
+int -> %int {% x => box(x, parseInt(unwrap(x), 10)) %}
 comma -> %comma {% id %}
-star -> %star {% x => x[0].value %}
-string -> (%string | %eString) {% x => unwrap(x[0]).value %}
+star -> %star {% x => box(x, x[0].value) %}
+string -> (%string | %eString) {% x => box(x, unwrap(x[0]).value) %}
 
-ident -> word {% unwrap %}
+ident -> word {% get(0) %}
 word
-    ->  %kw_primary {% () => 'primary' %}
-    |  %kw_unique {% () => 'unique' %}
+    ->  %kw_primary {% x => box(x, 'primary') %}
+    |  %kw_unique {% x => box(x, 'unique') %}
     | %word  {% x => {
     const val = x[0].value;
-    return val[0] === '"' ? val.substr(1, val.length - 2) : val;
+    return box(x, val[0] === '"' ? val.substr(1, val.length - 2) : val);
 } %}
 
 collist_paren -> lparen collist rparen {% get(1) %}
@@ -86,9 +97,9 @@ collist -> ident (comma ident {% last %}):* {% ([head, tail]) => {
  const kwSensitivity = { sensitivity: 'accent' };
  const eqInsensitive = (a: string, b: string) => a.localeCompare(b, undefined, kwSensitivity) === 0;
  const notReservedKw = (kw: string) => (x: any[], _: any, rej: any) => {
-     const val = typeof x[0] === 'string' ? x[0] : x[0].value;
+     const val = asStr(x[0]);
      if (eqInsensitive(val, kw)) {
-         return kw;
+         return box(x, kw);
      }
      return rej;
  }
@@ -219,7 +230,7 @@ data_type -> data_type_simple (lparen array_of[int] rparen {% get(1) %}):? (%kw_
             };
         }
     }
-    return ret;
+    return track(x, ret);
 } %}
 
 data_type_list -> data_type (comma data_type {% last %}):* {% ([head, tail]) => {
@@ -227,9 +238,9 @@ data_type_list -> data_type (comma data_type {% last %}):* {% ([head, tail]) => 
 } %}
 
 data_type_simple
-    -> data_type_text {% x => ({ name: toStr(x, ' ') }) %}
-    | data_type_numeric  {% x => ({ name: toStr(x, ' ') }) %}
-    | data_type_date  {% x => ({ name: toStr(x, ' ') }) %}
+    -> data_type_text {% x => track(x, { name: toStr(x, ' ') }) %}
+    | data_type_numeric  {% x => track(x, { name: toStr(x, ' ') }) %}
+    | data_type_date  {% x => track(x, { name: toStr(x, ' ') }) %}
     | qualified_name
     # | word {% anyKw('json', 'jsonb', 'boolean', 'bool', 'money', 'bytea', 'regtype') %}
 
@@ -241,16 +252,10 @@ data_type_numeric -> (%word {% kw('double') %}) (%word {% kw('precision') %})
 # https://www.postgresql.org/docs/9.5/datatype-character.html
 data_type_text
              -> (%word {% kw('character') %}) (%word {% kw('varying') %})
-            # | word  {% anyKw('character', 'varchar', 'char', 'text') %}
-            # | word {% kw('character') %}
 
 #https://www.postgresql.org/docs/9.5/datatype-datetime.html
 data_type_date
      ->  (%word {% anyKw('timestamp', 'time') %}) (%kw_with | %word {% kw('without') %}) (%word {% kw('time') %}) (%word {% kw('zone') %})
-    # | word {% kw('date') %}
-    # | word {% kw('interval') %}
-    # | word {% kw('timestamp') %}
-
 
 
 # === Table ref  (ex:  [db.]mytable [as X] )
@@ -262,9 +267,16 @@ table_ref -> qualified_name {% unwrap %}
 
 qcolumn -> ident dot ident (dot ident {% last %}):? {% x => {
                 if (!x[3]) {
-                    return { table: x[0], column: x[2] };
+                    return track(x, {
+                            table: unbox(x[0]),
+                            column: unbox(x[2]),
+                        });
                 }
-                return { schema: x[0], table: x[2], column: x[3] };
+                return track(x, {
+                    schema: unbox(x[0]),
+                    table: unbox(x[2]),
+                    column: unbox(x[3]),
+                });
             } %}
 
 
@@ -277,12 +289,14 @@ table_ref_aliased -> table_ref ident_aliased:? {% x => {
     }
 } %}
 
-qualified_name -> (ident dot {% get(0) %}):? ident {% ([schema, name]) => {
+qualified_name -> (ident dot {% get(0) %}):? ident {% x => {
+        const schema = unbox(x[0]);
+        const name = unbox(x[1]);
         if (schema) {
-            return { name, schema }
+            return track(x, { name, schema });
         }
-        return {name};
+        return track(x, {name});
     }%}
-    | %kw_current_schema {% () => ({ name: 'current_schema' }) %}
+    | %kw_current_schema {% x => track(x, { name: 'current_schema' }) %}
 
 qname -> qualified_name {% unwrap %}

@@ -12,13 +12,13 @@ insert_statement -> (kw_insert %kw_into)
                     (%kw_on kw_conflict insert_on_conflict {% last %}):?
                     (%kw_returning select_expr_list_aliased {% last %}):?
                     {% x => {
-                        const columns = x[2];
+                        const columns = x[2] && x[2].map(unbox);
                         const overriding = toStr(x[3]);
                         const values = x[4];
                         const select = unwrap(x[5]);
                         const onConflict = x[6];
                         const returning = x[7];
-                        return {
+                        return track(x, {
                             type: 'insert',
                             into: unwrap(x[1]),
                             ...overriding && { overriding },
@@ -27,7 +27,7 @@ insert_statement -> (kw_insert %kw_into)
                             ...select && { select },
                             ...returning && { returning },
                             ...onConflict && { onConflict },
-                        }
+                        })
                     } %}
 
 

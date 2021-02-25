@@ -1,6 +1,8 @@
 import 'mocha';
 import 'chai';
 import { checkStatement } from './spec-utils';
+import { parseWithComments } from '../parser';
+import { assert, expect } from 'chai';
 
 describe('Simple statements', () => {
 
@@ -202,6 +204,18 @@ describe('Simple statements', () => {
             type: 'column',
             column: { schema: 'public', table: 'groups', column: 'members', }
         }
-    })
+    });
+
+
+
+    it('can fetch comments', () => {
+        const { ast, comments } = parseWithComments('select /* comment a */ * from /* comment b */ tbl');
+        assert.deepEqual(ast, [{
+            type: 'select',
+            columns: [{ expr: { type: 'ref', name: '*' } }],
+            from: [{ type: 'table', name: 'tbl' }],
+        }]);
+        assert.deepEqual(comments.map(c => c.comment), ['/* comment a */ ', '/* comment b */ '])
+    });
 
 });

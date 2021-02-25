@@ -1,4 +1,4 @@
-import { Statement, Expr, LOCATION, QName, GeometricLiteral, Point, Line, Segment, Box, Path, Polygon, Circle, Interval } from './syntax/ast';
+import { Statement, Expr, LOCATION, QName, GeometricLiteral, Point, Line, Segment, Box, Path, Polygon, Circle, Interval, PGComment } from './syntax/ast';
 import { Parser, Grammar } from 'nearley';
 import sqlGrammar from './syntax/main.ne';
 import arrayGrammar from './literal-syntaxes/array.ne';
@@ -6,6 +6,7 @@ import geometricGrammar from './literal-syntaxes/geometric.ne';
 import intervalTextGrammar from './literal-syntaxes/interval.ne';
 import intervalIsoGrammar from './literal-syntaxes/interval-iso.ne';
 import { buildInterval } from './literal-syntaxes/interval-builder';
+import { tracking, trackingComments } from './lexer';
 
 let sqlCompiled: Grammar;
 let arrayCompiled: Grammar;
@@ -19,17 +20,44 @@ export function parseFirst(sql: string): Statement {
     return first[0];
 }
 
+export interface ParseOptions {
+    /**
+     *  [Advanced usage only] This allows to parse sub-expressions, not necessarily full valid statements.
+     *
+     *  For instance, `parse('2+2', {entry: 'expr'})`  will return the AST of the given expression (which is not a valid statement)
+     */
+    entry?: string;
+
+    /** If true, then a detailed location will be available on each node */
+    locationTracking?: boolean;
+}
+
+/** Parse an AST from SQL, and get the comments */
+export function parseWithComments(sql: string, options?: ParseOptions): { ast: Statement[]; comments: PGComment[] } {
+    return trackingComments(() => parse(sql, options));
+}
+
 /** Parse an AST from SQL */
 export function parse(sql: string): Statement[];
 export function parse(sql: string, entry: 'expr'): Expr;
 export function parse(sql: string, entry: 'qualified_name'): QName;
-export function parse(sql: string, entry?: string): any {
+export function parse(sql: string, options?: ParseOptions): Statement[];
+export function parse(sql: string, optEntry?: string | ParseOptions): any {
     if (!sqlCompiled) {
         sqlCompiled = Grammar.fromCompiled(sqlGrammar);
     }
 
+    const entry = typeof optEntry === 'string'
+        ? optEntry
+        : optEntry?.entry;
+    const opts = typeof optEntry === 'string' ? null : optEntry;
+
+
     // parse sql
-    let parsed = _parse(sql, sqlCompiled, entry);
+    const doParse = () => _parse(sql, sqlCompiled, entry);
+    let parsed = opts?.locationTracking
+        ? tracking(doParse)
+        : doParse();
 
     // always return an array of statements.
     if (!entry && !Array.isArray(parsed)) {

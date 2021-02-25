@@ -8,16 +8,16 @@ opt_paren[X]
     | $X {% ([x]) => x[0] %}
 
 expr_binary[KW, This, Next]
-    -> ($This | expr_paren) $KW ($Next | expr_paren) {% ([left, op, right]) => ({
+    -> ($This | expr_paren) $KW ($Next | expr_paren) {% x => track(x, {
                     type: 'binary',
-                    left: unwrap(left),
-                    right: unwrap(right),
-                    op: (flattenStr(op).join(' ') || '<error>').toUpperCase(),
+                    left: unwrap(x[0]),
+                    right: unwrap(x[2]),
+                    op: (flattenStr(x[1]).join(' ') || '<error>').toUpperCase(),
                 }) %}
     | $Next {% unwrap %}
 
 expr_ternary[KW1, KW2, This, Next]
-    -> ($This | expr_paren) $KW1 ($This | expr_paren) $KW2 ($Next | expr_paren) {% x => ({
+    -> ($This | expr_paren) $KW1 ($This | expr_paren) $KW2 ($Next | expr_paren) {% x => track(x, {
                     type: 'ternary',
                     value: unwrap(x[0]),
                     lo: unwrap(x[2]),
@@ -27,9 +27,10 @@ expr_ternary[KW1, KW2, This, Next]
     | $Next {% unwrap %}
 
 expr_left_unary[KW, This, Next]
-    -> $KW ($This | expr_paren) {% ([op, operand]) => ({ type: 'unary',
-                    op: (flattenStr(op).join(' ') || '<error>').toUpperCase(),
-                    operand: unwrap(operand),
+    -> $KW ($This | expr_paren) {% x => track(x, {
+                    type: 'unary',
+                    op: (flattenStr(x[0]).join(' ') || '<error>').toUpperCase(),
+                    operand: unwrap(x[1]),
                 }) %}
     | $Next  {% unwrap %}
 
@@ -46,12 +47,12 @@ expr_and -> expr_binary[%kw_and, expr_and, expr_not]
 expr_not -> expr_left_unary[%kw_not, expr_not, expr_eq]
 expr_eq -> expr_binary[(%op_eq | %op_neq), expr_eq, expr_is]
 
-expr_star -> star  {% ([value]) => ({ type: 'ref', name: '*' }) %}
+expr_star -> star  {% x => track(x, { type: 'ref', name: '*' }) %}
 
 expr_is
-    -> (expr_is | expr_paren) (%kw_isnull | %kw_is %kw_null) {% x => ({ type: 'unary', op: 'IS NULL', operand: unwrap(x[0]) }) %}
-    | (expr_is | expr_paren) (%kw_notnull | %kw_is kw_not_null)  {% x => ({ type: 'unary', op: 'IS NOT NULL', operand: unwrap(x[0])}) %}
-    | (expr_is | expr_paren) %kw_is %kw_not:? (%kw_true | %kw_false)  {% x => ({
+    -> (expr_is | expr_paren) (%kw_isnull | %kw_is %kw_null) {% x => track(x, { type: 'unary', op: 'IS NULL', operand: unwrap(x[0]) }) %}
+    | (expr_is | expr_paren) (%kw_notnull | %kw_is kw_not_null)  {% x => track(x, { type: 'unary', op: 'IS NOT NULL', operand: unwrap(x[0])}) %}
+    | (expr_is | expr_paren) %kw_is %kw_not:? (%kw_true | %kw_false)  {% x => track(x, {
             type: 'unary',
             op: 'IS ' + flattenStr([x[2], x[3]])
                 .join(' ')
@@ -71,18 +72,42 @@ expr_exp -> expr_binary[%op_exp, expr_exp, expr_unary_add]
 expr_unary_add -> expr_left_unary[(%op_plus | %op_minus), expr_unary_add, expr_array_index]
 
 expr_array_index
-    -> (expr_array_index | expr_paren) %lbracket expr_nostar %rbracket {% x => ({ type: 'arrayIndex', array: unwrap(x[0]), index: unwrap(x[2]) }) %}
+    -> (expr_array_index | expr_paren) %lbracket expr_nostar %rbracket {% x => track(x, {
+            type: 'arrayIndex',
+            array: unwrap(x[0]),
+            index: unwrap(x[2]),
+        }) %}
     | expr_member {% unwrap %}
 
 expr_member
-    -> (expr_member | expr_paren) ops_member (string | int) {% ([operand, op, member]) => ({ type: 'member', operand: unwrap(operand), op, member: unwrap(member)}) %}
-    | (expr_member | expr_paren) %op_cast data_type {% ([operand, _, to]) => ({ type: 'cast', operand: unwrap(operand), to }) %}
-    | data_type string  {% ([to, value]) => ({ type: 'cast', operand: { type: 'string', value}, to }) %}
+    -> (expr_member | expr_paren) ops_member (string | int) {% x => track(x, {
+            type: 'member',
+            operand: unwrap(x[0]),
+            op: x[1],
+            member: unwrap(x[2])
+        }) %}
+    | (expr_member | expr_paren) %op_cast data_type {% x => track(x, {
+            type: 'cast',
+            operand: unwrap(x[0]),
+            to: x[2],
+        }) %}
+    | data_type string  {% x => track(x, {
+            type: 'cast',
+            operand: track(x[1], {
+                type: 'string',
+                value: unbox(x[1]),
+            }),
+            to: unbox(x[0]),
+        }) %}
     | expr_dot {% unwrap %}
 
 
 expr_dot
-    -> word %dot (word | star) {% ([operand, _, member]) => ({ type: 'ref', table: unwrap(operand), name: unwrap(member)}) %}
+    -> word %dot (word | star) {% x => track(x, {
+        type: 'ref',
+        table: toStr(x[0]),
+        name: toStr(x[2])
+    }) %}
     | expr_final {% unwrap %}
 
 
@@ -96,14 +121,17 @@ expr_basic
     | expr_array
     | expr_case
     | expr_extract
-    | word {% ([value]) => ({ type: 'ref', name: unwrap(value) }) %}
+    | word {% x => track(x, {
+                    type: 'ref',
+                    name: unwrap(x[0]),
+                }) %}
 
-expr_array -> %kw_array %lbracket expr_list_raw:? %rbracket {% x => ({
+expr_array -> %kw_array %lbracket expr_list_raw:? %rbracket {% x => track(x, {
     type: 'array',
     expressions: x[2] || [],
 }) %}
 
-expr_call -> expr_fn_name lparen expr_list_raw:? rparen {% x => ({
+expr_call -> expr_fn_name lparen expr_list_raw:? rparen {% x => track(x, {
         type: 'call',
         ...unwrap(x[0]),
         args: x[2] || [],
@@ -111,21 +139,21 @@ expr_call -> expr_fn_name lparen expr_list_raw:? rparen {% x => ({
 
 
 # https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-EXTRACT
-expr_extract -> (word {% kw('extract') %}) lparen word %kw_from expr rparen {% x => ({
+expr_extract -> (word {% kw('extract') %}) lparen word %kw_from expr rparen {% x => track(x, {
     type: 'extract',
     field: toStr(x[2]),
     from: x[4],
 }) %}
 
 expr_primary
-    -> float {% ([value]) => ({ type: 'numeric', value: value }) %}
-    | int {% ([value]) => ({ type: 'integer', value: value }) %}
-    | string {% ([value]) => ({ type: 'string', value: value }) %}
-    | %kw_true {% () => ({ type: 'boolean', value: true }) %}
-    | %kw_false {% () => ({ type: 'boolean', value: false }) %}
-    | %kw_null {% ([value]) => ({ type: 'null' }) %}
+    -> float {% x => track(x, { type: 'numeric', value: unbox(x[0]) }) %}
+    | int {% x => track(x, { type: 'integer', value: unbox(x[0]) }) %}
+    | string {% x => track(x, { type: 'string', value: unbox(x[0]) }) %}
+    | %kw_true {% x => track(x, { type: 'boolean', value: true }) %}
+    | %kw_false {% x => track(x, { type: 'boolean', value: false }) %}
+    | %kw_null {% x => track(x, { type: 'null' }) %}
     | value_keyword
-    | %qparam {% ([value]) => ({ type: 'parameter', name: toStr(value) }) %}
+    | %qparam {% x => track(x, { type: 'parameter', name: toStr(x[0]) }) %}
 
 
 # LIKE-kind operators
@@ -152,39 +180,39 @@ expr_list_raw_many -> expr_or_select (comma expr_or_select {% last %}):+ {% ([he
 } %}
 expr_or_select -> (expr_nostar | select_statement | with_statement) {% unwrap %}
 
-expr_list_many -> expr_list_raw_many {% x => ({
+expr_list_many -> expr_list_raw_many {% x => track(x, {
     type: 'list',
     expressions: x[0],
 }) %}
 
-expr_case -> %kw_case expr_nostar:? expr_case_whens:* expr_case_else:? %kw_end {% x => ({
+expr_case -> %kw_case expr_nostar:? expr_case_whens:* expr_case_else:? %kw_end {% x => track(x, {
     type: 'case',
     value: x[1],
     whens: x[2],
     else: x[3],
 }) %}
 
-expr_case_whens -> %kw_when expr_nostar %kw_then expr_nostar {% x => ({
+expr_case_whens -> %kw_when expr_nostar %kw_then expr_nostar {% x => track(x, {
     when: x[1],
     value: x[3],
 }) %}
 
 expr_case_else -> %kw_else expr_nostar {% last %}
 
-expr_fn_name -> ((word %dot):?  word_or_keyword {% ([ns, fn]) => ({
-            function: unwrap(fn),
-            ...ns && { namespace: ns[0] },
-        })%})
-    | (%kw_any {% () => ({
+expr_fn_name -> ((word %dot):?  word_or_keyword {% x => track(x, {
+            function: unbox(unwrap(x[1])),
+            ...x[0] && { namespace: toStr(x[0][0]) },
+        })  %})
+    | (%kw_any {% x => track(x, {
             function: 'any',
         })%})
 
 word_or_keyword
-    -> word {% unwrap %}
-    | %kw_distinct {% x => toStr(x) %}
+    -> word
+    | %kw_distinct {% x => box(x, 'distinct') %}
     | value_keyword
 
-value_keyword -> _value_keyword {% x => ({
+value_keyword -> _value_keyword {% x => track(x, {
     type: 'keyword',
     keyword: unwrap(x).value,
 }) %}
@@ -210,7 +238,7 @@ spe_overlay -> (word {% kw('overlay') %})
             (%kw_placing expr_nostar)
             (%kw_from expr_nostar)
             (%kw_for expr_nostar):?
-            %rparen {% x => ({
+            %rparen {% x => track(x, {
                 type: 'overlay',
                 value: x[1][1],
                 placing: x[2][1],
@@ -222,7 +250,7 @@ spe_substring -> (word {% kw('substring') %})
             (%lparen expr_nostar)
             (%kw_from expr_nostar):?
             (%kw_for expr_nostar):?
-            %rparen {% x => ({
+            %rparen {% x => track(x, {
                 type: 'substring',
                 value: x[1][1],
                 ...x[2] && {from: x[2][1]},

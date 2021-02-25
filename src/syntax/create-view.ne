@@ -27,7 +27,7 @@ create_view -> %kw_create
                         ... x[2] && {temp: true},
                         ... x[3] && {recursive: true},
                         ... x[5], // name
-                        ... x[6] && {columnNames: x[6]},
+                        ... x[6] && {columnNames: x[6].map(asStr)},
                         ... x[7] && {parameters: fromEntries(x[7])},
                         query: x[9],
                         ... x[10] && { checkOption: toStr(x[10]) },
@@ -59,7 +59,7 @@ create_materialized_view -> %kw_create
                         type: 'create materialized view',
                         ... x[3] && {ifNotExists: true},
                         ... x[4], // name
-                        ... x[5] && {columnNames: x[6]},
+                        ... x[5] && {columnNames: x[6].map(asStr)},
                         ... x[6] && {parameters: fromEntries(x[6])},
                         ... x[7] && {tablespace: toStr(x[7]) },
                         query: x[9],

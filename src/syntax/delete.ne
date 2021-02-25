@@ -20,15 +20,15 @@ delete_delete -> (kw_delete %kw_from)
                     {% x => {
                         const where = x[2];
                         const returning = x[3];
-                        return {
+                        return track(x, {
                             type: 'delete',
                             from: unwrap(x[1]),
                             ...where ? { where } : {},
                             ...returning ? { returning } : {},
-                        }
+                        });
                     } %}
 
-delete_truncate ->  (kw_truncate %kw_table:?) array_of[table_ref] {% x => ({
+delete_truncate ->  (kw_truncate %kw_table:?) array_of[table_ref] {% x => track(x, {
                             type: 'truncate table',
                             tables: x[1],
                         }) %}

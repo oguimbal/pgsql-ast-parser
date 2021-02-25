@@ -5,7 +5,7 @@
 # https://www.postgresql.org/docs/12/sql-altertable.html
 
 altertable_statement -> kw_alter %kw_table kw_ifexists:? %kw_only:? table_ref
-                        altertable_action {% x => ({
+                        altertable_action {% x => track(x, {
                             type: 'alter table',
                             ... x[2] ? {ifExists: true} : {},
                             ... x[3] ? {only: true} : {},
@@ -25,31 +25,31 @@ altertable_action
     | altertable_owner
 
 
-altertable_rename_table -> kw_rename %kw_to word {% x => ({
+altertable_rename_table -> kw_rename %kw_to word {% x => track(x, {
     type: 'rename',
     to: unwrap(last(x)),
 }) %}
 
-altertable_rename_column -> kw_rename %kw_column:? ident %kw_to ident {% x => ({
+altertable_rename_column -> kw_rename %kw_column:? ident %kw_to ident {% x => track(x, {
     type: 'rename column',
     column: unwrap(x[2]),
     to: unwrap(last(x)),
 }) %}
 
-altertable_rename_constraint -> kw_rename %kw_constraint ident %kw_to ident {% x => ({
+altertable_rename_constraint -> kw_rename %kw_constraint ident %kw_to ident {% x => track(x, {
     type: 'rename constraint',
     constraint: unwrap(x[2]),
     to: unwrap(last(x)),
 }) %}
 
-altertable_add_column -> kw_add %kw_column:? kw_ifnotexists:? createtable_column {% x => ({
+altertable_add_column -> kw_add %kw_column:? kw_ifnotexists:? createtable_column {% x => track(x, {
     type: 'add column',
     ... x[2] ? {ifNotExists: true} : {},
     column: unwrap(x[3]),
 }) %}
 
 
-altertable_drop_column -> kw_drop %kw_column:? kw_ifexists:? ident {% x => ({
+altertable_drop_column -> kw_drop %kw_column:? kw_ifexists:? ident {% x => track(x, {
     type: 'drop column',
     ... x[2] ? {ifExists: true} : {},
     column: unwrap(x[3]),
@@ -57,28 +57,31 @@ altertable_drop_column -> kw_drop %kw_column:? kw_ifexists:? ident {% x => ({
 
 
 altertable_alter_column
-    ->  kw_alter  %kw_column:? ident altercol {% x => ({
+    ->  kw_alter  %kw_column:? ident altercol {% x => track(x, {
         type: 'alter column',
         column: unwrap(x[2]),
         alter: unwrap(x[3])
     }) %}
 
 altercol
-    ->  (kw_set kw_data):? kw_type data_type {% x => ({ type: 'set type', dataType: unwrap(last(x)) }) %}
-    | kw_set %kw_default expr {% x => ({type: 'set default', default: unwrap(last(x)) }) %}
-    | kw_drop %kw_default {% x => ({type: 'drop default' }) %}
-    | (kw_set | kw_drop) kw_not_null {% x => ({type: toStr(x, ' ') }) %}
+    ->  (kw_set kw_data):? kw_type data_type {% x => track(x, { type: 'set type', dataType: unwrap(last(x)) }) %}
+    | kw_set %kw_default expr {% x => track(x, {type: 'set default', default: unwrap(last(x)) }) %}
+    | kw_drop %kw_default {% x => track(x, {type: 'drop default' }) %}
+    | (kw_set | kw_drop) kw_not_null {% x => track(x, {type: toStr(x, ' ') }) %}
     | altercol_generated_add {% unwrap %}
 
 altertable_add_constraint
-    -> kw_add createtable_constraint {% x => ({
+    -> kw_add createtable_constraint {% x => track(x, {
         type: 'add constraint',
         constraint: unwrap(last(x)),
     }) %}
 
 
 altertable_owner
-     -> kw_owner %kw_to ident {% x => ({ type:'owner', to: last(x) }) %}
+     -> kw_owner %kw_to ident {% x => track(x, {
+         type:'owner',
+         to: asStr(last(x)),
+     }) %}
 
 
 altercol_generated_add -> kw_add altercol_generated {% last %}
@@ -86,18 +89,18 @@ altercol_generated
     -> kw_generated
         (kw_always | kw_by %kw_default):?
         (%kw_as kw_identity )
-        (lparen altercol_generated_seq rparen {% get(1) %}):? {% x => ({
+        (lparen altercol_generated_seq rparen {% get(1) %}):? {% x => track(x, {
             type: 'add generated',
             ...x[1] && { always: toStr(x[1], ' ') },
             ...x[3] && { sequence: unwrap(x[3]) },
         }) %}
 
 altercol_generated_seq
-    -> (kw_sequence kw_name qualified_name {% last %}):?
+    -> (kw_sequence kw_name qualified_name):?
     create_sequence_option:* {% x => {
         const ret: any = {
-            ...x[0] && { name:unwrap(x[0]) },
+            ...x[0] && { name: unwrap(last(x[0])) },
         };
         setSeqOpts(ret, x[1]);
-        return ret;
+        return track(x, ret);
     }%}

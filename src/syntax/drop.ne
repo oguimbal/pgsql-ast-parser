@@ -5,17 +5,17 @@
 
 drop_statement -> kw_drop drop_what kw_ifexists:? qualified_name {% (x: any, rej: any) => {
     const v = unwrap(x[1]);
-    return {
+    return track(x, {
         ...v,
         ... x[2] && {ifExists: true},
         ...unwrap(x[3]),
-    }
+    });
 }%}
 
 drop_what
-    -> %kw_table {% x => ({ type: 'drop table' }) %}
-    | kw_sequence {% x => ({ type: 'drop sequence' }) %}
-    | kw_index %kw_concurrently:? {% x => ({
+    -> %kw_table {% x => track(x, { type: 'drop table' }) %}
+    | kw_sequence {% x => track(x, { type: 'drop sequence' }) %}
+    | kw_index %kw_concurrently:? {% x => track(x, {
             type: 'drop index',
             ...x[1] && {concurrently: true },
         }) %}

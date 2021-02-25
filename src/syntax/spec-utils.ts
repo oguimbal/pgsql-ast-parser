@@ -2,11 +2,12 @@ import { Parser, Grammar } from 'nearley';
 import { expect, assert } from 'chai';
 import grammar from '../syntax/main.ne';
 import { trimNullish } from '../utils';
-import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, DropTableStatement, SelectedColumn, Interval } from './ast';
+import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, DropTableStatement, SelectedColumn, Interval, LOCATION } from './ast';
 import { astMapper, IAstMapper } from '../ast-mapper';
 import { toSql, IAstToSql } from '../to-sql';
 import { parseIntervalLiteral } from '../parser';
 import { normalizeInterval } from '../literal-syntaxes/interval-builder';
+import { tracking } from '../lexer';
 
 export function checkSelect(value: string | string[], expected: SelectStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
@@ -19,8 +20,14 @@ export function checkCreateSequence(value: string | string[], expected: CreateSe
 export function checkCreateTable(value: string | string[], expected: CreateTableStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
+export function checkCreateTableLoc(value: string | string[], expected: CreateTableStatement) {
+    checkTree(value, expected, (p, m) => m.statement(p), undefined, true);
+}
 export function checkCreateIndex(value: string | string[], expected: CreateIndexStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
+}
+export function checkCreateIndexLoc(value: string | string[], expected: CreateIndexStatement) {
+    checkTree(value, expected, (p, m) => m.statement(p), undefined, true);
 }
 export function checkAlterSequence(value: string | string[], expected: AlterSequenceStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
@@ -33,6 +40,9 @@ export function checkCreateExtension(value: string | string[], expected: CreateE
 export function checkInsert(value: string | string[], expected: InsertStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
+export function checkInsertLoc(value: string | string[], expected: InsertStatement) {
+    checkTree(value, expected, (p, m) => m.statement(p), undefined, true);
+}
 export function checkDelete(value: string | string[], expected: DeleteStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
@@ -40,7 +50,9 @@ export function checkDelete(value: string | string[], expected: DeleteStatement)
 export function checkAlterTable(value: string | string[], expected: AlterTableStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
-
+export function checkAlterTableLoc(value: string | string[], expected: AlterTableStatement) {
+    checkTree(value, expected, (p, m) => m.statement(p), undefined, true);
+}
 export function checkUpdate(value: string | string[], expected: UpdateStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
@@ -49,7 +61,25 @@ export function checkStatement(value: string | string[], expected: Statement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 
-function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T, m: IAstMapper | IAstToSql) => any, start?: string) {
+function locsVisible(val: any): any {
+    if (!val) {
+        return val;
+    }
+    if (typeof val !== 'object') {
+        return val;
+    }
+    if (Array.isArray(val)) {
+        return val.map(locsVisible);
+    }
+    const loc = val[LOCATION];
+    const ret: any = loc ? { LOCATION: loc } : {};
+    for (const [k, v] of Object.entries(val)) {
+        ret[k] = locsVisible(v);
+    }
+    return ret;
+}
+
+function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T, m: IAstMapper | IAstToSql) => any, start?: string, checkLocations?: boolean) {
     if (typeof value === 'string') {
         value = [value];
     }
@@ -69,11 +99,22 @@ function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T,
                 expect(ret.length).to.equal(1, 'Ambiguous matches');
                 return trimNullish(ret[0]);
             }
-            const parsed = doParse(sql);
+            const parsedWithLocations = tracking(() => doParse(sql));
+            const parsedWithoutTracking = doParse(sql);
+            const parsed =
+                checkLocations
+                    ? parsedWithLocations
+                    : parsedWithoutTracking;
 
             // check that it is what we expected
-            expect(parsed)
-                .to.deep.equal(expected, 'Parser has not returned the expected AST');
+            expect(locsVisible(parsed))
+                .to.deep.equal(locsVisible(expected), 'Parser has not returned the expected AST');
+
+            // check that top-level statements always have at least some kind of basic position
+            assert.exists(parsedWithLocations[LOCATION], 'Top level statements must have a location');
+
+            // check that it generates the same with/without location tracking
+            expect(parsedWithLocations).to.deep.equal(parsedWithoutTracking, 'Parser did not return the same thing with and without location tracking enabled');
 
             // check that it is stable through ast modifier
             const modified = mapper(parsed, astMapper(() => ({})));
@@ -97,8 +138,10 @@ function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T,
             // reparse the generated sql...
             let reparsed: any;
             try {
-                reparsed = doParse(newSql);
                 assert.isString(newSql);
+                reparsed = checkLocations
+                    ? tracking(() => doParse(newSql))
+                    : doParse(newSql);
             } catch (e) {
                 e.message = `⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
         The parsed AST converted-back to SQL generated invalid SQL.
@@ -137,6 +180,10 @@ export function checkInvalidExpr(sql: string) {
 
 export function checkTreeExpr(value: string | string[], expected: Expr) {
     checkTree(value, expected, (p, m) => m.expr(p), 'expr');
+}
+
+export function checkTreeExprLoc(value: string | string[], expected: Expr) {
+    checkTree(value, expected, (p, m) => m.expr(p), 'expr', true);
 }
 
 

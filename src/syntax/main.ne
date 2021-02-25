@@ -26,27 +26,13 @@ import {lexerAny, LOCATION} from '../lexer';
 
 # list of statements, separated by ";"
 main -> statement_separator:* statement (statement_separator:+ statement):* statement_separator:*  {% ([_, head, _tail]) => {
-    const tail = _tail; // && _tail[0];
-    const first = unwrap(head);
-    first[LOCATION] = { start: 0 };
-    if (!tail || !tail.length) {
-        return first;
-    }
-    const ret = [first];
-    let prev = first;
-    for (const t of tail) {
-        const firstSep = unwrap(t[0][0]);
-        prev[LOCATION].end = firstSep.offset;
+    const tail = _tail;
 
-        const lastSep = unwrap(last(t[0]));
-        const statement = unwrap(t[1]);
-        statement[LOCATION] = {
-            start: lastSep.offset,
-        };
-        prev = statement;
-        ret.push(statement);
-    }
-    return ret;
+    const ret = [unwrap(head), ...tail.map((x: any) => unwrap(x[1]))];
+
+    return ret.length === 1
+        ? ret[0]
+        : ret;
 } %}
 
 statement_separator -> %semicolon

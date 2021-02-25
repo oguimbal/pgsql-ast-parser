@@ -21,7 +21,7 @@ create_func -> %kw_create
                     for (const s of x[8]) {
                         Object.assign(specs, s);
                     }
-                    return {
+                    return track(x, {
                         type: 'create function',
                         ...x[1] && {orReplace: true},
                         ...x[3],
@@ -29,17 +29,17 @@ create_func -> %kw_create
                         arguments: x[4] ?? [],
                         code: unwrap(x[7]),
                         ...specs,
-                    }
+                    });
                 } %}
 
 
 func_argdef -> func_argopts:?
-                    data_type {% x => ({
+                    data_type {% x => track(x, {
                         type: x[1],
                         ...x[0],
                     }) %}
 
-func_argopts -> func_argmod word:? {% x => ({
+func_argopts -> func_argmod word:? {% x => track(x, {
                         mode: toStr(x[0]),
                         ...x[1] && { name: toStr(x[1]) },
                     }) %}
@@ -53,9 +53,9 @@ func_argopts -> func_argmod word:? {% x => ({
 
 func_argmod -> %kw_in | kw_out | kw_inout | kw_variadic
 
-func_spec -> kw_language word {% x => ({ language: last(x) }) %}
-         | func_purity {% x => ({purity: toStr(x)}) %}
-         | %kw_not:? (word {% kw('leakproof') %}) {% x => ({ leakproof: !x[0] })%}
+func_spec -> kw_language word {% x => track(x, { language: unbox(last(x)) }) %}
+         | func_purity {% x => track(x, {purity: toStr(x)}) %}
+         | %kw_not:? (word {% kw('leakproof') %}) {% x => track(x, { leakproof: !x[0] })%}
          | func_spec_nil {% unwrap %}
 
 
@@ -70,15 +70,15 @@ func_purity -> word {%kw('immutable')%}
 oninp -> %kw_on %kw_null (word {%kw('input')%})
 
 func_returns -> kw_returns data_type {% last %}
-                | kw_returns %kw_table lparen array_of[func_ret_table_col] rparen {% x => ({
+                | kw_returns %kw_table lparen array_of[func_ret_table_col] rparen {% x => track(x, {
                     kind: 'table',
                     columns: x[3],
                 }) %}
 
-func_ret_table_col -> word data_type {% ([name, type]) => ({name, type}) %}
+func_ret_table_col -> word data_type {% x => track(x, {name: unbox(x[0]), type: x[1]}) %}
 
 # https://www.postgresql.org/docs/13/sql-do.html
-do_stm -> %kw_do (kw_language word {% last %}):? %codeblock {% x => ({
+do_stm -> %kw_do (kw_language word {% last %}):? %codeblock {% x => track(x, {
     type: 'do',
     ...x[1] && { language: toStr(x[1])},
     code: x[2].value,
