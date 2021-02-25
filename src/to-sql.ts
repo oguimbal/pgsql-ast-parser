@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor';
 import { NotSupported, nil, ReplaceReturnType } from './utils';
-import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn } from './syntax/ast';
+import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn, Name } from './syntax/ast';
 import { literal } from './pg-escape';
 
 
@@ -10,7 +10,10 @@ export type IAstToSql = { readonly [key in keyof IAstPartialMapper]-?: ReplaceRe
 
 
 let ret: string[] = [];
-function name(nm: string) {
+function name(nm: Name) {
+    return '"' + nm.name + '"';
+}
+function ident(nm: string) {
     return '"' + nm + '"';
 }
 
@@ -82,10 +85,11 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
 }
 function visitQualifiedName(cs: QName) {
     if (cs.schema) {
-        ret.push(name(cs.schema), '.');
+        ret.push(ident(cs.schema), '.');
     }
-    ret.push(name(cs.name), ' ');
+    ret.push(ident(cs.name), ' ');
 }
+
 function visitSetVal(set: SetGlobalValue) {
 
     switch (set.type) {
@@ -177,9 +181,9 @@ function visitSeqOpts(m: IAstVisitor, cs: AlterSequenceSetOptions | CreateSequen
 
 function visitQColumn(col: QColumn) {
     if (col.schema) {
-        ret.push(name(col.schema), '.');
+        ret.push(ident(col.schema), '.');
     }
-    ret.push(name(col.table), '.', name(col.column), ' ');
+    ret.push(ident(col.table), '.', ident(col.column), ' ');
 }
 
 function join(m: IAstVisitor, j: JoinClause | nil, tbl: () => void) {
@@ -351,14 +355,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     call: v => {
-        if (v.namespace) {
-            ret.push(name(v.namespace), '.')
-        }
-        if (typeof v.function === 'string') {
-            ret.push(name(v.function));
-        } else {
-            ret.push(v.function.keyword);
-        }
+        visitQualifiedName(v.function);
         list(v.args, e => m.expr(e), true);
     },
 
@@ -469,7 +466,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 break;
             case 'owner to':
                 const own = cs.change.owner;
-                ret.push('OWNER TO ', typeof own === 'string' ? own : name(own.user), ' ');
+                ret.push('OWNER TO ', name(cs.change.owner), ' ');
                 break;
             default:
                 throw NotSupported.never(cs.change);
@@ -738,7 +735,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(' LIKE ');
         m.tableRef(l.like);
         ret.push(' ');
-        for (const {verb, option} of l.options) {
+        for (const { verb, option } of l.options) {
             ret.push(verb.toUpperCase(), ' ', option.toUpperCase(), ' ');
         }
     },
@@ -926,7 +923,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (r.table) {
             ret.push(name(r.table), '.');
         }
-        ret.push(r.name === '*' ? '*' : name(r.name));
+        ret.push(r.name === '*' ? '*' : ident(r.name));
     },
 
     parameter: p => {
@@ -1113,11 +1110,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     tableRef: r => {
         if (r.schema) {
-            ret.push(name(r.schema), '.');
+            ret.push(ident(r.schema), '.');
         }
-        ret.push(name(r.name));
+        ret.push(name(r));
         if (r.alias) {
-            ret.push(' AS ', name(r.alias));
+            ret.push(' AS ', ident(r.alias));
         }
         ret.push(' ');
     },

@@ -15,7 +15,10 @@ describe('Alter table', () => {
         change: {
             [LOCATION]: { start: 17, end: 34 },
             type: 'rename',
-            to: 'newname'
+            to: {
+                [LOCATION]: { start: 27, end: 34 },
+                name: 'newname'
+            },
         }
     });
 
@@ -26,7 +29,7 @@ describe('Alter table', () => {
         only: true,
         change: {
             type: 'rename',
-            to: 'newname'
+            to: { name: 'newname' },
         }
     });
 
@@ -36,7 +39,7 @@ describe('Alter table', () => {
         only: true,
         change: {
             type: 'rename',
-            to: 'newname'
+            to: { name: 'newname' },
         }
     });
 
@@ -45,8 +48,8 @@ describe('Alter table', () => {
         table: { name: 'test' },
         change: {
             type: 'rename column',
-            column: 'a',
-            to: 'b',
+            column: { name: 'a' },
+            to: { name: 'b', },
         }
     });
 
@@ -55,8 +58,8 @@ describe('Alter table', () => {
         table: { name: 'test' },
         change: {
             type: 'rename constraint',
-            constraint: 'a',
-            to: 'b',
+            constraint: { name: 'a' },
+            to: { name: 'b' },
         }
     });
 
@@ -67,7 +70,7 @@ describe('Alter table', () => {
             type: 'add column',
             column: {
                 kind: 'column',
-                name: 'a',
+                name: { name: 'a' },
                 dataType: { name: 'jsonb' },
                 constraints: [{ type: 'not null' }],
             },
@@ -82,7 +85,7 @@ describe('Alter table', () => {
             ifNotExists: true,
             column: {
                 kind: 'column',
-                name: 'a',
+                name: { name: 'a' },
                 dataType: { name: 'jsonb' },
                 constraints: [{ type: 'not null' }],
             },
@@ -94,7 +97,7 @@ describe('Alter table', () => {
         table: { name: 'test' },
         change: {
             type: 'drop column',
-            column: 'a',
+            column: { name: 'a' },
             ifExists: true,
         }
     });
@@ -104,7 +107,7 @@ describe('Alter table', () => {
         table: { name: 'test' },
         change: {
             type: 'drop column',
-            column: 'a',
+            column: { name: 'a' },
         }
     });
 
@@ -113,7 +116,7 @@ describe('Alter table', () => {
         table: { name: 'test' },
         change: {
             type: 'alter column',
-            column: 'a',
+            column: { name: 'a' },
             alter: {
                 type: 'set type',
                 dataType: { name: 'jsonb' },
@@ -125,7 +128,7 @@ describe('Alter table', () => {
         table: { name: 'test' },
         change: {
             type: 'alter column',
-            column: 'a',
+            column: { name: 'a' },
             alter: {
                 type: 'set default',
                 default: { type: 'integer', value: 42 }
@@ -137,7 +140,7 @@ describe('Alter table', () => {
         table: { name: 'test' },
         change: {
             type: 'alter column',
-            column: 'a',
+            column: { name: 'a' },
             alter: {
                 type: 'drop default',
             }
@@ -148,7 +151,7 @@ describe('Alter table', () => {
         table: { name: 'test' },
         change: {
             type: 'alter column',
-            column: 'a',
+            column: { name: 'a' },
             alter: {
                 type: 'drop not null',
             }
@@ -170,9 +173,12 @@ describe('Alter table', () => {
             type: 'add constraint',
             [LOCATION]: { start: 16, end: 51 },
             constraint: {
-                [LOCATION]: { start: 16, end: 51 },
+                [LOCATION]: { start: 20, end: 51 },
                 type: 'check',
-                constraintName: 'cname',
+                constraintName: {
+                    [LOCATION]: { start: 31, end: 38 },
+                    name: 'cname'
+                },
                 expr: {
                     [LOCATION]: { start: 46, end: 51 },
                     type: 'binary',
@@ -219,10 +225,10 @@ describe('Alter table', () => {
             type: 'add constraint',
             constraint: {
                 type: 'foreign key',
-                constraintName: 'FK_4494006ff358f754d07df5ccc87',
-                localColumns: ['userId'],
+                constraintName: { name: 'FK_4494006ff358f754d07df5ccc87' },
+                localColumns: [{ name: 'userId' }],
                 foreignTable: { name: 'user' },
-                foreignColumns: ['id'],
+                foreignColumns: [{ name: 'id' }],
                 onUpdate: 'no action',
                 onDelete: 'no action',
             }
@@ -238,8 +244,8 @@ describe('Alter table', () => {
             type: 'add constraint',
             constraint: {
                 type: 'primary key',
-                constraintName: 'cname',
-                columns: ['a', 'b'],
+                constraintName: { name: 'cname' },
+                columns: [{ name: 'a' }, { name: 'b' }],
             }
         }
     })
@@ -250,7 +256,7 @@ describe('Alter table', () => {
         table: { name: 'tbl', schema: 'public' },
         change: {
             type: 'owner',
-            to: 'postgres',
+            to: { name: 'postgres' },
         }
     })
 
@@ -264,9 +270,9 @@ describe('Alter table', () => {
             type: 'add constraint',
             constraint: {
                 type: 'foreign key',
-                constraintName: 'city_id_fk',
-                localColumns: ['city_id'],
-                foreignColumns: ['city_id'],
+                constraintName: { name: 'city_id_fk' },
+                localColumns: [{ name: 'city_id' }],
+                foreignColumns: [{ name: 'city_id' }],
                 foreignTable: { name: 'city', schema: 'public' },
                 match: 'full',
             }
@@ -286,7 +292,7 @@ describe('Alter table', () => {
         table: { name: 'city', schema: 'public' },
         change: {
             type: 'alter column',
-            column: 'city_id',
+            column: { name: 'city_id' },
             alter: {
                 type: 'add generated',
                 always: 'always',

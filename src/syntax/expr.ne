@@ -103,9 +103,9 @@ expr_member
 
 
 expr_dot
-    -> word %dot (word | star) {% x => track(x, {
+    -> qname %dot (word | star) {% x => track(x, {
         type: 'ref',
-        table: toStr(x[0]),
+        table: unwrap(x[0]),
         name: toStr(x[2])
     }) %}
     | expr_final {% unwrap %}
@@ -133,7 +133,7 @@ expr_array -> %kw_array %lbracket expr_list_raw:? %rbracket {% x => track(x, {
 
 expr_call -> expr_fn_name lparen expr_list_raw:? rparen {% x => track(x, {
         type: 'call',
-        ...unwrap(x[0]),
+        function: unwrap(x[0]),
         args: x[2] || [],
     }) %}
 
@@ -152,7 +152,7 @@ expr_primary
     | %kw_true {% x => track(x, { type: 'boolean', value: true }) %}
     | %kw_false {% x => track(x, { type: 'boolean', value: false }) %}
     | %kw_null {% x => track(x, { type: 'null' }) %}
-    | value_keyword
+    | value_keyword {% x => track(x, {type: 'keyword', keyword: toStr(x) }) %}
     | %qparam {% x => track(x, { type: 'parameter', name: toStr(x[0]) }) %}
 
 
@@ -200,24 +200,20 @@ expr_case_whens -> %kw_when expr_nostar %kw_then expr_nostar {% x => track(x, {
 expr_case_else -> %kw_else expr_nostar {% last %}
 
 expr_fn_name -> ((word %dot):?  word_or_keyword {% x => track(x, {
-            function: unbox(unwrap(x[1])),
-            ...x[0] && { namespace: toStr(x[0][0]) },
+            name: unbox(unwrap(x[1])),
+            ...x[0] && { schema: toStr(x[0][0]) },
         })  %})
     | (%kw_any {% x => track(x, {
-            function: 'any',
+            name: 'any',
         })%})
 
 word_or_keyword
     -> word
     | %kw_distinct {% x => box(x, 'distinct') %}
-    | value_keyword
+    | value_keyword {% x => box(x, toStr(x)) %}
 
-value_keyword -> _value_keyword {% x => track(x, {
-    type: 'keyword',
-    keyword: unwrap(x).value,
-}) %}
 
-_value_keyword
+value_keyword
         ->  %kw_current_catalog
         |   %kw_current_date
         |   %kw_current_role

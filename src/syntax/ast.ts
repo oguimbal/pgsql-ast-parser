@@ -72,13 +72,13 @@ export interface CreateFunctionStatement extends PGNode {
 
 export interface ReturnsTable extends PGNode {
     kind: 'table';
-    columns: { name: string; type: DataTypeDef }[];
+    columns: { name: Name; type: DataTypeDef }[];
 }
 
 export type FunctionArgumentMode = 'in' | 'out' | 'inout' | 'variadic';
 
 export interface FunctionArgument extends PGNode {
-    name?: string;
+    name?: Name;
     type: DataTypeDef;
     default?: Expr;
     mode?: FunctionArgumentMode;
@@ -120,13 +120,13 @@ export interface RaiseStatement extends PGNode {
 
 export interface CreateSchemaStatement extends PGNode {
     type: 'create schema';
-    name: string;
+    name: Name;
     ifNotExists?: boolean;
 }
 
 export interface PrepareStatement extends PGNode {
     type: 'prepare';
-    name: string;
+    name: Name;
     args?: DataTypeDef[] | nil;
     statement: Statement;
 }
@@ -140,7 +140,7 @@ export interface CreateEnumType extends PGNode {
 
 export interface ShowStatement extends PGNode {
     type: 'show';
-    variable: string;
+    variable: Name;
 }
 
 export interface TruncateTableStatement extends PGNode {
@@ -185,7 +185,7 @@ export interface RollbackStatement extends PGNode {
 
 export interface TablespaceStatement extends PGNode {
     type: 'tablespace';
-    tablespace: string;
+    tablespace: Name;
 }
 
 
@@ -200,7 +200,7 @@ export interface InsertStatement extends PGNode {
     type: 'insert';
     into: QNameAliased;
     returning?: SelectedColumn[] | nil;
-    columns?: string[] | nil;
+    columns?: Name[] | nil;
     overriding?: 'system' | 'user';
     /** Insert values */
     values?: (Expr | 'default')[][] | nil;
@@ -226,18 +226,18 @@ export interface AlterTableStatement extends PGNode {
 
 export interface TableAlterationRename extends PGNode {
     type: 'rename';
-    to: string;
+    to: Name;
 }
 
 export interface TableAlterationRenameColumn extends PGNode {
     type: 'rename column';
-    column: string;
-    to: string;
+    column: Name;
+    to: Name;
 }
 export interface TableAlterationRenameConstraint extends PGNode {
     type: 'rename constraint';
-    constraint: string;
-    to: string;
+    constraint: Name;
+    to: Name;
 }
 export interface TableAlterationAddColumn extends PGNode {
     type: 'add column';
@@ -248,12 +248,12 @@ export interface TableAlterationAddColumn extends PGNode {
 export interface TableAlterationDropColumn extends PGNode {
     type: 'drop column';
     ifExists?: boolean;
-    column: string;
+    column: Name;
 }
 
 export interface TableAlterationAlterColumn extends PGNode {
     type: 'alter column',
-    column: string;
+    column: Name;
     alter: AlterColumn
 }
 
@@ -274,7 +274,7 @@ export type TableAlteration = TableAlterationRename
 
 export interface TableAlterationOwner extends PGNode {
     type: 'owner';
-    to: string;
+    to: Name;
 }
 
 export interface AlterColumnSetType extends PGNode {
@@ -291,7 +291,7 @@ export interface AlterColumnSetDefault extends PGNode {
 export interface AlterColumnAddGenerated extends PGNode {
     type: 'add generated',
     always?: 'always' | 'by default';
-    constraintName?: string;
+    constraintName?: Name;
     sequence?: {
         name?: QName;
     } & CreateSequenceOptions;
@@ -331,18 +331,18 @@ export type ConstraintAction = 'cascade'
 export interface CreateIndexStatement extends PGNode {
     type: 'create index';
     table: QName;
-    using?: string;
+    using?: Name;
     expressions: IndexExpression[];
     unique?: true;
     ifNotExists?: true;
-    indexName?: string;
+    indexName?: Name;
 }
 
 export interface CreateExtensionStatement extends PGNode {
     type: 'create extension';
-    extension: string;
+    extension: Name;
     ifNotExists?: true;
-    schema?: string;
+    schema?: Name;
     version?: string;
     from?: string;
 }
@@ -372,7 +372,7 @@ export interface CreateViewStatement extends CreateViewStatementBase {
 
 export interface CreateMaterializedViewStatement extends CreateViewStatementBase {
     type: 'create materialized view';
-    tablespace?: string;
+    tablespace?: Name;
     withData?: boolean;
     ifNotExists?: boolean;
 }
@@ -401,15 +401,18 @@ export interface CreateColumnsLikeTableOpt extends PGNode {
 
 export interface CreateColumnDef extends PGNode {
     kind: 'column';
-    name: string;
+    name: Name;
     dataType: DataTypeDef;
     constraints?: ColumnConstraint[];
     collate?: QName;
 }
 
-
-export interface QName extends PGNode {
+export interface Name extends PGNode {
     name: string;
+}
+
+
+export interface QName extends Name, PGNode {
     schema?: string;
 }
 
@@ -443,20 +446,20 @@ export interface ColumnConstraintSimple extends PGNode {
     | 'primary key'
     | 'not null'
     | 'null';
-    constraintName?: string;
+    constraintName?: Name;
 }
 
 export interface ColumnConstraintDefault extends PGNode {
     type: 'default';
     default: Expr;
-    constraintName?: string;
+    constraintName?: Name;
 }
 
 export interface ColumnConstraintForeignKey extends PGNode {
     type: 'foreign key';
-    constraintName?: string;
+    constraintName?: Name;
     foreignTable: QName;
-    foreignColumns: string[];
+    foreignColumns: Name[];
     onDelete?: ConstraintAction;
     onUpdate?: ConstraintAction;
     match?: 'full' | 'partial' | 'simple';
@@ -473,17 +476,17 @@ export type TableConstraint
 export type TableConstraintCheck = ColumnConstraintCheck;
 export interface TableConstraintUnique extends PGNode {
     type: 'primary key' | 'unique';
-    constraintName?: string;
-    columns: string[];
+    constraintName?: Name;
+    columns: Name[];
 }
 
 export interface TableConstraintForeignKey extends ColumnConstraintForeignKey {
-    localColumns: string[];
+    localColumns: Name[];
 }
 
 export interface ColumnConstraintCheck extends PGNode {
     type: 'check';
-    constraintName?: string;
+    constraintName?: Name;
     expr: Expr;
 }
 
@@ -491,7 +494,7 @@ export type WithStatementBinding = SelectStatement | InsertStatement | UpdateSta
 export interface WithStatement extends PGNode {
     type: 'with';
     bind: {
-        alias: string;
+        alias: Name;
         statement: WithStatementBinding;
     }[];
     in: WithStatementBinding;
@@ -538,20 +541,20 @@ export interface UpdateStatement extends PGNode {
 }
 
 export interface SetStatement extends PGNode {
-    column: string;
+    column: Name;
     value: Expr | 'default';
 }
 
 export interface SelectedColumn extends PGNode {
     expr: Expr;
-    alias?: string;
+    alias?: Name;
 }
 
 export type From = FromTable | FromStatement | FromValues | FromCall
 
 
 export interface FromCall extends ExprCall, PGNode {
-    alias?: string;
+    alias?: Name;
     join?: JoinClause | nil;
 };
 
@@ -559,7 +562,7 @@ export interface FromCall extends ExprCall, PGNode {
 
 export interface FromValues {
     type: 'values';
-    alias: string;
+    alias: Name;
     values: Expr[][];
     columnNames?: string[] | nil;
     join?: JoinClause | nil;
@@ -578,7 +581,7 @@ export interface FromTable extends QNameAliased, PGNode {
 export interface FromStatement extends PGNode {
     type: 'statement';
     statement: SelectStatement;
-    alias: string;
+    alias: Name;
     db?: null | nil;
     join?: JoinClause | nil;
 }
@@ -690,7 +693,7 @@ export interface ExprUnary extends PGNode {
 
 export interface ExprRef extends PGNode {
     type: 'ref';
-    table?: string;
+    table?: QName;
     name: string | '*';
 }
 
@@ -728,9 +731,7 @@ export type ValueKeyword = 'current_catalog'
 export interface ExprCall extends PGNode {
     type: 'call';
     /** Function name */
-    function: string | ExprValueKeyword;
-    /** Function namespace (ex: pg_catalog) */
-    namespace?: string;
+    function: QName;
     args: Expr[];
 }
 
@@ -790,7 +791,7 @@ export interface ExprWhen extends PGNode {
 
 export interface SetGlobalStatement extends PGNode {
     type: 'set';
-    variable: string;
+    variable: Name;
     set: SetGlobalValue;
 }
 export interface SetTimezone extends PGNode {
@@ -864,17 +865,17 @@ export interface AlterSequenceSetOptions extends CreateSequenceOptions, PGNode {
 
 export interface AlterSequenceOwnerTo extends PGNode {
     type: 'owner to';
-    owner: 'session_user' | 'current_user' | { user: string };
+    owner: Name;
 }
 
 export interface AlterSequenceRename extends PGNode {
     type: 'rename';
-    newName: string;
+    newName: Name;
 }
 
 export interface AlterSequenceSetSchema extends PGNode {
     type: 'set schema';
-    newSchema: string;
+    newSchema: Name;
 }
 
 export type GeometricLiteral

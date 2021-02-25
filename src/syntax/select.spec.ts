@@ -29,7 +29,7 @@ describe('Select statements', () => {
                     type: 'integer',
                     value: 42
                 },
-                alias,
+                alias: { name: alias },
             }],
         };
     }
@@ -43,7 +43,7 @@ describe('Select statements', () => {
         type: 'select',
         columns: columns({
             type: 'call',
-            function: 'count',
+            function: { name: 'count' },
             args: [{ type: 'ref', name: '*' }],
         })
     });
@@ -67,7 +67,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from current_schema()', 'select * from current_schema ( )'], {
         type: 'select',
-        from: [{ type: 'call', function: { type: 'keyword', keyword: 'current_schema' }, args: [] }],
+        from: [{ type: 'call', function: { name: 'current_schema' }, args: [] }],
         columns: columns({ type: 'ref', name: '*' })
     });
 
@@ -76,10 +76,10 @@ describe('Select statements', () => {
         from: [{ type: 'table', name: 'test' }],
         columns: [{
             expr: { type: 'ref', name: 'a' },
-            alias: 'a1',
+            alias: { name: 'a1' },
         }, {
             expr: { type: 'ref', name: 'b' },
-            alias: 'b1',
+            alias: { name: 'b1' },
         }],
     });
 
@@ -149,11 +149,11 @@ describe('Select statements', () => {
         columns: columns({
             type: 'ref',
             name: '*',
-            table: 'a',
+            table: { name: 'a' },
         }, {
             type: 'ref',
             name: '*',
-            table: 'b',
+            table: { name: 'b' },
         })
     });
 
@@ -177,7 +177,7 @@ describe('Select statements', () => {
             op: '>',
             left: {
                 type: 'ref',
-                table: 'a',
+                table: { name: 'a' },
                 name: 'b',
             },
             right: {
@@ -203,7 +203,7 @@ describe('Select statements', () => {
                 from: [{ type: 'table', name: 'test' }],
                 columns: columns({ type: 'ref', name: 'id' }),
             },
-            alias: 'd'
+            alias: { name: 'd' },
         }]
     })
 
@@ -242,12 +242,12 @@ describe('Select statements', () => {
                         op: '=',
                         left: {
                             type: 'ref',
-                            table: 'ta',
+                            table: { name: 'ta' },
                             name: 'id',
                         },
                         right: {
                             type: 'ref',
-                            table: 'tb',
+                            table: { name: 'tb' },
                             name: 'id',
                         },
                     }
@@ -284,8 +284,7 @@ describe('Select statements', () => {
             expr: {
                 type: 'call',
                 function: {
-                    type: 'keyword',
-                    keyword: 'current_schema',
+                    name: 'current_schema',
                 },
                 args: [],
             }
@@ -300,7 +299,7 @@ describe('Select statements', () => {
                 type: 'cast',
                 operand: {
                     type: 'call',
-                    function: 'now',
+                    function: { name: 'now' },
                     args: [],
                 },
                 to: { name: 'time without time zone' },
@@ -335,10 +334,10 @@ describe('Select statements', () => {
         from: [{ type: 'table', name: 'photo' }],
         columns: columns({
             type: 'call',
-            function: 'count',
+            function: { name: 'count' },
             args: [{
                 type: 'call',
-                function: 'distinct',
+                function: { name: 'distinct' },
                 args: [{ type: 'ref', name: 'userId' }],
             }],
         })
@@ -349,10 +348,10 @@ describe('Select statements', () => {
         from: [{ type: 'table', name: 'photo' }],
         columns: columns({
             type: 'call',
-            function: 'max',
+            function: { name: 'max' },
             args: [{
                 type: 'call',
-                function: 'distinct',
+                function: { name: 'distinct' },
                 args: [{ type: 'ref', name: 'userId' }],
             }],
         })
@@ -371,7 +370,7 @@ describe('Select statements', () => {
         type: 'select',
         from: [{
             type: 'values',
-            alias: 'vals',
+            alias: { name: 'vals' },
             columnNames: ['num', 'letter'],
             values: [
                 [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
@@ -385,7 +384,7 @@ describe('Select statements', () => {
         type: 'select',
         from: [{
             type: 'values',
-            alias: 'vals',
+            alias: { name: 'vals' },
             values: [
                 [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
                 [{ type: 'integer', value: 2 }, { type: 'string', value: 'two' }],
@@ -399,7 +398,7 @@ describe('Select statements', () => {
         columns: columns({
             type: 'ref',
             name: 'id',
-            table: 't1'
+            table: { name: 't1' },
         }),
         from: [{
             type: 'table',
@@ -416,12 +415,12 @@ describe('Select statements', () => {
                     op: '=',
                     left: {
                         type: 'ref',
-                        table: 't1',
+                        table: { name: 't1' },
                         name: 'id',
                     },
                     right: {
                         type: 'ref',
-                        table: 't2',
+                        table: { name: 't2' },
                         name: 'n',
                     },
                 }
@@ -434,7 +433,7 @@ describe('Select statements', () => {
         type: 'select',
         from: [{
             type: 'call',
-            function: 'concat',
+            function: { name: 'concat' },
             args: [
                 { type: 'string', value: 'a' },
                 { type: 'string', value: 'b' },
@@ -447,18 +446,18 @@ describe('Select statements', () => {
         type: 'select',
         from: [{
             type: 'call',
-            function: 'concat',
-            alias: 'a',
+            function: { name: 'concat' },
+            alias: { name: 'a' },
             args: [
                 { type: 'string', value: 'a' },
             ]
         }, {
             type: 'call',
-            function: 'concat',
+            function: { name: 'concat' },
             args: [
                 { type: 'string', value: 'b' },
             ],
-            alias: 'b',
+            alias: { name: 'b' },
             join: {
                 type: 'INNER JOIN',
                 on: {
@@ -484,8 +483,8 @@ describe('Select statements', () => {
         type: 'select',
         from: [{
             type: 'call',
-            function: 'concat',
-            alias: 'tbl',
+            function: { name: 'concat' },
+            alias: { name: 'tbl' },
             args: [
                 { type: 'string', value: 'a' },
                 { type: 'string', value: 'b' },
@@ -504,7 +503,7 @@ describe('Select statements', () => {
         columns: columns({
             type: 'with',
             bind: [{
-                alias: 'x',
+                alias: { name: 'x' },
                 statement: {
                     type: 'select',
                     columns: [{ expr: { type: 'ref', name: 'val' } }],
@@ -516,7 +515,7 @@ describe('Select statements', () => {
                 columns: [{
                     expr: {
                         type: 'call',
-                        function: 'lower',
+                        function: { name: 'lower' },
                         args: [{ type: 'ref', name: 'val' }],
                     }
                 }],

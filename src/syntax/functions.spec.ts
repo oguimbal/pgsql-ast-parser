@@ -36,7 +36,7 @@ describe('Create function', () => {
     checkStatement(`CREATE FUNCTION fn(in out integer) AS 'code' LANGUAGE SQL`, {
         type: 'create function',
         name: { name: 'fn' },
-        arguments: [{ type: integer, mode: 'in', name: 'out' }],
+        arguments: [{ type: integer, mode: 'in', name: { name: 'out' } }],
         code: 'code',
         language: 'sql',
     });
@@ -49,7 +49,7 @@ $$ VOLATILE LANGUAGE plpgsql`, {
         type: 'create function',
         name: { name: 'increment' },
         orReplace: true,
-        arguments: [{ type: integer, name: 'i' }],
+        arguments: [{ type: integer, name: { name: 'i' } }],
         returns: integer,
         language: 'plpgsql',
         purity: 'volatile',
@@ -66,7 +66,19 @@ $$ VOLATILE LANGUAGE plpgsql`, {
         type: 'create function',
         name: { name: 'dup' },
         language: 'sql',
-        arguments: [{ type: int, mode: 'in', }, { type: int, name: 'f1', mode: 'out', }, { type: text, name: 'f2', mode: 'out', }],
+        arguments: [{
+            type: int,
+            mode: 'in',
+        }, {
+            type: int,
+            name: { name: 'f1' },
+            mode: 'out',
+        },
+        {
+            type: text,
+            name: { name: 'f2' },
+            mode: 'out',
+        }],
         code: ` SELECT $1, CAST($1 AS text) || ' is text' `,
     });
 
@@ -80,7 +92,13 @@ $$ VOLATILE LANGUAGE plpgsql`, {
         code: ` SELECT $1, CAST($1 AS text) || ' is text' `,
         returns: {
             kind: 'table',
-            columns: [{ name: 'f1', type: int }, { name: 'f2', type: text }],
+            columns: [{
+                name: { name: 'f1' },
+                type: int
+            }, {
+                name: { name: 'f2' },
+                type: text,
+            }],
         }
     });
 

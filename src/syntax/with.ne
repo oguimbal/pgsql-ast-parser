@@ -15,7 +15,7 @@ with_statement_bindings -> with_statement_binding (comma with_statement_binding 
 
 
 with_statement_binding -> word %kw_as lparen with_statement_statement rparen {% x => track(x, {
-    alias: toStr(x[0]),
+    alias: asName(x[0]),
     statement: unwrap(x[3]),
 }) %}
 

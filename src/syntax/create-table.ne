@@ -40,7 +40,7 @@ createtable_declaration -> (createtable_constraint | createtable_column | create
 # ================= TABLE CONSTRAINT =======================
 createtable_named_constraint[CST]
     -> (%kw_constraint word):? $CST {% x => {
-        const name = x[0] && unwrap(x[0][1]);
+        const name = x[0] && asName(x[0][1]);
         if (!name) {
             return track(x, unwrap(x[1]));
         }
@@ -62,7 +62,7 @@ createtable_constraint_def
 createtable_constraint_def_unique
     -> (%kw_unique | kw_primary_key) lparen createtable_collist rparen {% x => track(x, {
         type: toStr(x[0], ' '),
-        columns: x[2].map(asStr),
+        columns: x[2].map(asName),
     }) %}
 
 createtable_constraint_def_check
@@ -78,9 +78,9 @@ createtable_constraint_foreignkey
         {% (x: any[]) => {
             return track(x, {
                 type: 'foreign key',
-                localColumns: x[2].map(asStr),
+                localColumns: x[2].map(asName),
                 foreignTable: unwrap(x[4]),
-                foreignColumns: x[5].map(asStr),
+                foreignColumns: x[5].map(asName),
                 ...x[6].reduce((a: any, b: any) => ({...a, ...b}), {}),
             });
         } %}
@@ -107,7 +107,7 @@ createtable_collist -> ident (comma ident {% last %}):* {% ([head, tail]) => {
 createtable_column -> word data_type createtable_collate:? createtable_column_constraint:* {% x => {
     return track(x, {
         kind: 'column',
-        name: toStr(x[0]),
+        name: asName(x[0]),
         dataType: x[1],
         ...x[2] ? { collate: x[2][1] }: {},
         ...x[3] && x[3].length ? { constraints: x[3] }: {},

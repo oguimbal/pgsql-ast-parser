@@ -27,7 +27,10 @@ simplestatements_commit -> kw_commit {% x => track(x, { type: 'commit' }) %}
 # https://www.postgresql.org/docs/12/sql-rollback.html
 simplestatements_rollback -> kw_rollback {% x => track(x, { type: 'rollback' }) %}
 
-simplestatements_tablespace -> kw_tablespace word {% x => track(x, { type: 'tablespace', tablespace: asStr(x[1]) }) %}
+simplestatements_tablespace -> kw_tablespace word {% x => track(x, {
+    type: 'tablespace',
+    tablespace: asName(x[1]),
+ }) %}
 
 
 simplestatements_set -> kw_set (simplestatements_set_simple | simplestatements_set_timezone) {% last %}
@@ -40,7 +43,11 @@ simplestatements_set_timezone_val
     | %kw_default  {% x => track(x, { type: 'default'}) %}
     | kw_interval string kw_hour %kw_to kw_minute  {% x => track(x, { type: 'interval', value: unbox(x[1]) }) %}
 
-simplestatements_set_simple -> ident (%op_eq | %kw_to) simplestatements_set_val {% x  => track(x, {type: 'set', variable: unbox(x[0]), set: unbox(x[2]), }) %}
+simplestatements_set_simple -> ident (%op_eq | %kw_to) simplestatements_set_val {% x  => track(x, {
+        type: 'set',
+        variable: asName(x[0]),
+        set: unbox(x[2]),
+    }) %}
 
 simplestatements_set_val
     -> simplestatements_set_val_raw {% unwrap %}
@@ -55,13 +62,13 @@ simplestatements_set_val_raw
     | (%word | %kw_on | %kw_true | %kw_false) {% x => track(x, { type: 'identifier', name: unwrap(x).value }) %}
 
 
-simplestatements_show -> kw_show ident {% x => track(x, { type: 'show', variable: toStr(x[1]) }) %}
+simplestatements_show -> kw_show ident {% x => track(x, { type: 'show', variable: asName(x[1]) }) %}
 
 
 # https://www.postgresql.org/docs/current/sql-createschema.html
 create_schema -> (%kw_create kw_schema) kw_ifnotexists:? ident {% x => track(x, {
     type: 'create schema',
-    name: toStr(x[2]),
+    name: asName(x[2]),
     ... !!x[1] ? { ifNotExists: true } : {},
 }) %}
 

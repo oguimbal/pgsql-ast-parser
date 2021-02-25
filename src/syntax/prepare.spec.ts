@@ -6,7 +6,7 @@ describe('Prepare', () => {
 
     checkStatement(`prepare st as select c from data`, {
         type: 'prepare',
-        name: 'st',
+        name: { name: 'st' },
         statement: {
             type: 'select',
             from: [{ type: 'table', name: 'data' }],
@@ -16,7 +16,7 @@ describe('Prepare', () => {
 
     checkStatement(`prepare st(text) as select c from data where col = $1`, {
         type: 'prepare',
-        name: 'st',
+        name: { name: 'st' },
         args: [{ name: 'text' }],
         statement: {
             type: 'select',
@@ -33,7 +33,7 @@ describe('Prepare', () => {
 
     checkStatement(`prepare st(text, int) as select c from data`, {
         type: 'prepare',
-        name: 'st',
+        name: { name: 'st' },
         args: [{ name: 'text' }, { name: 'int' }],
         statement: {
             type: 'select',

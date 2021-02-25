@@ -15,7 +15,10 @@ describe('Create table', () => {
         columns: [{
             [LOCATION]: { start: 18, end: 28 },
             kind: 'column',
-            name: 'value',
+            name: {
+                [LOCATION]: { start: 18, end: 23 },
+                name: 'value'
+            },
             dataType: {
                 [LOCATION]: { start: 24, end: 28 },
                 name: 'text'
@@ -28,7 +31,7 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'value',
+            name: { name: 'value' },
             dataType: {
                 name: 'text',
                 schema: 'pg_catalog',
@@ -42,7 +45,7 @@ describe('Create table', () => {
         type: 'create table',
         name: { name: 'capitals', },
         columns: [{
-            kind: 'column', name: 'state', dataType: { name: 'char', config: [2] }
+            kind: 'column', name: { name: 'state' }, dataType: { name: 'char', config: [2] }
         }],
         inherits: [{ name: 'cities' }],
     });
@@ -60,7 +63,10 @@ describe('Create table', () => {
         columns: [{
             [LOCATION]: { start: 32, end: 54 },
             kind: 'column',
-            name: 'state',
+            name: {
+                [LOCATION]: { start: 32, end: 37 },
+                name: 'state'
+            },
             dataType: {
                 [LOCATION]: { start: 48, end: 54 },
                 name: 'char', config: [2]
@@ -80,7 +86,7 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'value',
+            name: { name: 'value' },
             dataType: {
                 schema: 'pg_catalog',
                 name: 'varchar',
@@ -95,7 +101,7 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'value',
+            name: { name: 'value' },
             dataType: {
                 name: 'numeric',
                 config: [1, 2],
@@ -109,7 +115,7 @@ describe('Create table', () => {
         ifNotExists: true,
         columns: [{
             kind: 'column',
-            name: 'value',
+            name: { name: 'value' },
             dataType: { name: 'text' },
         }],
     });
@@ -124,7 +130,10 @@ describe('Create table', () => {
         columns: [{
             [LOCATION]: { start: 19, end: 41 },
             kind: 'column',
-            name: 'value',
+            name: {
+                [LOCATION]: { start: 19, end: 24 },
+                name: 'value',
+            },
             dataType: {
                 [LOCATION]: { start: 25, end: 29 },
                 name: 'text'
@@ -142,7 +151,7 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'value',
+            name: { name: 'value' },
             dataType: { name: 'text' },
             constraints: [{ type: 'unique' }],
         }],
@@ -154,7 +163,7 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'value',
+            name: { name: 'value' },
             dataType: { name: 'text' },
             constraints: [{ type: 'unique' }, { type: 'not null' }],
         }],
@@ -166,7 +175,7 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'value',
+            name: { name: 'value' },
             dataType: {
                 kind: 'array',
                 arrayOf: { name: 'text' }
@@ -180,7 +189,7 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'value',
+            name: { name: 'value' },
             dataType: {
                 kind: 'array',
                 arrayOf: {
@@ -196,7 +205,7 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'value',
+            name: { name: 'value' },
             dataType: { name: 'timestamp with time zone' },
         }],
     });
@@ -209,7 +218,7 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'value',
+            name: { name: 'value' },
             dataType: { name: 'timestamp' },
         }],
     });
@@ -221,12 +230,12 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'id',
+            name: { name: 'id' },
             dataType: { name: 'text' },
             constraints: [{ type: 'primary key' }],
         }, {
             kind: 'column',
-            name: 'value',
+            name: { name: 'value' },
             dataType: { name: 'text' },
             constraints: [{ type: 'unique' }, { type: 'not null' }],
         }],
@@ -237,7 +246,7 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'id',
+            name: { name: 'id' },
             dataType: { name: 'serial' },
             constraints: [{ type: 'not null' }],
         }],
@@ -250,17 +259,17 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'a',
+            name: { name: 'a' },
             dataType: { name: 'text' },
         }, {
             kind: 'column',
-            name: 'b',
+            name: { name: 'b' },
             dataType: { name: 'text' },
         }],
         constraints: [{
             type: 'primary key',
-            constraintName: 'pkey',
-            columns: ['a'],
+            constraintName: { name: 'pkey' },
+            columns: [{ name: 'a' }],
         }]
     });
 
@@ -270,11 +279,11 @@ describe('Create table', () => {
         name: { name: 'products', },
         columns: [{
             kind: 'column',
-            name: 'price',
+            name: { name: 'price' },
             dataType: { name: 'numeric' },
             constraints: [{
                 type: 'check',
-                constraintName: 'positive_price',
+                constraintName: { name: 'positive_price' },
                 expr: {
                     type: 'binary',
                     op: '>',
@@ -297,12 +306,12 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'a',
+            name: { name: 'a' },
             dataType: { name: 'text' },
         }],
         constraints: [{
             type: 'check',
-            constraintName: 'cname',
+            constraintName: { name: 'cname' },
             expr: {
                 type: 'binary',
                 left: { type: 'ref', name: 'a' },
@@ -317,7 +326,7 @@ describe('Create table', () => {
         name: { name: 'test', },
         columns: [{
             kind: 'column',
-            name: 'a',
+            name: { name: 'a' },
             dataType: { name: 'text' },
         }],
         constraints: [{
@@ -337,22 +346,22 @@ describe('Create table', () => {
         name: { name: 'a', },
         columns: [{
             kind: 'column',
-            name: 'id',
+            name: { name: 'id' },
             dataType: { name: 'character varying' },
             constraints: [{ type: 'not null' }],
         }, {
             kind: 'column',
-            name: 'b',
+            name: { name: 'b' },
             dataType: { name: 'text' },
             constraints: [{ type: 'not null' }],
         }, {
             kind: 'column',
-            name: 'c',
+            name: { name: 'c' },
             dataType: { name: 'character varying' },
             constraints: [{ type: 'not null' }],
         }, {
             kind: 'column',
-            name: 'd',
+            name: { name: 'd' },
             dataType: {
                 kind: 'array',
                 arrayOf: { name: 'jsonb' }
@@ -360,13 +369,13 @@ describe('Create table', () => {
             constraints: [{ type: 'not null' }],
         }, {
             kind: 'column',
-            name: 'e',
+            name: { name: 'e' },
             dataType: { name: 'jsonb' },
             constraints: [{ type: 'not null' }],
         }],
         constraints: [{
-            constraintName: 'PK_17c3a89f58a2997276084e706e8',
-            columns: ['id'],
+            constraintName: { name: 'PK_17c3a89f58a2997276084e706e8' },
+            columns: [{ name: 'id' }],
             type: 'primary key',
         }]
     })
@@ -387,7 +396,7 @@ describe('Create table', () => {
         },
         columns: [{
             kind: 'column',
-            name: 'a',
+            name: { name: 'a' },
             dataType: { name: 'character varying' },
             constraints: [{ type: 'not null' }],
             collate: {
@@ -396,7 +405,7 @@ describe('Create table', () => {
             },
         }, {
             kind: 'column',
-            name: 'b',
+            name: { name: 'b' },
             dataType: { name: 'character varying' },
             constraints: [{ type: 'not null' }],
             collate: {
@@ -418,7 +427,7 @@ describe('Create table', () => {
         },
         columns: [{
             kind: 'column',
-            name: 'feature',
+            name: { name: 'feature' },
             dataType: { name: 'text' },
             constraints: [{
                 type: 'default',
@@ -448,11 +457,11 @@ describe('Create table', () => {
         },
         columns: [{
             kind: 'column',
-            name: 'update_date',
+            name: { name: 'update_date' },
             dataType: { name: 'timestamp without time zone' },
         }, {
             kind: 'column',
-            name: 'creation_date',
+            name: { name: 'creation_date' },
             dataType: { name: 'timestamp without time zone' },
             constraints: [{
                 type: 'default',
@@ -472,7 +481,7 @@ describe('Create table', () => {
         name: { name: 'mytable', },
         columns: [{
             kind: 'column',
-            name: 'dt',
+            name: { name: 'dt' },
             dataType: { name: 'timestamptz' },
         }],
     })
@@ -489,20 +498,20 @@ describe('Create table', () => {
         name: { name: 'post', },
         columns: [{
             kind: 'column',
-            name: 'categoryid',
+            name: { name: 'categoryid' },
             dataType: { name: 'text' },
         }],
         constraints: [{
             type: 'foreign key',
             foreignTable: { name: 'category' },
-            foreignColumns: ['id'],
-            localColumns: ['categoryid'],
+            foreignColumns: [{ name: 'id' }],
+            localColumns: [{ name: 'categoryid' }],
             onUpdate: 'cascade',
             onDelete: 'cascade',
-            constraintName: 'post_fk_categoryid',
+            constraintName: { name: 'post_fk_categoryid' },
         }, {
             type: 'check',
-            constraintName: 'post_ck_ispublished',
+            constraintName: { name: 'post_ck_ispublished' },
             expr: {
                 type: 'binary',
                 op: 'IN',
@@ -526,7 +535,7 @@ describe('Create table', () => {
         columns: [{
             kind: 'column',
             dataType: { name: 'int' },
-            name: 'color_id',
+            name: { name: 'color_id' },
             constraints: [{
                 type: 'add generated',
                 always: 'always',
@@ -551,7 +560,10 @@ describe('Create table', () => {
                 [LOCATION]: { start: 38, end: 41 },
                 name: 'int'
             },
-            name: 'color_id',
+            name: {
+                [LOCATION]: { start: 29, end: 37 },
+                name: 'color_id',
+            },
             constraints: [{
                 [LOCATION]: { start: 42, end: 114 },
                 type: 'add generated',
@@ -578,7 +590,7 @@ describe('Create table', () => {
             options: [],
         }, {
             kind: 'column',
-            name: 'other',
+            name: { name: 'other' },
             dataType: { name: 'int' },
         }, {
             kind: 'like table',

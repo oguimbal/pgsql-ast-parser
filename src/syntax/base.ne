@@ -8,6 +8,11 @@
         return fn;
     }
 
+    function asName(val: any): any {
+        const name = toStr(val);
+        return track(val, {name});
+    }
+
     function unwrap(e: any[]): any {
         if (Array.isArray(e) && e.length === 1) {
             e = unwrap(e[0]);
@@ -18,7 +23,7 @@
         return unbox(e);
     }
     const get = (i: number) => (x: any[]) => track(x, x[i]);
-    const last = (x: any[]) => Array.isArray(x) ? track(x, x[x.length - 1]) : x;
+    const last = (x: any[]) => Array.isArray(x) ? track(x[x.length - 1], x[x.length - 1]) : x;
     const trim = (x: string | null | undefined) => x && x.trim();
     const value = (x: any) => x && x.value;
     function flatten(e: any): any[] {

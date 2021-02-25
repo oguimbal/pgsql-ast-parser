@@ -27,19 +27,19 @@ altertable_action
 
 altertable_rename_table -> kw_rename %kw_to word {% x => track(x, {
     type: 'rename',
-    to: unwrap(last(x)),
+    to: asName(last(x)),
 }) %}
 
 altertable_rename_column -> kw_rename %kw_column:? ident %kw_to ident {% x => track(x, {
     type: 'rename column',
-    column: unwrap(x[2]),
-    to: unwrap(last(x)),
+    column: asName(x[2]),
+    to: asName(last(x)),
 }) %}
 
 altertable_rename_constraint -> kw_rename %kw_constraint ident %kw_to ident {% x => track(x, {
     type: 'rename constraint',
-    constraint: unwrap(x[2]),
-    to: unwrap(last(x)),
+    constraint: asName(x[2]),
+    to: asName(last(x)),
 }) %}
 
 altertable_add_column -> kw_add %kw_column:? kw_ifnotexists:? createtable_column {% x => track(x, {
@@ -52,14 +52,14 @@ altertable_add_column -> kw_add %kw_column:? kw_ifnotexists:? createtable_column
 altertable_drop_column -> kw_drop %kw_column:? kw_ifexists:? ident {% x => track(x, {
     type: 'drop column',
     ... x[2] ? {ifExists: true} : {},
-    column: unwrap(x[3]),
+    column: asName(x[3]),
 }) %}
 
 
 altertable_alter_column
     ->  kw_alter  %kw_column:? ident altercol {% x => track(x, {
         type: 'alter column',
-        column: unwrap(x[2]),
+        column: asName(x[2]),
         alter: unwrap(x[3])
     }) %}
 
@@ -80,7 +80,7 @@ altertable_add_constraint
 altertable_owner
      -> kw_owner %kw_to ident {% x => track(x, {
          type:'owner',
-         to: asStr(last(x)),
+         to: asName(last(x)),
      }) %}
 
 

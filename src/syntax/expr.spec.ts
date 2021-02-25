@@ -176,13 +176,13 @@ line`,
 
         checkTreeExpr('a.*', {
             type: 'ref',
-            table: 'a',
+            table: { name: 'a' },
             name: '*',
         });
 
         checkTreeExpr('a.b', {
             type: 'ref',
-            table: 'a',
+            table: { name: 'a' },
             name: 'b',
         });
 
@@ -216,7 +216,7 @@ line`,
             operand: {
                 type: 'ref',
                 name: 'a',
-                table: 't',
+                table: { name: 't' },
             }
         });
 
@@ -316,7 +316,7 @@ line`,
             operand: {
                 type: 'ref',
                 name: 'b',
-                table: 'a',
+                table: { name: 'a' },
             }
         });
 
@@ -504,7 +504,10 @@ line`,
             left: {
                 [LOCATION]: { start: 0, end: 3 },
                 type: 'ref',
-                table: 'a',
+                table: {
+                    [LOCATION]: { start: 0, end: 1 },
+                    name: 'a'
+                },
                 name: 'b',
             },
             right: {
@@ -921,7 +924,10 @@ line`,
             array: {
                 [LOCATION]: { start: 0, end: 3 },
                 type: 'ref',
-                table: 'a',
+                table: {
+                    [LOCATION]: { start: 0, end: 1 },
+                    name: 'a'
+                },
                 name: 'b',
             },
             index: {
@@ -934,7 +940,7 @@ line`,
             type: 'arrayIndex',
             array: {
                 type: 'ref',
-                table: 'a',
+                table: { name: 'a' },
                 name: 'b',
             },
             index: { type: 'ref', name: 'c' }
@@ -963,14 +969,17 @@ line`,
     describe('Function calls', () => {
         checkTreeExpr(['ab (c)', '"ab"( "c" )', 'AB(c)'], {
             type: 'call',
-            function: 'ab',
+            function: { name: 'ab' },
             args: [{ type: 'ref', name: 'c' }],
         });
 
         checkTreeExprLoc('"ab" ( "c" )', {
             [LOCATION]: { start: 0, end: 12 },
             type: 'call',
-            function: 'ab',
+            function: {
+                [LOCATION]: { start: 0, end: 4 },
+                name: 'ab'
+            },
             args: [{
                 [LOCATION]: { start: 7, end: 10 },
                 type: 'ref',
@@ -981,7 +990,10 @@ line`,
         checkTreeExprLoc([`any(c)`], {
             [LOCATION]: { start: 0, end: 6 },
             type: 'call',
-            function: 'any',
+            function: {
+                [LOCATION]: { start: 0, end: 3 },
+                name: 'any'
+            },
             args: [{
                 [LOCATION]: { start: 4, end: 5 },
                 type: 'ref',
@@ -993,15 +1005,21 @@ line`,
         checkTreeExprLoc([`now()`], {
             [LOCATION]: { start: 0, end: 5 },
             type: 'call',
-            function: 'now',
+            function: {
+                [LOCATION]: { start: 0, end: 3 },
+                name: 'now'
+            },
             args: [],
         });
 
         checkTreeExprLoc([`pg_catalog.col_description(23208,4)`], {
             [LOCATION]: { start: 0, end: 35 },
             type: 'call',
-            function: 'col_description',
-            namespace: 'pg_catalog',
+            function: {
+                [LOCATION]: { start: 0, end: 26 },
+                name: 'col_description',
+                schema: 'pg_catalog'
+            },
             args: [{
                 [LOCATION]: { start: 27, end: 32 },
                 type: 'integer',
@@ -1015,8 +1033,7 @@ line`,
 
         checkTreeExpr([`pg_catalog.set_config('search_path', '', false)`], {
             type: 'call',
-            function: 'set_config',
-            namespace: 'pg_catalog',
+            function: { name: 'set_config', schema: 'pg_catalog' },
             args: [{
                 type: 'string',
                 value: 'search_path',
@@ -1108,7 +1125,7 @@ line`,
                 }
             }],
             else: {
-                [LOCATION]: { start: 19, end: 25 },
+                [LOCATION]: { start: 24, end: 25 },
                 type: 'integer', value: 2
             },
         });
@@ -1146,7 +1163,10 @@ line`,
             right: {
                 [LOCATION]: { start: 4, end: 26 },
                 type: 'call',
-                function: 'any',
+                function: {
+                    [LOCATION]: { start: 4, end: 7 },
+                    name: 'any'
+                },
                 args: [{
                     [LOCATION]: { start: 8, end: 25 },
                     type: 'select',
@@ -1158,7 +1178,7 @@ line`,
                         }
                     }],
                     from: [{
-                        [LOCATION]: { start: 17, end: 25 },
+                        [LOCATION]: { start: 22, end: 25 },
                         type: 'table', name: 'tbl'
                     }],
                 }]
@@ -1191,8 +1211,7 @@ line`,
             type: 'call',
             function: {
                 [LOCATION]: { start: 0, end: 14 },
-                type: 'keyword',
-                keyword: 'localtimestamp',
+                name: 'localtimestamp',
             },
             args: [{
                 [LOCATION]: { start: 15, end: 16 },
@@ -1212,8 +1231,7 @@ line`,
             type: 'call',
             function: {
                 [LOCATION]: { start: 0, end: 14 },
-                type: 'keyword',
-                keyword: 'current_schema',
+                name: 'current_schema',
             },
             args: [],
         });
@@ -1221,7 +1239,10 @@ line`,
         checkTreeExprLoc(['distinct()'], {
             [LOCATION]: { start: 0, end: 10 },
             type: 'call',
-            function: 'distinct',
+            function: {
+                [LOCATION]: { start: 0, end: 8 },
+                name: 'distinct'
+            },
             args: [],
         });
     })

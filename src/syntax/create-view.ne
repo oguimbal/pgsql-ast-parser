@@ -61,7 +61,7 @@ create_materialized_view -> %kw_create
                         name: x[4],
                         ... x[5] && {columnNames: x[6].map(asStr)},
                         ... x[6] && {parameters: fromEntries(x[6])},
-                        ... x[7] && {tablespace: toStr(x[7]) },
+                        ... x[7] && {tablespace: asName(x[7]) },
                         query: x[9],
                         ... x[10] && { withData: toStr(x[10][1]) !== 'no' },
                     })

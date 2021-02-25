@@ -44,7 +44,13 @@ select_table_base
     } %}
     | select_subject_select_statement {% unwrap %}
     | select_subject_select_values {% unwrap %}
-    | expr_call (%kw_as ident {% last %}):?  {% x => !x[1] ? x[0] : track(x, {...x[0], alias: toStr(x[1])}) %}
+    | expr_call (%kw_as ident {% last %}):?  {% x =>
+                 !x[1]
+                    ? x[0]
+                    : track(x, {
+                        ...x[0],
+                        alias: asName(x[1]),
+                    }) %}
 
 # [, othertable] or [join expression]
 # select_table_joined
@@ -72,14 +78,14 @@ select_join_op
 select_subject_select_statement -> select_statement_paren ident_aliased {% x => track(x, {
     type: 'statement',
     statement: unwrap(x[0]),
-    alias: unwrap(x[1])
+    alias: asName(x[1])
 }) %}
 
 
 # Select values: select * from (values (1, 'one'), (2, 'two')) as vals (num, letter)
 select_subject_select_values -> lparen kw_values insert_values rparen %kw_as ident collist_paren:? {% x => track(x, {
     type: 'values',
-    alias: unbox(x[5]),
+    alias: asName(x[5]),
     values: x[2],
     ...x[6] && {columnNames: unbox(x[6]).map(asStr)},
 }) %}
@@ -96,7 +102,7 @@ select_expr_list_aliased -> select_expr_list_item (comma select_expr_list_item {
 
 select_expr_list_item -> expr ident_aliased:? {% x => track(x, {
     expr: x[0],
-    ...x[1] ? {alias: unwrap(x[1]) } : {},
+    ...x[1] ? {alias: asName(x[1]) } : {},
 }) %}
 
 select_distinct

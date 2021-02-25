@@ -7,7 +7,7 @@ describe('Create index', () => {
 
     checkCreateIndex(['create index blah on test(col)'], {
         type: 'create index',
-        indexName: 'blah',
+        indexName: { name: 'blah' },
         table: { name: 'test' },
         expressions: [{
             expression: { type: 'ref', name: 'col' },
@@ -28,8 +28,8 @@ describe('Create index', () => {
     checkCreateIndex(['CREATE INDEX idxname ON public.tbl USING btree (col)'], {
         type: 'create index',
         table: { name: 'tbl', schema: 'public' },
-        using: 'btree',
-        indexName: 'idxname',
+        using: { name: 'btree' },
+        indexName: { name: 'idxname' },
         expressions: [{
             expression: {
                 type: 'ref',
@@ -41,8 +41,8 @@ describe('Create index', () => {
     checkCreateIndex(['CREATE INDEX idxname ON public.tbl USING btree (col collate "default")'], {
         type: 'create index',
         table: { name: 'tbl', schema: 'public' },
-        using: 'btree',
-        indexName: 'idxname',
+        using: { name: 'btree' },
+        indexName: { name: 'idxname' },
         expressions: [{
             collate: { name: 'default' },
             expression: {
@@ -55,8 +55,8 @@ describe('Create index', () => {
     checkCreateIndex(['CREATE INDEX idxname ON public.tbl USING btree (col collate pg_catalog."default")'], {
         type: 'create index',
         table: { name: 'tbl', schema: 'public' },
-        using: 'btree',
-        indexName: 'idxname',
+        using: { name: 'btree' },
+        indexName: { name: 'idxname' },
         expressions: [{
             collate: {
                 name: 'default',
@@ -72,7 +72,7 @@ describe('Create index', () => {
     checkCreateIndex(['CREATE INDEX ON tbl USING gin (col jsonb_path_ops)'], {
         type: 'create index',
         table: { name: 'tbl' },
-        using: 'gin',
+        using: { name: 'gin' },
         expressions: [{
             opclass: { name: 'jsonb_path_ops' },
             expression: {
@@ -85,7 +85,7 @@ describe('Create index', () => {
     checkCreateIndex(['CREATE INDEX ON tbl USING gin (col public.jsonb_path_ops)'], {
         type: 'create index',
         table: { name: 'tbl' },
-        using: 'gin',
+        using: { name: 'gin' },
         expressions: [{
             opclass: { name: 'jsonb_path_ops', schema: 'public' },
             expression: {
@@ -141,7 +141,7 @@ describe('Create index', () => {
         expressions: [{
             expression: {
                 type: 'call',
-                function: 'lower',
+                function: { name: 'lower' },
                 args: [{ type: 'ref', name: 'a' }]
             }
         }],
@@ -152,11 +152,11 @@ describe('Create index', () => {
         table: { name: 'test', },
         ifNotExists: true,
         unique: true,
-        indexName: 'abc',
+        indexName: { name: 'abc' },
         expressions: [{
             expression: {
                 type: 'call',
-                function: 'lower',
+                function: { name: 'lower' },
                 args: [{ type: 'ref', name: 'a' }]
             },
             nulls: 'last',

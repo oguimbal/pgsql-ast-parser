@@ -8,7 +8,7 @@ describe('Insert', () => {
     checkInsert([`insert into test(a, b) values (1, 'x')`, `INSERT INTO"test"(a,"b")VALUES(1,'x')`], {
         type: 'insert',
         into: { name: 'test' },
-        columns: ['a', 'b'],
+        columns: [{ name: 'a' }, { name: 'b' }],
         values: [[{
             type: 'integer',
             value: 1,
@@ -25,7 +25,10 @@ describe('Insert', () => {
             [LOCATION]: { start: 12, end: 16 },
             name: 'test',
         },
-        columns: ['a'],
+        columns: [{
+            [LOCATION]: { start: 17, end: 18 },
+            name: 'a'
+        }],
         values: [[{
             [LOCATION]: { start: 28, end: 29 },
             type: 'integer',
@@ -36,7 +39,7 @@ describe('Insert', () => {
     checkInsert([`insert into test(a) values (1) on conflict do nothing`], {
         type: 'insert',
         into: { name: 'test' },
-        columns: ['a'],
+        columns: [{ name: 'a' }],
         values: [[{
             type: 'integer',
             value: 1,
@@ -49,7 +52,7 @@ describe('Insert', () => {
     checkInsert([`insert into test(a) values (1) on conflict (a, b) do nothing`], {
         type: 'insert',
         into: { name: 'test' },
-        columns: ['a'],
+        columns: [{ name: 'a' }],
         values: [[{
             type: 'integer',
             value: 1,
@@ -66,7 +69,7 @@ describe('Insert', () => {
     checkInsert([`insert into test(a) values (1) on conflict do update set a=3`], {
         type: 'insert',
         into: { name: 'test' },
-        columns: ['a'],
+        columns: [{ name: 'a' }],
         values: [[{
             type: 'integer',
             value: 1,
@@ -74,7 +77,7 @@ describe('Insert', () => {
         onConflict: {
             do: {
                 sets: [{
-                    column: 'a',
+                    column: { name: 'a' },
                     value: { type: 'integer', value: 3 },
                 }]
             },
@@ -94,7 +97,7 @@ describe('Insert', () => {
     checkInsert([`insert into test values (1) returning "id" as x;`], {
         type: 'insert',
         into: { name: 'test' },
-        returning: [{ expr: { type: 'ref', name: 'id' }, alias: 'x' }],
+        returning: [{ expr: { type: 'ref', name: 'id' }, alias: { name: 'x' } }],
         values: [[{
             type: 'integer',
             value: 1,
@@ -113,7 +116,7 @@ describe('Insert', () => {
     checkInsert([`insert into db . test(a, b) values (1, 'x')`, `INSERT INTO"db"."test"(a,"b")VALUES(1,'x')`], {
         type: 'insert',
         into: { name: 'test', schema: 'db' },
-        columns: ['a', 'b'],
+        columns: [{ name: 'a' }, { name: 'b' }],
         values: [[{
             type: 'integer',
             value: 1,
@@ -128,7 +131,7 @@ describe('Insert', () => {
     checkInsert([`insert into db . test(a, b) select a,b FROM x . test`], {
         type: 'insert',
         into: { name: 'test', schema: 'db' },
-        columns: ['a', 'b'],
+        columns: [{ name: 'a' }, { name: 'b' }],
         select: {
             type: 'select',
             from: [{
@@ -172,7 +175,7 @@ describe('Insert', () => {
     checkInsert([`insert into test(a, b) values (1, default)`], {
         type: 'insert',
         into: { name: 'test' },
-        columns: ['a', 'b'],
+        columns: [{ name: 'a' }, { name: 'b' }],
         values: [[{
             type: 'integer',
             value: 1,
@@ -183,7 +186,7 @@ describe('Insert', () => {
     checkInsert([`insert into test(a, b) overriding system value values (1, default)`], {
         type: 'insert',
         into: { name: 'test' },
-        columns: ['a', 'b'],
+        columns: [{ name: 'a' }, { name: 'b' }],
         overriding: 'system',
         values: [[{
             type: 'integer',
@@ -196,7 +199,7 @@ describe('Insert', () => {
     checkInsert([`insert into test(a, b) overriding user value values (1, default)`], {
         type: 'insert',
         into: { name: 'test' },
-        columns: ['a', 'b'],
+        columns: [{ name: 'a' }, { name: 'b' }],
         overriding: 'user',
         values: [[{
             type: 'integer',

@@ -8,7 +8,7 @@ describe('Update', () => {
         type: 'update',
         table: { name: 'test' },
         sets: [{
-            column: 'a',
+            column: { name: 'a' },
             value: { type: 'integer', value: 1 }
         }]
     });
@@ -17,13 +17,13 @@ describe('Update', () => {
         type: 'update',
         table: { name: 'test' },
         sets: [{
-            column: 'a',
+            column: { name: 'a' },
             value: { type: 'integer', value: 1 }
         }, {
-            column: 'b',
+            column: { name: 'b' },
             value: { type: 'integer', value: 2 }
         }, {
-            column: 'c',
+            column: { name: 'c' },
             value: { type: 'integer', value: 3 }
         }]
     });
@@ -32,10 +32,10 @@ describe('Update', () => {
         type: 'update',
         table: { name: 'test' },
         sets: [{
-            column: 'a',
+            column: { name: 'a' },
             value: { type: 'integer', value: 1 }
         }, {
-            column: 'b',
+            column: { name: 'b' },
             value: { type: 'ref', name: 'a' },
         }],
         where: {

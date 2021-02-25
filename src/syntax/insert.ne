@@ -12,7 +12,7 @@ insert_statement -> (kw_insert %kw_into)
                     (%kw_on kw_conflict insert_on_conflict {% last %}):?
                     (%kw_returning select_expr_list_aliased {% last %}):?
                     {% x => {
-                        const columns = x[2] && x[2].map(unbox);
+                        const columns = x[2] && x[2].map(asName);
                         const overriding = toStr(x[3]);
                         const values = x[4];
                         const select = unwrap(x[5]);

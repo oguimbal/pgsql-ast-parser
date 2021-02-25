@@ -93,9 +93,9 @@ alter_sequence_statement_body
             setSeqOpts(ret, x[0]);
             return track(x, ret);
         }%}
-    | kw_owner %kw_to (ident | %kw_session_user | %kw_current_user) {% x => track(x, { type: 'owner to', owner: last(x), }) %}
-    | kw_rename %kw_to ident {% x => track(x, { type: 'rename', newName: last(x) }) %}
-    | kw_set kw_schema ident {% x => track(x, { type: 'set schema', newSchema: last(x) }) %}
+    | kw_owner %kw_to (ident | %kw_session_user | %kw_current_user) {% x => track(x, { type: 'owner to', owner: asName(last(x)), }) %}
+    | kw_rename %kw_to ident {% x => track(x, { type: 'rename', newName: asName(last(x)) }) %}
+    | kw_set kw_schema ident {% x => track(x, { type: 'set schema', newSchema: asName(last(x)) }) %}
 
 alter_sequence_option
      -> create_sequence_option {% unwrap %}

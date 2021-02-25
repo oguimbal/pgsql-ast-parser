@@ -35,10 +35,10 @@ export interface IAstPartialMapper {
     renameColumn?: (change: a.TableAlterationRenameColumn, table: a.QNameAliased) => a.TableAlteration | nil
     renameTable?: (change: a.TableAlterationRename, table: a.QNameAliased) => a.TableAlteration | nil
     alterColumn?: (change: a.TableAlterationAlterColumn, inTable: a.QNameAliased) => a.TableAlteration | nil
-    setColumnType?: (alter: a.AlterColumnSetType, inTable: a.QName, inColumn: string) => a.AlterColumn | nil
-    alterColumnSimple?: (alter: a.AlterColumnSimple, inTable: a.QName, inColumn: string) => a.AlterColumn | nil
-    alterColumnAddGenerated?: (alter: a.AlterColumnAddGenerated, inTable: a.QName, inColumn: string) => a.AlterColumn | nil
-    setColumnDefault?: (alter: a.AlterColumnSetDefault, inTable: a.QName, inColumn: string) => a.AlterColumn | nil
+    setColumnType?: (alter: a.AlterColumnSetType, inTable: a.QName, inColumn: a.Name) => a.AlterColumn | nil
+    alterColumnSimple?: (alter: a.AlterColumnSimple, inTable: a.QName, inColumn: a.Name) => a.AlterColumn | nil
+    alterColumnAddGenerated?: (alter: a.AlterColumnAddGenerated, inTable: a.QName, inColumn: a.Name) => a.AlterColumn | nil
+    setColumnDefault?: (alter: a.AlterColumnSetDefault, inTable: a.QName, inColumn: a.Name) => a.AlterColumn | nil
     addConstraint?: (change: a.TableAlterationAddConstraint, inTable: a.QName) => a.TableAlteration | nil
     addColumn?: (change: a.TableAlterationAddColumn, inTable: a.QName) => a.TableAlteration | nil
     createColumn?: (col: a.CreateColumnDef) => a.CreateColumnDef | nil
@@ -277,13 +277,13 @@ export class AstDefaultMapper implements IAstMapper {
         if (!query) {
             return null;
         }
-        const ref = this.tableRef(val);
+        const ref = this.tableRef(val.name);
         if (!ref) {
             return null;
         }
         return assignChanged(val, {
             query,
-            ...ref,
+            name: ref,
         });
     }
 
@@ -292,13 +292,13 @@ export class AstDefaultMapper implements IAstMapper {
         if (!query) {
             return null;
         }
-        const ref = this.tableRef(val);
+        const ref = this.tableRef(val.name);
         if (!ref) {
             return null;
         }
         return assignChanged(val, {
             query,
-            ...ref,
+            name: ref,
         });
     }
 
@@ -729,23 +729,23 @@ export class AstDefaultMapper implements IAstMapper {
         });
     }
 
-    setColumnType(alter: a.AlterColumnSetType, inTable: a.QName, inColumn: string): a.AlterColumn | nil {
+    setColumnType(alter: a.AlterColumnSetType, inTable: a.QName, inColumn: a.Name): a.AlterColumn | nil {
         const dataType = this.dataType(alter.dataType);
         return assignChanged(alter, {
             dataType,
         });
     }
 
-    alterColumnAddGenerated(alter: a.AlterColumnAddGenerated, inTable: a.QName, inColumn: string): a.AlterColumn | nil {
+    alterColumnAddGenerated(alter: a.AlterColumnAddGenerated, inTable: a.QName, inColumn: a.Name): a.AlterColumn | nil {
         return alter;
     }
 
 
-    alterColumnSimple(alter: a.AlterColumnSimple, inTable: a.QName, inColumn: string): a.AlterColumn | nil {
+    alterColumnSimple(alter: a.AlterColumnSimple, inTable: a.QName, inColumn: a.Name): a.AlterColumn | nil {
         return alter;
     }
 
-    setColumnDefault(alter: a.AlterColumnSetDefault, inTable: a.QName, inColumn: string): a.AlterColumn | nil {
+    setColumnDefault(alter: a.AlterColumnSetDefault, inTable: a.QName, inColumn: a.Name): a.AlterColumn | nil {
         const def = this.expr(alter.default);
         if (!def) {
             return null; // no more default to set
@@ -1085,18 +1085,11 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     call(val: a.ExprCall): a.Expr | nil {
-        const fn: string | a.Expr | nil = val.function && typeof val.function !== 'string'
-            ? this.expr(val.function)
-            : val.function
         const args = arrayNilMap(val.args, a => this.expr(a));
-        if (!args || !fn) {
+        if (!args) {
             return null;
         }
-        if (typeof fn !== 'string' && fn.type !== 'keyword') {
-            throw new Error('Only support calling embeded functions (keywords), or named functions');
-        }
         return assignChanged(val, {
-            function: fn,
             args,
         });
     }

@@ -18,9 +18,9 @@ createindex_statement
             type: 'create index',
             ...x[1] && { unique: true },
             ...x[3] && { ifNotExists: true },
-            ...x[4] && { indexName: unbox(x[4]) },
+            ...x[4] && { indexName: asName(x[4]) },
             table: x[6],
-            ...x[7] && { using: unbox(x[7]) },
+            ...x[7] && { using: asName(x[7]) },
             expressions: x[9],
         }) %}
 

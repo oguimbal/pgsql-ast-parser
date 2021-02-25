@@ -41,14 +41,14 @@ func_argdef -> func_argopts:?
 
 func_argopts -> func_argmod word:? {% x => track(x, {
                         mode: toStr(x[0]),
-                        ...x[1] && { name: toStr(x[1]) },
+                        ...x[1] && { name: asName(x[1]) },
                     }) %}
                 | word {% (x, rej) => {
-                    const name = toStr(x);
+                    const name = asName(x);
                     if (name === 'out' || name === 'inout' || name === 'variadic') {
                         return rej; // avoid ambiguous syntax
                     }
-                    return {name}
+                    return track(x, {name});
                 } %}
 
 func_argmod -> %kw_in | kw_out | kw_inout | kw_variadic
@@ -75,7 +75,7 @@ func_returns -> kw_returns data_type {% last %}
                     columns: x[3],
                 }) %}
 
-func_ret_table_col -> word data_type {% x => track(x, {name: unbox(x[0]), type: x[1]}) %}
+func_ret_table_col -> word data_type {% x => track(x, {name: asName(x[0]), type: x[1]}) %}
 
 # https://www.postgresql.org/docs/13/sql-do.html
 do_stm -> %kw_do (kw_language word {% last %}):? %codeblock {% x => track(x, {

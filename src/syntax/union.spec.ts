@@ -11,7 +11,7 @@ describe('Union statement', () => {
             type: 'select',
             from: [{
                 type: 'values',
-                alias: 'fst',
+                alias: { name: 'fst' },
                 values: [
                     [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
                 ],
@@ -23,7 +23,7 @@ describe('Union statement', () => {
             type: 'select',
             from: [{
                 type: 'values',
-                alias: 'snd',
+                alias: { name: 'snd' },
                 values: [
                     [{ type: 'integer', value: 2 }, { type: 'string', value: 'two' }],
                 ],

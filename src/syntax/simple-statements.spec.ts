@@ -21,19 +21,19 @@ describe('Simple statements', () => {
 
     checkStatement(['show server_version', 'show SERVER_VERSION'], {
         type: 'show',
-        variable: 'server_version',
+        variable: { name: 'server_version' },
     });
 
 
 
     checkStatement(['tablespace abc'], {
         type: 'tablespace',
-        tablespace: 'abc',
+        tablespace: { name: 'abc' },
     });
 
     checkStatement(`SET statement_timeout = 0`, {
         type: 'set',
-        variable: 'statement_timeout',
+        variable: { name: 'statement_timeout' },
         set: {
             type: 'value',
             value: 0,
@@ -42,7 +42,7 @@ describe('Simple statements', () => {
 
     checkStatement(`SET client_min_messages = warning`, {
         type: 'set',
-        variable: 'client_min_messages',
+        variable: { name: 'client_min_messages' },
         set: {
             type: 'identifier',
             name: 'warning',
@@ -51,7 +51,7 @@ describe('Simple statements', () => {
 
     checkStatement(`SET standard_conforming_strings = on`, {
         type: 'set',
-        variable: 'standard_conforming_strings',
+        variable: { name: 'standard_conforming_strings' },
         set: {
             type: 'identifier',
             name: 'on',
@@ -60,7 +60,7 @@ describe('Simple statements', () => {
 
     checkStatement(`SET client_min_messages TO warning`, {
         type: 'set',
-        variable: 'client_min_messages',
+        variable: { name: 'client_min_messages' },
         set: {
             type: 'identifier',
             name: 'warning',
@@ -109,12 +109,12 @@ describe('Simple statements', () => {
 
     checkStatement(['create schema test'], {
         type: 'create schema',
-        name: 'test',
+        name: { name: 'test' },
     });
 
     checkStatement(['create schema if not exists test'], {
         type: 'create schema',
-        name: 'test',
+        name: { name: 'test' },
         ifNotExists: true,
     });
 

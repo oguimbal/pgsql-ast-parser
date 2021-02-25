@@ -11,7 +11,7 @@ describe('With clause', () => {
         type: 'with',
         bind: [
             {
-                alias: 'sel',
+                alias: { name: 'sel' },
                 statement: {
                     type: 'select',
                     from: [{ type: 'table', name: 'data' }],
@@ -32,14 +32,14 @@ describe('With clause', () => {
         type: 'with',
         bind: [
             {
-                alias: 'sel1',
+                alias: { name: 'sel1' },
                 statement: {
                     type: 'select',
                     from: [{ type: 'table', name: 'data' }],
                     columns: [{ expr: { type: 'ref', name: 'v' } }],
                 }
             }, {
-                alias: 'sel2',
+                alias: { name: 'sel2' },
                 statement: {
                     type: 'select',
                     from: [{ type: 'table', name: 'data' }],
@@ -59,7 +59,7 @@ describe('With clause', () => {
         type: 'with',
         bind: [
             {
-                alias: 'sel',
+                alias: { name: 'sel' },
                 statement: {
                     type: 'select',
                     from: [{ type: 'table', name: 'data' }],
