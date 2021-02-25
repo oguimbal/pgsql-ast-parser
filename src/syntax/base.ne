@@ -13,6 +13,11 @@
         return track(val, {name});
     }
 
+    function asLit(val: any): any {
+        const value = toStr(val);
+        return track(val, {value});
+    }
+
     function unwrap(e: any[]): any {
         if (Array.isArray(e) && e.length === 1) {
             e = unwrap(e[0]);

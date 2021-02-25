@@ -26,12 +26,12 @@ describe('Create extension', () => {
         type: 'create extension',
         extension: { name: 'blah' },
         ifNotExists: true,
-        version: '1',
+        version: { value: '1' },
     });
 
     checkCreateExtension([`create extension blah from 'old'`], {
         type: 'create extension',
         extension: { name: 'blah' },
-        from: 'old',
+        from: { value: 'old' },
     });
 });

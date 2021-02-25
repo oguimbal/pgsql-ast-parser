@@ -87,7 +87,7 @@ select_subject_select_values -> lparen kw_values insert_values rparen %kw_as ide
     type: 'values',
     alias: asName(x[5]),
     values: x[2],
-    ...x[6] && {columnNames: unbox(x[6]).map(asStr)},
+    ...x[6] && {columnNames: unbox(x[6]).map(asName)},
 }) %}
 
 # SELECT x,y as YY,z

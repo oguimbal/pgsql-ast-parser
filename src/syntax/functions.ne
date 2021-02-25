@@ -53,7 +53,7 @@ func_argopts -> func_argmod word:? {% x => track(x, {
 
 func_argmod -> %kw_in | kw_out | kw_inout | kw_variadic
 
-func_spec -> kw_language word {% x => track(x, { language: unbox(last(x)) }) %}
+func_spec -> kw_language word {% x => track(x, { language: asName(last(x)) }) %}
          | func_purity {% x => track(x, {purity: toStr(x)}) %}
          | %kw_not:? (word {% kw('leakproof') %}) {% x => track(x, { leakproof: !x[0] })%}
          | func_spec_nil {% unwrap %}
@@ -80,6 +80,6 @@ func_ret_table_col -> word data_type {% x => track(x, {name: asName(x[0]), type:
 # https://www.postgresql.org/docs/13/sql-do.html
 do_stm -> %kw_do (kw_language word {% last %}):? %codeblock {% x => track(x, {
     type: 'do',
-    ...x[1] && { language: toStr(x[1])},
+    ...x[1] && { language: asName(x[1])},
     code: x[2].value,
 }) %}

@@ -18,7 +18,7 @@ describe('Create view statements', () => {
     checkStatement(`create or replace view myview (a,b) as select * from tbl`, {
         type: 'create view',
         name: { name: 'myview' },
-        columnNames: ['a', 'b'],
+        columnNames: [{ name: 'a' }, { name: 'b' }],
         orReplace: true,
         query: {
             type: 'select',
@@ -32,7 +32,7 @@ describe('Create view statements', () => {
     checkStatement(`create view myview (a) as select * from tbl`, {
         type: 'create view',
         name: { name: 'myview' },
-        columnNames: ['a'],
+        columnNames: [{ name: 'a' }],
         query: {
             type: 'select',
             columns: columns('*'),

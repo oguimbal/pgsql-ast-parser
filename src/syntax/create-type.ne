@@ -17,7 +17,9 @@ createtype_statement -> %kw_create kw_type qualified_name (
 
 
 
-createtype_enum -> %kw_as kw_enum lparen array_of[string] rparen {% x => track(x, {
+createtype_enum -> %kw_as kw_enum lparen array_of[enum_value] rparen {% x => track(x, {
     type: 'create enum',
     values: x[3],
 }) %}
+
+enum_value -> string {% x => track(x, {value: toStr(x) }) %}

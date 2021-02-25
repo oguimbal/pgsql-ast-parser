@@ -141,7 +141,7 @@ expr_call -> expr_fn_name lparen expr_list_raw:? rparen {% x => track(x, {
 # https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-EXTRACT
 expr_extract -> (word {% kw('extract') %}) lparen word %kw_from expr rparen {% x => track(x, {
     type: 'extract',
-    field: toStr(x[2]),
+    field: asName(x[2]),
     from: x[4],
 }) %}
 

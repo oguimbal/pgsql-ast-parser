@@ -1048,7 +1048,7 @@ line`,
 
         checkTreeExpr([`extract (century from timestamp 'value')`], {
             type: 'extract',
-            field: 'century',
+            field: { name: 'century' },
             from: {
                 type: 'cast',
                 to: { name: 'timestamp' },
@@ -1059,7 +1059,10 @@ line`,
         checkTreeExprLoc([`EXTRACT (CENTURY FROM 'value'::TIMESTAMP)`], {
             [LOCATION]: { start: 0, end: 41 },
             type: 'extract',
-            field: 'century',
+            field: {
+                [LOCATION]: { start: 9, end: 16 },
+                name: 'century'
+            },
             from: {
                 [LOCATION]: { start: 22, end: 40 },
                 type: 'cast',

@@ -7,6 +7,6 @@ describe('Create types', () => {
     checkStatement([`create type myType as enum ('a', 'b')`], {
         type: 'create enum',
         name: { name: 'mytype' },
-        values: ['a', 'b'],
+        values: [{ value: 'a' }, { value: 'b' }],
     });
 });

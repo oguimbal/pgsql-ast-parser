@@ -18,7 +18,7 @@ describe('Create function', () => {
         name: { name: 'add' },
         arguments: [{ type: integer }, { type: integer }],
         code: 'select $1 + $2;',
-        language: 'sql',
+        language: { name: 'sql' },
         purity: 'immutable',
         onNullInput: 'null',
         returns: integer,
@@ -30,7 +30,7 @@ describe('Create function', () => {
         name: { name: 'fn' },
         arguments: [{ type: integer, mode: 'in' }],
         code: 'code',
-        language: 'sql',
+        language: { name: 'sql' },
     });
 
     checkStatement(`CREATE FUNCTION fn(in out integer) AS 'code' LANGUAGE SQL`, {
@@ -38,7 +38,7 @@ describe('Create function', () => {
         name: { name: 'fn' },
         arguments: [{ type: integer, mode: 'in', name: { name: 'out' } }],
         code: 'code',
-        language: 'sql',
+        language: { name: 'sql' },
     });
 
     checkStatement(`CREATE OR REPLACE FUNCTION increment(i integer) RETURNS integer AS $$
@@ -51,7 +51,7 @@ $$ VOLATILE LANGUAGE plpgsql`, {
         orReplace: true,
         arguments: [{ type: integer, name: { name: 'i' } }],
         returns: integer,
-        language: 'plpgsql',
+        language: { name: 'plpgsql' },
         purity: 'volatile',
         code: `
     BEGIN
@@ -65,7 +65,7 @@ $$ VOLATILE LANGUAGE plpgsql`, {
     LANGUAGE SQL`, {
         type: 'create function',
         name: { name: 'dup' },
-        language: 'sql',
+        language: { name: 'sql' },
         arguments: [{
             type: int,
             mode: 'in',
@@ -87,7 +87,7 @@ $$ VOLATILE LANGUAGE plpgsql`, {
     LANGUAGE SQL`, {
         type: 'create function',
         name: { name: 'dup', schema: 'public', },
-        language: 'sql',
+        language: { name: 'sql' },
         arguments: [{ type: int }],
         code: ` SELECT $1, CAST($1 AS text) || ' is text' `,
         returns: {
@@ -106,7 +106,7 @@ $$ VOLATILE LANGUAGE plpgsql`, {
     const simple: CreateFunctionStatement = {
         type: 'create function',
         name: { name: 'fn' },
-        language: 'sql',
+        language: { name: 'sql' },
         arguments: [],
         code: `body`,
     };
@@ -148,7 +148,7 @@ $$ VOLATILE LANGUAGE plpgsql`, {
 
     checkStatement(`do language js $$ something $$`, {
         type: 'do',
-        language: 'js',
+        language: { name: 'js' },
         code: ' something ',
     });
 });

@@ -371,7 +371,7 @@ describe('Select statements', () => {
         from: [{
             type: 'values',
             alias: { name: 'vals' },
-            columnNames: ['num', 'letter'],
+            columnNames: [{ name: 'num' }, { name: 'letter' }],
             values: [
                 [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
                 [{ type: 'integer', value: 2 }, { type: 'string', value: 'two' }],
