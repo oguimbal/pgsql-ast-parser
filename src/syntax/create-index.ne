@@ -32,7 +32,7 @@ createindex_expression -> (expr_basic | expr_paren)
         (%kw_collate qualified_name {% last %}):?
         qualified_name:?
         (%kw_asc | %kw_desc):?
-        (kw_nulls (kw_first | kw_last) {% last %}):? {% x => ({
+        (kw_nulls (kw_first | kw_last) {% last %}):? {% x => track(x, {
     expression: unwrap(x[0]),
     ...x[1] && { collate: unwrap(x[1]) },
     ...x[2] && { opclass: unwrap(x[2]) },

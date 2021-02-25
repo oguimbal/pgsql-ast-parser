@@ -105,6 +105,7 @@ describe('Create index', () => {
             name: 'test',
         },
         expressions: [{
+            [LOCATION]: { start: 22, end: 27 },
             expression: {
                 [LOCATION]: { start: 22, end: 27 },
                 type: 'binary',

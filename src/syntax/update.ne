@@ -35,7 +35,7 @@ update_set_list -> update_set (comma update_set {% last %}):* {% ([head, tail]) 
 
 update_set -> update_set_one | update_set_multiple
 
-update_set_one -> ident %op_eq (expr | %kw_default {% value %}) {% x => track(x, {
+update_set_one -> ident %op_eq (expr | %kw_default {% value %}) {% x => box(x, {
     column: unwrap(x[0]),
     value: unwrap(x[2]),
 }) %}
@@ -46,8 +46,8 @@ update_set_multiple -> collist_paren %op_eq (lparen expr_list_raw rparen {% get(
     if (cols.length !== exprs.length) {
         throw new Error('number of columns does not match number of values');
     }
-    return cols.map((x: any, i: number) => ({
+    return box(x, cols.map((x: any, i: number) => ({
         column: unwrap(x),
         value: unwrap(exprs[i]),
-    }))
+    })))
 } %}

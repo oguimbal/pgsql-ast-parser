@@ -283,10 +283,10 @@ qcolumn -> ident dot ident (dot ident {% last %}):? {% x => {
 # Select on tables MAY have an alias
 table_ref_aliased -> table_ref ident_aliased:? {% x => {
     const alias = unwrap(x[1]);
-    return {
+    return track(x, {
         ...unwrap(x[0]),
         ...alias ? { alias } : {},
-    }
+    })
 } %}
 
 qualified_name -> (ident dot {% get(0) %}):? ident {% x => {

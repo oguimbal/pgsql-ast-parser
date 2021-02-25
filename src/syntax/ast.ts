@@ -69,14 +69,14 @@ export interface CreateFunctionStatement extends QName, PGNode {
     onNullInput?: 'call' | 'null' | 'strict';
 }
 
-export interface ReturnsTable {
+export interface ReturnsTable extends PGNode {
     kind: 'table';
     columns: { name: string; type: DataTypeDef }[];
 }
 
 export type FunctionArgumentMode = 'in' | 'out' | 'inout' | 'variadic';
 
-export interface FunctionArgument {
+export interface FunctionArgument extends PGNode {
     name?: string;
     type: DataTypeDef;
     default?: Expr;
@@ -205,7 +205,7 @@ export interface InsertStatement extends PGNode {
     onConflict?: OnConflictAction | nil;
 }
 
-export interface OnConflictAction {
+export interface OnConflictAction extends PGNode {
     on?: Expr[] | nil;
     do: 'do nothing' | {
         sets: SetStatement[];
@@ -343,7 +343,7 @@ export interface CreateExtensionStatement extends PGNode {
     from?: string;
 }
 
-export interface IndexExpression {
+export interface IndexExpression extends PGNode {
     expression: Expr;
     opclass?: QName;
     collate?: QName;
@@ -382,13 +382,13 @@ export interface CreateTableStatement extends QName, PGNode {
     inherits?: QName[];
 }
 
-export interface CreateColumnsLikeTable {
+export interface CreateColumnsLikeTable extends PGNode {
     kind: 'like table';
     like: QName;
     options: CreateColumnsLikeTableOpt[];
 }
 
-export interface CreateColumnsLikeTableOpt {
+export interface CreateColumnsLikeTableOpt extends PGNode {
     verb: 'including' | 'excluding';
     option: 'defaults' | 'constraints' | 'indexes' | 'storage' | 'comments' | 'all';
 }
@@ -407,7 +407,7 @@ export interface QName extends PGNode {
     schema?: string;
 }
 
-export interface QColumn {
+export interface QColumn extends PGNode {
     table: string;
     column: string;
     schema?: string;
@@ -415,12 +415,12 @@ export interface QColumn {
 
 export type DataTypeDef = ArrayDataTypeDef | BasicDataTypeDef;
 
-export interface ArrayDataTypeDef {
+export interface ArrayDataTypeDef extends PGNode {
     kind: 'array';
     arrayOf: DataTypeDef;
 }
 
-export interface BasicDataTypeDef extends QName {
+export interface BasicDataTypeDef extends QName, PGNode {
     kind?: undefined;
     /** varchar(length), numeric(precision, scale), ... */
     config?: number[];
@@ -446,7 +446,7 @@ export interface ColumnConstraintDefault extends PGNode {
     constraintName?: string;
 }
 
-export interface ColumnConstraintForeignKey {
+export interface ColumnConstraintForeignKey extends PGNode {
     type: 'foreign key';
     constraintName?: string;
     foreignTable: QName;
@@ -465,7 +465,7 @@ export type TableConstraint
     | TableConstraintCheck;
 
 export type TableConstraintCheck = ColumnConstraintCheck;
-export interface TableConstraintUnique {
+export interface TableConstraintUnique extends PGNode {
     type: 'primary key' | 'unique';
     constraintName?: string;
     columns: string[];
@@ -512,12 +512,12 @@ export interface SelectFromUnion extends PGNode {
     right: SelectStatement;
 }
 
-export interface OrderByStatement {
+export interface OrderByStatement extends PGNode {
     by: Expr;
     order: 'ASC' | 'DESC';
 }
 
-export interface LimitStatement {
+export interface LimitStatement extends PGNode {
     limit?: number;
     offset?: number;
 }
@@ -531,7 +531,7 @@ export interface UpdateStatement extends PGNode {
     returning?: SelectedColumn[] | nil;
 }
 
-export interface SetStatement {
+export interface SetStatement extends PGNode {
     column: string;
     value: Expr | 'default';
 }
@@ -544,7 +544,7 @@ export interface SelectedColumn extends PGNode {
 export type From = FromTable | FromStatement | FromValues | FromCall
 
 
-export interface FromCall extends ExprCall {
+export interface FromCall extends ExprCall, PGNode {
     alias?: string;
     join?: JoinClause | nil;
 };
@@ -560,16 +560,16 @@ export interface FromValues {
 }
 
 
-export interface QNameAliased extends QName {
+export interface QNameAliased extends QName, PGNode {
     alias?: string;
 }
 
-export interface FromTable extends QNameAliased {
+export interface FromTable extends QNameAliased, PGNode {
     type: 'table',
     join?: JoinClause | nil;
 }
 
-export interface FromStatement {
+export interface FromStatement extends PGNode {
     type: 'statement';
     statement: SelectStatement;
     alias: string;
@@ -577,7 +577,7 @@ export interface FromStatement {
     join?: JoinClause | nil;
 }
 
-export interface JoinClause {
+export interface JoinClause extends PGNode {
     type: JoinType;
     on?: Expr | nil;
 }
@@ -849,22 +849,22 @@ export type AlterSequenceChange
     | AlterSequenceRename
     | AlterSequenceSetSchema;
 
-export interface AlterSequenceSetOptions extends CreateSequenceOptions {
+export interface AlterSequenceSetOptions extends CreateSequenceOptions, PGNode {
     type: 'set options';
     restart?: true | number;
 }
 
-export interface AlterSequenceOwnerTo {
+export interface AlterSequenceOwnerTo extends PGNode {
     type: 'owner to';
     owner: 'session_user' | 'current_user' | { user: string };
 }
 
-export interface AlterSequenceRename {
+export interface AlterSequenceRename extends PGNode {
     type: 'rename';
     newName: string;
 }
 
-export interface AlterSequenceSetSchema {
+export interface AlterSequenceSetSchema extends PGNode {
     type: 'set schema';
     newSchema: string;
 }

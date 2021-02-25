@@ -44,14 +44,14 @@ insert_expr_list_raw -> insert_single_value (comma insert_single_value {% last %
 } %}
 
 insert_on_conflict
-    -> insert_on_conflict_what:? insert_on_conflict_do {% ([onWhat, doWhat]) => ({
-        ...onWhat ? { on: onWhat[0] } : {},
-        do: doWhat,
+    -> insert_on_conflict_what:? insert_on_conflict_do {% x => track(x, {
+        ...x[0] ? { on: x[0][0] } : {},
+        do: unbox(x[1]),
     }) %}
 
 insert_on_conflict_what
     -> (lparen expr_list_raw rparen {% get(1) %})
 
 insert_on_conflict_do
-    -> %kw_do kw_nothing {% () => 'do nothing' %}
-    | %kw_do kw_update kw_set update_set_list {% x => ({ sets: last(x) }) %}
+    -> %kw_do kw_nothing {% x => box(x, 'do nothing') %}
+    | %kw_do kw_update kw_set update_set_list {% x => box(x, { sets: last(x) }) %}
