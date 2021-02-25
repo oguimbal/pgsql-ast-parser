@@ -292,6 +292,7 @@ table_ref_aliased -> table_ref ident_aliased:? {% x => {
 qualified_name -> (ident dot {% get(0) %}):? ident {% x => {
         const schema = unbox(x[0]);
         const name = unbox(x[1]);
+        debugger;
         if (schema) {
             return track(x, { name, schema });
         }

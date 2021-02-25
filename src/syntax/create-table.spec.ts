@@ -8,7 +8,10 @@ describe('Create table', () => {
     checkCreateTableLoc(['create table test(value text)'], {
         [LOCATION]: { start: 0, end: 29 },
         type: 'create table',
-        name: 'test',
+        name: {
+            [LOCATION]: { start: 13, end: 17 },
+            name: 'test',
+        },
         columns: [{
             [LOCATION]: { start: 18, end: 28 },
             kind: 'column',
@@ -22,7 +25,7 @@ describe('Create table', () => {
 
     checkCreateTable(['create table test(value pg_catalog.text)'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'value',
@@ -37,7 +40,7 @@ describe('Create table', () => {
         state           char(2)
     ) INHERITS (cities)`, {
         type: 'create table',
-        name: 'capitals',
+        name: { name: 'capitals', },
         columns: [{
             kind: 'column', name: 'state', dataType: { name: 'char', config: [2] }
         }],
@@ -50,7 +53,10 @@ describe('Create table', () => {
     ) INHERITS (global.cities, named)`, {
         [LOCATION]: { start: 0, end: 93 },
         type: 'create table',
-        name: 'capitals',
+        name: {
+            [LOCATION]: { start: 13, end: 21 },
+            name: 'capitals',
+        },
         columns: [{
             [LOCATION]: { start: 32, end: 54 },
             kind: 'column',
@@ -71,7 +77,7 @@ describe('Create table', () => {
 
     checkCreateTable(['create table test(value pg_catalog.varchar(12))'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'value',
@@ -86,7 +92,7 @@ describe('Create table', () => {
 
     checkCreateTable(['create table test(value numeric(1, 2))'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'value',
@@ -99,7 +105,7 @@ describe('Create table', () => {
 
     checkCreateTable(['create table if not exists test(value text)'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         ifNotExists: true,
         columns: [{
             kind: 'column',
@@ -111,7 +117,10 @@ describe('Create table', () => {
     checkCreateTableLoc(['create table"test"(value text primary key)'], {
         [LOCATION]: { start: 0, end: 42 },
         type: 'create table',
-        name: 'test',
+        name: {
+            [LOCATION]: { start: 12, end: 18 },
+            name: 'test',
+        },
         columns: [{
             [LOCATION]: { start: 19, end: 41 },
             kind: 'column',
@@ -130,7 +139,7 @@ describe('Create table', () => {
 
     checkCreateTable(['create table"test"(value text unique)'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'value',
@@ -142,7 +151,7 @@ describe('Create table', () => {
 
     checkCreateTable(['create table"test"(value text unique not null)'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'value',
@@ -154,7 +163,7 @@ describe('Create table', () => {
 
     checkCreateTable(['create table"test"(value text[])'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'value',
@@ -168,7 +177,7 @@ describe('Create table', () => {
 
     checkCreateTable(['create table"test"(value text[][])'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'value',
@@ -184,7 +193,7 @@ describe('Create table', () => {
 
     checkCreateTable(['create table"test"(value timestamp with time zone)'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'value',
@@ -197,7 +206,7 @@ describe('Create table', () => {
 
     checkCreateTable(['create table"test"(value timestamp)', 'create table"test"(value "timestamp")'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'value',
@@ -209,7 +218,7 @@ describe('Create table', () => {
     checkCreateTable(['create table"test"(id"text"primary key, value text unique not null)'
         , 'create table"test"(id "text" primary key, value text unique not null)'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'id',
@@ -225,7 +234,7 @@ describe('Create table', () => {
 
     checkCreateTable(['create table"test"(id serial not null)'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'id',
@@ -238,7 +247,7 @@ describe('Create table', () => {
 
     checkCreateTable(['create table"test"(a text, constraint pkey primary key(a), b text)'], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'a',
@@ -258,7 +267,7 @@ describe('Create table', () => {
 
     checkCreateTable([`CREATE TABLE products (   price numeric CONSTRAINT positive_price CHECK (price > 0) )`], {
         type: 'create table',
-        name: 'products',
+        name: { name: 'products', },
         columns: [{
             kind: 'column',
             name: 'price',
@@ -285,7 +294,7 @@ describe('Create table', () => {
 
     checkCreateTable([`create table"test"(a text, constraint cname check (a != 'a'))`], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'a',
@@ -305,7 +314,7 @@ describe('Create table', () => {
 
     checkCreateTable([`create table"test"(a text, check (a != 'a'))`], {
         type: 'create table',
-        name: 'test',
+        name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: 'a',
@@ -325,7 +334,7 @@ describe('Create table', () => {
     // bugifx
     checkCreateTable(['CREATE TABLE "a" ("id" character varying NOT NULL, "b" text NOT NULL, "c" character varying NOT NULL, "d" jsonb array NOT NULL, "e" jsonb NOT NULL, CONSTRAINT "PK_17c3a89f58a2997276084e706e8" PRIMARY KEY ("id"));'], {
         type: 'create table',
-        name: 'a',
+        name: { name: 'a', },
         columns: [{
             kind: 'column',
             name: 'id',
@@ -372,8 +381,10 @@ describe('Create table', () => {
         b character varying COLLATE pg_catalog."default" NOT NULL
     )`], {
         type: 'create table',
-        name: 't',
-        schema: 'public',
+        name: {
+            name: 't',
+            schema: 'public',
+        },
         columns: [{
             kind: 'column',
             name: 'a',
@@ -401,8 +412,10 @@ describe('Create table', () => {
         feature text DEFAULT 'main'::text NOT NULL
     );`], {
         type: 'create table',
-        name: 'mytable',
-        schema: 'public',
+        name: {
+            name: 'mytable',
+            schema: 'public',
+        },
         columns: [{
             kind: 'column',
             name: 'feature',
@@ -429,8 +442,10 @@ describe('Create table', () => {
         creation_date timestamp without time zone DEFAULT LOCALTIMESTAMP
     );`], {
         type: 'create table',
-        name: 'mytable',
-        schema: 'public',
+        name: {
+            name: 'mytable',
+            schema: 'public',
+        },
         columns: [{
             kind: 'column',
             name: 'update_date',
@@ -454,7 +469,7 @@ describe('Create table', () => {
         dt timestamptz
     );`], {
         type: 'create table',
-        name: 'mytable',
+        name: { name: 'mytable', },
         columns: [{
             kind: 'column',
             name: 'dt',
@@ -471,7 +486,7 @@ describe('Create table', () => {
         CONSTRAINT Post_ck_isPublished CHECK (isPublished IN (0, 1))
       );`], {
         type: 'create table',
-        name: 'post',
+        name: { name: 'post', },
         columns: [{
             kind: 'column',
             name: 'categoryid',
@@ -507,7 +522,7 @@ describe('Create table', () => {
         color_id INT GENERATED ALWAYS AS IDENTITY
     )`], {
         type: 'create table',
-        name: 'color',
+        name: { name: 'color', },
         columns: [{
             kind: 'column',
             dataType: { name: 'int' },
@@ -525,7 +540,10 @@ describe('Create table', () => {
     ); `], {
         [LOCATION]: { start: 0, end: 120 },
         type: 'create table',
-        name: 'color',
+        name: {
+            [LOCATION]: { start: 13, end: 18 },
+            name: 'color',
+        },
         columns: [{
             [LOCATION]: { start: 29, end: 114 },
             kind: 'column',
@@ -553,7 +571,7 @@ describe('Create table', () => {
         other int,
         like myschema.secondtable including all);`], {
         type: 'create table',
-        name: 'newtable',
+        name: { name: 'newtable', },
         columns: [{
             kind: 'like table',
             like: { name: 'first_table' },

@@ -33,7 +33,7 @@ create_sequence_statement
                 type: 'create sequence',
                 ...x[1] && { temp: true },
                 ...x[3] && { ifNotExists: true },
-                ...unwrap(x[4]),
+                name: unwrap(x[4]),
                 options: {},
             };
             setSeqOpts(ret.options, x[5]);
@@ -79,7 +79,7 @@ alter_sequence_statement
             const ret: any = {
                 type: 'alter sequence',
                 ...x[2] && { ifExists: true },
-                ...unwrap(x[3]),
+                name: unwrap(x[3]),
                 change: x[4],
             };
             return track(x, ret);

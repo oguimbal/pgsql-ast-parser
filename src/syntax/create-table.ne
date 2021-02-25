@@ -7,17 +7,23 @@ array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
 } %}
 
 # https://www.postgresql.org/docs/12/sql-createtable.html
-createtable_statement -> %kw_create %kw_table kw_ifnotexists:? (ident dot {% get(0) %}):? word lparen createtable_declarationlist rparen createtable_opts:?
+createtable_statement -> %kw_create
+        %kw_table
+        kw_ifnotexists:?
+        qname
+        lparen
+            createtable_declarationlist
+        rparen
+        createtable_opts:?
      {% x => {
 
-        const cols = x[6].filter((v: any) => 'kind' in v);
-        const constraints = x[6].filter((v: any) => !('kind' in v));
+        const cols = x[5].filter((v: any) => 'kind' in v);
+        const constraints = x[5].filter((v: any) => !('kind' in v));
 
         return track(x, {
             type: 'create table',
             ... !!x[2] ? { ifNotExists: true } : {},
-            ... !!x[3] ? { schema: asStr(x[3]) } : {},
-            name: asStr(x[4]),
+            name: x[3],
             columns: cols,
             ...constraints.length ? { constraints } : {},
             ...last(x),

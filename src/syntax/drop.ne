@@ -8,7 +8,7 @@ drop_statement -> kw_drop drop_what kw_ifexists:? qualified_name {% (x: any, rej
     return track(x, {
         ...v,
         ... x[2] && {ifExists: true},
-        ...unwrap(x[3]),
+        name: unwrap(x[3]),
     });
 }%}
 

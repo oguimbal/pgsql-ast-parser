@@ -24,7 +24,7 @@ create_func -> %kw_create
                     return track(x, {
                         type: 'create function',
                         ...x[1] && {orReplace: true},
-                        ...x[3],
+                        name: x[3],
                         ...x[5] && {returns: unwrap(x[5])},
                         arguments: x[4] ?? [],
                         code: unwrap(x[7]),

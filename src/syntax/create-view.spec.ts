@@ -6,7 +6,7 @@ describe('Create view statements', () => {
 
     checkStatement(`create view myview as select * from tbl`, {
         type: 'create view',
-        name: 'myview',
+        name: { name: 'myview' },
         query: {
             type: 'select',
             columns: columns('*'),
@@ -17,7 +17,7 @@ describe('Create view statements', () => {
 
     checkStatement(`create or replace view myview (a,b) as select * from tbl`, {
         type: 'create view',
-        name: 'myview',
+        name: { name: 'myview' },
         columnNames: ['a', 'b'],
         orReplace: true,
         query: {
@@ -31,7 +31,7 @@ describe('Create view statements', () => {
 
     checkStatement(`create view myview (a) as select * from tbl`, {
         type: 'create view',
-        name: 'myview',
+        name: { name: 'myview' },
         columnNames: ['a'],
         query: {
             type: 'select',
@@ -43,7 +43,7 @@ describe('Create view statements', () => {
 
     checkStatement(`create recursive view myview as select * from tbl`, {
         type: 'create view',
-        name: 'myview',
+        name: { name: 'myview' },
         recursive: true,
         query: {
             type: 'select',
@@ -55,7 +55,7 @@ describe('Create view statements', () => {
 
     checkStatement(`create view myview as select * from tbl with local check option`, {
         type: 'create view',
-        name: 'myview',
+        name: { name: 'myview' },
         checkOption: 'local',
         query: {
             type: 'select',
@@ -66,7 +66,7 @@ describe('Create view statements', () => {
 
     checkStatement(`create view myview as select * from tbl with cascaded check option`, {
         type: 'create view',
-        name: 'myview',
+        name: { name: 'myview' },
         checkOption: 'cascaded',
         query: {
             type: 'select',
@@ -77,7 +77,7 @@ describe('Create view statements', () => {
 
     checkStatement([`create temp view myview as select * from tbl`, `CREATE TEMPORARY VIEW myview AS select * from tbl`], {
         type: 'create view',
-        name: 'myview',
+        name: { name: 'myview' },
         temp: true,
         query: {
             type: 'select',
@@ -90,7 +90,7 @@ describe('Create view statements', () => {
 
     checkStatement([`create materialized view myview as select * from tbl`], {
         type: 'create materialized view',
-        name: 'myview',
+        name: { name: 'myview' },
         query: {
             type: 'select',
             columns: columns('*'),
@@ -102,7 +102,7 @@ describe('Create view statements', () => {
 
     checkStatement([`create view myview with pa = va as select * from tbl`], {
         type: 'create view',
-        name: 'myview',
+        name: { name: 'myview' },
         parameters: { pa: 'va' },
         query: {
             type: 'select',
@@ -113,8 +113,7 @@ describe('Create view statements', () => {
 
     checkStatement([`create view public.myview as select * from tbl`], {
         type: 'create view',
-        name: 'myview',
-        schema: 'public',
+        name: { name: 'myview', schema: 'public', },
         query: {
             type: 'select',
             columns: columns('*'),
@@ -124,7 +123,7 @@ describe('Create view statements', () => {
 
     checkStatement([`create materialized view myview with pa = va as select * from tbl`], {
         type: 'create materialized view',
-        name: 'myview',
+        name: { name: 'myview' },
         parameters: { pa: 'va' },
         query: {
             type: 'select',
@@ -135,7 +134,7 @@ describe('Create view statements', () => {
 
     checkStatement([`create materialized view myview with pa = va, pb = vb as select * from tbl`], {
         type: 'create materialized view',
-        name: 'myview',
+        name: { name: 'myview' },
         parameters: { pa: 'va', pb: 'vb' },
         query: {
             type: 'select',
@@ -148,7 +147,7 @@ describe('Create view statements', () => {
 
     checkStatement([`create materialized view myview as select * from tbl with data`], {
         type: 'create materialized view',
-        name: 'myview',
+        name: { name: 'myview' },
         query: {
             type: 'select',
             columns: columns('*'),
@@ -160,7 +159,7 @@ describe('Create view statements', () => {
 
     checkStatement([`create materialized view myview as select * from tbl with no data`], {
         type: 'create materialized view',
-        name: 'myview',
+        name: { name: 'myview' },
         query: {
             type: 'select',
             columns: columns('*'),
@@ -172,8 +171,10 @@ describe('Create view statements', () => {
 
     checkStatement([`create materialized view public.myview as select * from tbl`], {
         type: 'create materialized view',
-        name: 'myview',
-        schema: 'public',
+        name: {
+            name: 'myview',
+            schema: 'public',
+        },
         query: {
             type: 'select',
             columns: columns('*'),

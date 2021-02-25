@@ -15,7 +15,7 @@ describe('Create function', () => {
     IMMUTABLE
     RETURNS NULL ON NULL INPUT`, {
         type: 'create function',
-        name: 'add',
+        name: { name: 'add' },
         arguments: [{ type: integer }, { type: integer }],
         code: 'select $1 + $2;',
         language: 'sql',
@@ -27,7 +27,7 @@ describe('Create function', () => {
 
     checkStatement(`CREATE FUNCTION fn(in integer) AS 'code' LANGUAGE SQL`, {
         type: 'create function',
-        name: 'fn',
+        name: { name: 'fn' },
         arguments: [{ type: integer, mode: 'in' }],
         code: 'code',
         language: 'sql',
@@ -35,7 +35,7 @@ describe('Create function', () => {
 
     checkStatement(`CREATE FUNCTION fn(in out integer) AS 'code' LANGUAGE SQL`, {
         type: 'create function',
-        name: 'fn',
+        name: { name: 'fn' },
         arguments: [{ type: integer, mode: 'in', name: 'out' }],
         code: 'code',
         language: 'sql',
@@ -47,8 +47,8 @@ describe('Create function', () => {
     END;
 $$ VOLATILE LANGUAGE plpgsql`, {
         type: 'create function',
+        name: { name: 'increment' },
         orReplace: true,
-        name: 'increment',
         arguments: [{ type: integer, name: 'i' }],
         returns: integer,
         language: 'plpgsql',
@@ -64,8 +64,8 @@ $$ VOLATILE LANGUAGE plpgsql`, {
     AS $$ SELECT $1, CAST($1 AS text) || ' is text' $$
     LANGUAGE SQL`, {
         type: 'create function',
+        name: { name: 'dup' },
         language: 'sql',
-        name: 'dup',
         arguments: [{ type: int, mode: 'in', }, { type: int, name: 'f1', mode: 'out', }, { type: text, name: 'f2', mode: 'out', }],
         code: ` SELECT $1, CAST($1 AS text) || ' is text' `,
     });
@@ -74,9 +74,8 @@ $$ VOLATILE LANGUAGE plpgsql`, {
     AS $$ SELECT $1, CAST($1 AS text) || ' is text' $$
     LANGUAGE SQL`, {
         type: 'create function',
+        name: { name: 'dup', schema: 'public', },
         language: 'sql',
-        name: 'dup',
-        schema: 'public',
         arguments: [{ type: int }],
         code: ` SELECT $1, CAST($1 AS text) || ' is text' `,
         returns: {
@@ -88,8 +87,8 @@ $$ VOLATILE LANGUAGE plpgsql`, {
 
     const simple: CreateFunctionStatement = {
         type: 'create function',
+        name: { name: 'fn' },
         language: 'sql',
-        name: 'fn',
         arguments: [],
         code: `body`,
     };

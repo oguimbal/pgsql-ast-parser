@@ -456,7 +456,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (cs.ifExists) {
             ret.push('IF EXISTS ');
         }
-        visitQualifiedName(cs);
+        visitQualifiedName(cs.name);
         switch (cs.change.type) {
             case 'set options':
                 visitSeqOpts(m, cs.change);
@@ -485,7 +485,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (cs.ifNotExists) {
             ret.push('IF NOT EXISTS ');
         }
-        visitQualifiedName(cs);
+        visitQualifiedName(cs.name);
         visitSeqOpts(m, cs.options);
     },
 
@@ -495,7 +495,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (val.ifExists) {
             ret.push('IF EXISTS ');
         }
-        m.tableRef(val);
+        m.tableRef(val.name);
     },
     dropIndex: val => {
         ret.push('DROP INDEX ');
@@ -505,14 +505,14 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (val.ifExists) {
             ret.push('IF EXISTS ');
         }
-        m.tableRef(val);
+        m.tableRef(val.name);
     },
     dropSequence: val => {
         ret.push('DROP SEQUENCE ');
         if (val.ifExists) {
             ret.push('IF EXISTS ');
         }
-        m.tableRef(val);
+        m.tableRef(val.name);
     },
 
     constraint: cst => {
@@ -554,7 +554,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     createFunction: c => {
         ret.push(c.orReplace ? 'CREATE OR REPLACE FUNCTION ' : 'CREATE FUNCTION ');
 
-        visitQualifiedName(c);
+        visitQualifiedName(c.name);
 
         // args
         list(c.arguments, a => {
@@ -705,7 +705,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     createTable: t => {
         ret.push(t.ifNotExists ? 'CREATE TABLE IF NOT EXISTS ' : 'CREATE TABLE ');
-        m.tableRef(t);
+        m.tableRef(t.name);
         ret.push('(');
         list(t.columns, c => {
             switch (c.kind) {
@@ -964,7 +964,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push('RECURSIVE ');
         }
         ret.push('VIEW ');
-        m.tableRef(c);
+        m.tableRef(c.name);
         if (c.columnNames) {
             list(c.columnNames, c => ret.push(c), true);
         }
@@ -985,7 +985,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (c.ifNotExists) {
             ret.push('IF NOT EXISTS ');
         }
-        m.tableRef(c);
+        m.tableRef(c.name);
         if (c.columnNames) {
             list(c.columnNames, c => ret.push(c), true);
         }

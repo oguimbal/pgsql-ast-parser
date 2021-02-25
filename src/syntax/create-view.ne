@@ -21,17 +21,17 @@ create_view -> %kw_create
                 %kw_as
                 select_statement
                 (%kw_with (kw_local | kw_cascaded) %kw_check kw_option {% get(1) %}):? {% x => {
-                    return {
+                    return track(x, {
                         type: 'create view',
                         ... x[1] && {orReplace: true},
                         ... x[2] && {temp: true},
                         ... x[3] && {recursive: true},
-                        ... x[5], // name
+                        name: x[5],
                         ... x[6] && {columnNames: x[6].map(asStr)},
                         ... x[7] && {parameters: fromEntries(x[7])},
                         query: x[9],
                         ... x[10] && { checkOption: toStr(x[10]) },
-                    }
+                    })
                 } %}
 
 
@@ -55,14 +55,14 @@ create_materialized_view -> %kw_create
                 %kw_as
                 select_statement
                 (%kw_with kw_no:? kw_data):? {% x => {
-                    return {
+                    return track(x, {
                         type: 'create materialized view',
                         ... x[3] && {ifNotExists: true},
-                        ... x[4], // name
+                        name: x[4],
                         ... x[5] && {columnNames: x[6].map(asStr)},
                         ... x[6] && {parameters: fromEntries(x[6])},
                         ... x[7] && {tablespace: toStr(x[7]) },
                         query: x[9],
                         ... x[10] && { withData: toStr(x[10][1]) !== 'no' },
-                    }
+                    })
                 } %}

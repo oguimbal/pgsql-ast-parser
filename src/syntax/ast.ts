@@ -57,8 +57,9 @@ export interface DoStatement extends PGNode {
     code: string;
 }
 
-export interface CreateFunctionStatement extends QName, PGNode {
+export interface CreateFunctionStatement extends PGNode {
     type: 'create function';
+    name: QName;
     code: string;
     orReplace?: boolean;
     language?: string;
@@ -146,18 +147,21 @@ export interface TruncateTableStatement extends PGNode {
     type: 'truncate table';
     tables: QName[];
 }
-export interface DropTableStatement extends QName, PGNode {
+export interface DropTableStatement extends PGNode {
     type: 'drop table';
+    name: QName;
     ifExists?: boolean;
 }
 
-export interface DropSequenceStatement extends QName, PGNode {
+export interface DropSequenceStatement extends PGNode {
     type: 'drop sequence';
+    name: QName;
     ifExists?: boolean;
 }
 
-export interface DropIndexStatement extends QName, PGNode {
+export interface DropIndexStatement extends PGNode {
     type: 'drop index';
+    name: QName;
     ifExists?: boolean;
     concurrently?: boolean;
 }
@@ -352,8 +356,9 @@ export interface IndexExpression extends PGNode {
 }
 
 
-export interface CreateViewStatementBase extends QName, PGNode {
+export interface CreateViewStatementBase extends PGNode {
     columnNames?: string[];
+    name: QName;
     query: SelectStatement;
     parameters?: { [name: string]: string };
 }
@@ -373,8 +378,9 @@ export interface CreateMaterializedViewStatement extends CreateViewStatementBase
 }
 
 
-export interface CreateTableStatement extends QName, PGNode {
+export interface CreateTableStatement extends PGNode {
     type: 'create table';
+    name: QName;
     ifNotExists?: true;
     columns: (CreateColumnDef | CreateColumnsLikeTable)[];
     /** Constraints not defined inline */
@@ -817,8 +823,9 @@ export type SetGlobalValue
         values: SetGlobalValueRaw[],
     }
 
-export interface CreateSequenceStatement extends QName, PGNode {
+export interface CreateSequenceStatement extends PGNode {
     type: 'create sequence';
+    name: QName,
     temp?: boolean;
     ifNotExists?: boolean;
     options: CreateSequenceOptions;
@@ -837,8 +844,9 @@ export interface CreateSequenceOptions extends PGNode {
 
 
 
-export interface AlterSequenceStatement extends QName, PGNode {
+export interface AlterSequenceStatement extends PGNode {
     type: 'alter sequence';
+    name: QName;
     ifExists?: boolean;
     change: AlterSequenceChange;
 }
