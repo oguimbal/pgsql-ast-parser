@@ -288,7 +288,6 @@ function setSeqOpts(ret: any, opts: any) {
             throw new Error('conflicting or redundant options');
         }
         defs.add(k);
-        debugger;
         ret[k] = unbox(v);
     }
 }
@@ -536,7 +535,6 @@ const grammar: Grammar = {
     {"name": "qualified_name", "symbols": ["qualified_name$ebnf$1", "ident"], "postprocess":  x => {
             const schema = unbox(x[0]);
             const name = unbox(x[1]);
-            debugger;
             if (schema) {
                 return track(x, { name, schema });
             }
@@ -554,7 +552,6 @@ const grammar: Grammar = {
     {"name": "select_statement$ebnf$4", "symbols": [], "postprocess": () => null},
     {"name": "select_statement", "symbols": ["select_what", "select_statement$ebnf$1", "select_statement$ebnf$2", "select_statement$ebnf$3", "select_statement$ebnf$4", "select_limit"], "postprocess":  x => {
             let [what, from, where, groupBy, orderBy, limit] = x;
-            debugger;
             from = unwrap(from);
             groupBy = groupBy && (groupBy.length === 1 && groupBy[0].type === 'list' ? groupBy[0].expressions : groupBy);
             return track(x, {

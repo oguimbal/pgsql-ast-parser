@@ -95,7 +95,6 @@ const grammar: Grammar = {
     {"name": "time", "symbols": ["uint", (lexerAny.has("colon") ? {type: "colon"} : colon), "uint", "time$ebnf$1", "time$ebnf$2"], "postprocess":  ([a, _, b, c, d]) => {
             c = c && c[1];
             d = d && d[1];
-            debugger;
             const ret = typeof c === 'number' ? [
                     ['hours', a],
                     ['minutes', b],
