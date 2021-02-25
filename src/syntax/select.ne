@@ -8,7 +8,6 @@ select_statement
     -> select_what select_from:? select_where:? select_groupby:? select_order_by:? select_limit
     {% x => {
         let [what, from, where, groupBy, orderBy, limit] = x;
-        debugger;
         from = unwrap(from);
         groupBy = groupBy && (groupBy.length === 1 && groupBy[0].type === 'list' ? groupBy[0].expressions : groupBy);
         return track(x, {

@@ -39,7 +39,6 @@ float -> (%neg):? %int:? %dot %int {% ([neg, ...v])  => parseFloat(v.map(v => v 
 time -> uint %colon uint (%colon uint):? (%dot %int):? {% ([a, _, b, c, d]) => {
     c = c && c[1];
     d = d && d[1];
-    debugger;
     const ret = typeof c === 'number' ? [
             ['hours', a],
             ['minutes', b],

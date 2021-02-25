@@ -11,7 +11,6 @@ function setSeqOpts(ret: any, opts: any) {
             throw new Error('conflicting or redundant options');
         }
         defs.add(k);
-        debugger;
         ret[k] = unbox(v);
     }
 }
