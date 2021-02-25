@@ -235,7 +235,10 @@ Postgres implements several literal syntaxes (string-to-something converters), w
 
 # FAQ
 
-- How to parse named parameters like `:name` ? 👉 See [here](https://github.com/oguimbal/pgsql-ast-parser/issues/8#issuecomment-774280514) ([TLDR](https://runkit.com/oguimbal/pgsql-ast-parser.circumvent-named-arguments))
+- **How to parse named parameters like `:name` ?** 👉 _See [here](https://github.com/oguimbal/pgsql-ast-parser/issues/8#issuecomment-774280514) ([TLDR](https://runkit.com/oguimbal/pgsql-ast-parser.circumvent-named-arguments))_
+- **Can I get detailed a location for each AST node ?** 👉 _Yes. Pass the option `{locationTracking: true}` to `parse()`, and use the `locationOf(node)` function._
+- **Can I get the comments that the parser has ignored ?** 👉 _Yes. Use `parseWithComments()` instead of `parse()`_
+
 # Development
 
 Pull requests are welcome :)
