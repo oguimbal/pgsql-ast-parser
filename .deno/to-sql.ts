@@ -224,10 +224,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push(' SCHEMA ', name(e.schema));
         }
         if (e.version) {
-            ret.push(' VERSION ', literal(e.version));
+            ret.push(' VERSION ', literal(e.version.value));
         }
         if (e.from) {
-            ret.push(' FROM ', literal(e.from));
+            ret.push(' FROM ', literal(e.from.value));
         }
     },
 
@@ -261,7 +261,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push('CREATE TYPE ');
         visitQualifiedName(t.name);
         ret.push(' AS ENUM ');
-        list(t.values, x => ret.push(literal(x)), true);
+        list(t.values, x => ret.push(literal(x.value)), true);
         ret.push(' ');
     },
 
@@ -430,7 +430,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     extract: v => {
-        ret.push('EXTRACT (', v.field.toUpperCase(), ' FROM ');
+        ret.push('EXTRACT (', v.field.name.toUpperCase(), ' FROM ');
         m.expr(v.from);
         ret.push(') ');
     },
@@ -543,7 +543,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     do: d => {
         ret.push('DO');
         if (d.language) {
-            ret.push(' LANGUAGE ', d.language);
+            ret.push(' LANGUAGE ', d.language.name);
         }
         ret.push(' $$', d.code, '$$');
     },
@@ -589,7 +589,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
         // function settings
         if (c.language) {
-            ret.push('LANGUAGE ', c.language, ' ');
+            ret.push('LANGUAGE ', c.language.name, ' ');
         }
         if (c.purity) {
             ret.push(c.purity.toUpperCase(), ' ');
@@ -819,7 +819,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             }, false);
             ret.push(') AS ', name(s.alias));
             if (s.columnNames) {
-                list(s.columnNames, s => ret.push(s), true);
+                list(s.columnNames, s => ret.push(name(s)), true);
             }
         });
     },
@@ -963,7 +963,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push('VIEW ');
         m.tableRef(c.name);
         if (c.columnNames) {
-            list(c.columnNames, c => ret.push(c), true);
+            list(c.columnNames, c => ret.push(name(c)), true);
         }
         const opts = c.parameters && Object.entries(c.parameters);
         if (opts?.length) {
@@ -984,7 +984,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
         m.tableRef(c.name);
         if (c.columnNames) {
-            list(c.columnNames, c => ret.push(c), true);
+            list(c.columnNames, c => ret.push(name(c)), true);
         }
         const opts = c.parameters && Object.entries(c.parameters);
         if (opts?.length) {

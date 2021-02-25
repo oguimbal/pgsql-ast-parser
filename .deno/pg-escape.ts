@@ -1,6 +1,6 @@
 // stolen from https://github.com/segmentio/pg-escape/blob/master/index.js
 
-export function literal(val: any) {
+export function literal(val: string) {
     if (null == val) return 'NULL';
     if (Array.isArray(val)) {
         var vals: any[] = val.map(literal)

@@ -53,7 +53,7 @@ export interface PGComment extends PGNode {
 
 export interface DoStatement extends PGNode {
     type: 'do';
-    language?: string;
+    language?: Name;
     code: string;
 }
 
@@ -62,7 +62,7 @@ export interface CreateFunctionStatement extends PGNode {
     name: QName;
     code: string;
     orReplace?: boolean;
-    language?: string;
+    language?: Name;
     arguments: FunctionArgument[];
     returns?: DataTypeDef | ReturnsTable;
     purity?: 'immutable' | 'stable' | 'volatile';
@@ -134,7 +134,11 @@ export interface PrepareStatement extends PGNode {
 export interface CreateEnumType extends PGNode {
     type: 'create enum',
     name: QName;
-    values: string[];
+    values: Literal[];
+}
+
+export interface Literal extends PGNode {
+    value: string
 }
 
 
@@ -343,8 +347,8 @@ export interface CreateExtensionStatement extends PGNode {
     extension: Name;
     ifNotExists?: true;
     schema?: Name;
-    version?: string;
-    from?: string;
+    version?: Literal;
+    from?: Literal;
 }
 
 export interface IndexExpression extends PGNode {
@@ -357,7 +361,7 @@ export interface IndexExpression extends PGNode {
 
 
 export interface CreateViewStatementBase extends PGNode {
-    columnNames?: string[];
+    columnNames?: Name[];
     name: QName;
     query: SelectStatement;
     parameters?: { [name: string]: string };
@@ -564,7 +568,7 @@ export interface FromValues {
     type: 'values';
     alias: Name;
     values: Expr[][];
-    columnNames?: string[] | nil;
+    columnNames?: Name[] | nil;
     join?: JoinClause | nil;
 }
 
@@ -738,7 +742,7 @@ export interface ExprCall extends PGNode {
 
 export interface ExprExtract extends PGNode {
     type: 'extract';
-    field: string;
+    field: Name;
     from: Expr;
 }
 

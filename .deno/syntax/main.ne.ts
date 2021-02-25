@@ -204,6 +204,11 @@ import {track, box, unbox} from '../lexer.ts';
         return track(val, {name});
     }
 
+    function asLit(val: any): any {
+        const value = toStr(val);
+        return track(val, {value});
+    }
+
     function unwrap(e: any[]): any {
         if (Array.isArray(e) && e.length === 1) {
             e = unwrap(e[0]);
@@ -626,7 +631,7 @@ const grammar: Grammar = {
             type: 'values',
             alias: asName(x[5]),
             values: x[2],
-            ...x[6] && {columnNames: unbox(x[6]).map(asStr)},
+            ...x[6] && {columnNames: unbox(x[6]).map(asName)},
         }) },
     {"name": "select_what$ebnf$1", "symbols": ["select_distinct"], "postprocess": id},
     {"name": "select_what$ebnf$1", "symbols": [], "postprocess": () => null},
@@ -996,7 +1001,7 @@ const grammar: Grammar = {
     {"name": "expr_extract$subexpression$1", "symbols": ["word"], "postprocess": kw('extract')},
     {"name": "expr_extract", "symbols": ["expr_extract$subexpression$1", "lparen", "word", (lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "expr", "rparen"], "postprocess":  x => track(x, {
             type: 'extract',
-            field: toStr(x[2]),
+            field: asName(x[2]),
             from: x[4],
         }) },
     {"name": "expr_primary", "symbols": ["float"], "postprocess": x => track(x, { type: 'numeric', value: unbox(x[0]) })},
@@ -1342,8 +1347,8 @@ const grammar: Grammar = {
             ... !!x[2] ? { ifNotExists: true } : {},
             extension: asName(x[3]),
             ... !!x[5] ? { schema: asName(x[5]) } : {},
-            ... !!x[6] ? { version: unbox(x[6]) } : {},
-            ... !!x[7] ? { from: unbox(x[7]) } : {},
+            ... !!x[6] ? { version: asLit(x[6]) } : {},
+            ... !!x[7] ? { from: asLit(x[7]) } : {},
         }) },
     {"name": "simplestatements_all", "symbols": ["simplestatements_start_transaction"]},
     {"name": "simplestatements_all", "symbols": ["simplestatements_commit"]},
@@ -1826,7 +1831,7 @@ const grammar: Grammar = {
             name: x[2],
             ...unwrap(x[3]),
         }) },
-    {"name": "createtype_enum$macrocall$2", "symbols": ["string"]},
+    {"name": "createtype_enum$macrocall$2", "symbols": ["enum_value"]},
     {"name": "createtype_enum$macrocall$1$ebnf$1", "symbols": []},
     {"name": "createtype_enum$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("comma") ? {type: "comma"} : comma), "createtype_enum$macrocall$2"], "postprocess": last},
     {"name": "createtype_enum$macrocall$1$ebnf$1", "symbols": ["createtype_enum$macrocall$1$ebnf$1", "createtype_enum$macrocall$1$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
@@ -1837,6 +1842,7 @@ const grammar: Grammar = {
             type: 'create enum',
             values: x[3],
         }) },
+    {"name": "enum_value", "symbols": ["string"], "postprocess": x => track(x, {value: toStr(x) })},
     {"name": "union_item", "symbols": ["select_statement"]},
     {"name": "union_item", "symbols": ["select_statement_paren"]},
     {"name": "union_statement$subexpression$1", "symbols": ["union_item"]},
@@ -1892,7 +1898,7 @@ const grammar: Grammar = {
                 ... x[2] && {temp: true},
                 ... x[3] && {recursive: true},
                 name: x[5],
-                ... x[6] && {columnNames: x[6].map(asStr)},
+                ... x[6] && {columnNames: x[6].map(asName)},
                 ... x[7] && {parameters: fromEntries(x[7])},
                 query: x[9],
                 ... x[10] && { checkOption: toStr(x[10]) },
@@ -1934,7 +1940,7 @@ const grammar: Grammar = {
                 type: 'create materialized view',
                 ... x[3] && {ifNotExists: true},
                 name: x[4],
-                ... x[5] && {columnNames: x[6].map(asStr)},
+                ... x[5] && {columnNames: x[6].map(asName)},
                 ... x[6] && {parameters: fromEntries(x[6])},
                 ... x[7] && {tablespace: asName(x[7]) },
                 query: x[9],
@@ -2000,7 +2006,7 @@ const grammar: Grammar = {
     {"name": "func_argmod", "symbols": ["kw_out"]},
     {"name": "func_argmod", "symbols": ["kw_inout"]},
     {"name": "func_argmod", "symbols": ["kw_variadic"]},
-    {"name": "func_spec", "symbols": ["kw_language", "word"], "postprocess": x => track(x, { language: unbox(last(x)) })},
+    {"name": "func_spec", "symbols": ["kw_language", "word"], "postprocess": x => track(x, { language: asName(last(x)) })},
     {"name": "func_spec", "symbols": ["func_purity"], "postprocess": x => track(x, {purity: toStr(x)})},
     {"name": "func_spec$ebnf$1", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not)], "postprocess": id},
     {"name": "func_spec$ebnf$1", "symbols": [], "postprocess": () => null},
@@ -2036,7 +2042,7 @@ const grammar: Grammar = {
     {"name": "do_stm$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "do_stm", "symbols": [(lexerAny.has("kw_do") ? {type: "kw_do"} : kw_do), "do_stm$ebnf$1", (lexerAny.has("codeblock") ? {type: "codeblock"} : codeblock)], "postprocess":  x => track(x, {
             type: 'do',
-            ...x[1] && { language: toStr(x[1])},
+            ...x[1] && { language: asName(x[1])},
             code: x[2].value,
         }) },
     {"name": "main$ebnf$1", "symbols": []},
