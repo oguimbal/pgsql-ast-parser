@@ -87,5 +87,27 @@ describe('Union statement', () => {
             type: 'select',
             columns: columns({ type: 'string', value: 'b' }),
         },
+    });
+
+    const star: SelectedColumn = { expr: { type: 'ref', name: '*' } };
+
+    checkSelect(`select * from tbl where x in (
+        select 1
+        union
+        select 2
+      )`, {
+        type: 'select',
+        columns: [star],
+        from: [{ type: 'table', name: 'tbl' }],
+        where: {
+            type: 'binary',
+            op: 'IN',
+            left: { type: 'ref', name: 'x' },
+            right: {
+                type: 'union',
+                left: { type: 'select', columns: [{ expr: { type: 'integer', value: 1 } }] },
+                right: { type: 'select', columns: [{ expr: { type: 'integer', value: 2 } }] },
+            }
+        }
     })
 });
