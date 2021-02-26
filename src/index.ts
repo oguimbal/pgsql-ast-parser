@@ -1,4 +1,4 @@
-export { parse, parseFirst, parseArrayLiteral, parseGeometricLiteral, parseIntervalLiteral } from './parser';
+export { parse, parseFirst, parseArrayLiteral, parseGeometricLiteral, parseIntervalLiteral, parseWithComments } from './parser';
 export { astVisitor } from './ast-visitor'
 export { arrayNilMap, assignChanged, astMapper } from './ast-mapper';
 export { toSql } from './to-sql';
