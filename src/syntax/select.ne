@@ -43,7 +43,7 @@ select_table_base
     } %}
     | select_subject_select_statement {% unwrap %}
     | select_subject_select_values {% unwrap %}
-    | expr_call (%kw_as ident {% last %}):?  {% x =>
+    | expr_call (%kw_as:? ident {% last %}):?  {% x =>
                  !x[1]
                     ? x[0]
                     : track(x, {

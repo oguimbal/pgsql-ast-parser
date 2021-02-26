@@ -493,6 +493,16 @@ describe('Select statements', () => {
         columns: columns({ type: 'ref', name: '*' }),
     })
 
+    checkSelect([`select 1 from fn() alias`, `select 1 from fn() as alias`], {
+        type: 'select',
+        from: [{
+            type: 'call',
+            function: { name: 'fn' },
+            alias: { name: 'alias' },
+            args: [],
+        }],
+        columns: columns({ type: 'integer', value: 1 }),
+    })
     checkSelect(`SELECT
     (
         WITH x AS (select val from example)
