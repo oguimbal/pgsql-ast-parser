@@ -25,3 +25,4 @@ with_statement_statement
     | update_statement
     | delete_statement
     | union_statement
+    | with_statement

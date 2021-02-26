@@ -494,7 +494,7 @@ export interface ColumnConstraintCheck extends PGNode {
     expr: Expr;
 }
 
-export type WithStatementBinding = SelectStatement | InsertStatement | UpdateStatement | DeleteStatement;
+export type WithStatementBinding = SelectStatement | WithStatement | InsertStatement | UpdateStatement | DeleteStatement;
 export interface WithStatement extends PGNode {
     type: 'with';
     bind: {

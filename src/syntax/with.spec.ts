@@ -2,6 +2,7 @@ import 'mocha';
 import 'chai';
 import { checkStatement, checkInvalidExpr } from './spec-utils';
 import { expect } from 'chai';
+import { SelectedColumn } from './ast';
 
 
 describe('With clause', () => {
@@ -81,4 +82,42 @@ describe('With clause', () => {
             },
         }
     });
+
+
+    const star: SelectedColumn = { expr: { type: 'ref', name: '*' } };
+    checkStatement(`with a as (
+        with b as (
+          select 1
+        ) select * from b
+      ) select * from a`, {
+        type: 'with',
+        in: {
+            type: 'select',
+            columns: [star],
+            from: [{ type: 'table', name: 'a' }]
+        },
+        bind: [{
+            alias: { name: 'a' },
+            statement: {
+                type: 'with',
+                bind: [{
+                    alias: { name: 'b' },
+                    statement: {
+                        type: 'select',
+                        columns: [{
+                            expr: {
+                                type: 'integer',
+                                value: 1,
+                            }
+                        }],
+                    },
+                }],
+                in: {
+                    type: 'select',
+                    columns: [star],
+                    from: [{ type: 'table', name: 'b' }]
+                },
+            }
+        }],
+    })
 });
