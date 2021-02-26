@@ -200,6 +200,14 @@ function join(m: IAstVisitor, j: JoinClause | nil, tbl: () => void) {
     ret.push(' ');
 }
 
+function visitOp(v: { op: string; opSchema?: string; }) {
+    if (v.opSchema) {
+        ret.push(' operator(', ident(v.opSchema), '.', v.op, ') ');
+    } else {
+        ret.push(' ', v.op, ' ');
+    }
+}
+
 const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     addColumn: (...args) => {
@@ -350,7 +358,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     binary: v => {
         m.expr(v.left);
-        ret.push(' ', v.op, ' ');
+        visitOp(v);
         m.expr(v.right);
     },
 
@@ -1074,11 +1082,17 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         m.statement(s.statement);
     },
 
+    arraySelect: s => {
+        ret.push('array(');
+        m.select(s.select);
+        ret.push(')');
+    },
+
     union: s => {
         ret.push('(');
         m.statement(s.left);
-        ret.push(') UNION ');
-        if (s.right.type === 'union') {
+        ret.push(') ', s.type.toUpperCase(), ' ');
+        if (s.right.type === 'union' || s.right.type === 'union all') {
             m.union(s.right);
         } else {
             ret.push('(');
@@ -1138,7 +1152,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             case '+':
             case '-':
                 // prefix ops
-                ret.push(t.op);
+                visitOp(t);
                 m.expr(t.operand);
                 break;
             case 'NOT':

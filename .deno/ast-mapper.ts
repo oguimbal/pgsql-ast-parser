@@ -57,6 +57,7 @@ export interface IAstPartialMapper {
     selectionColumn?: (val: a.SelectedColumn) => a.SelectedColumn | nil
     expr?: (val: a.Expr) => a.Expr | nil
     ternary?: (val: a.ExprTernary) => a.Expr | nil
+    arraySelect?: (val: a.ExprArrayFromSelect) => a.Expr | nil
     arrayIndex?: (val: a.ExprArrayIndex) => a.Expr | nil
     member?: (val: a.ExprMember) => a.Expr | nil
     extract?: (st: a.ExprExtract) => a.Expr | nil
@@ -177,6 +178,8 @@ function withAccepts(val: a.Statement | nil): val is a.WithStatementBinding {
         case 'insert':
         case 'update':
         case 'union':
+        case 'union all':
+        case 'with':
             return true;
         default:
             return false;
@@ -243,6 +246,7 @@ export class AstDefaultMapper implements IAstMapper {
             case 'create enum':
                 return this.createEnum(val);
             case 'union':
+            case 'union all':
                 return this.union(val);
             case 'show':
                 return this.show(val);
@@ -793,6 +797,7 @@ export class AstDefaultMapper implements IAstMapper {
             case 'select':
                 return this.selection(val);
             case 'union':
+            case 'union all':
                 return this.union(val);
             case 'with':
                 return this.with(val);
@@ -965,6 +970,8 @@ export class AstDefaultMapper implements IAstMapper {
             case 'list':
             case 'array':
                 return this.array(val);
+            case 'array select':
+                return this.arraySelect(val);
             case 'call':
                 return this.call(val);
             case 'cast':
@@ -979,6 +986,7 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.ternary(val);
             case 'select':
             case 'union':
+            case 'union all':
             case 'with':
                 return this.select(val);
             case 'keyword':
@@ -996,6 +1004,14 @@ export class AstDefaultMapper implements IAstMapper {
         }
     }
 
+
+    arraySelect(val: a.ExprArrayFromSelect) {
+        const select = this.select(val.select);
+        if (!select) {
+            return null;
+        }
+        return assignChanged(val, { select });
+    }
 
     extract(st: a.ExprExtract): a.Expr | nil {
         const from = this.expr(st.from);

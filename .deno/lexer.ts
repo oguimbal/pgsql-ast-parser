@@ -17,7 +17,7 @@ const caseInsensitiveKeywords = (map: any) => {
 // build lexer
 export const lexer = compile({
     word: {
-        match: /[eE](?!')[A-Za-z0-9_]*|[a-df-zA-DF-Z][A-Za-z0-9_]*/,
+        match: /[eE](?!')[A-Za-z0-9_]*|[a-df-zA-DF-Z_][A-Za-z0-9_]*/,
         type: caseInsensitiveKeywords(keywodsMap),
         value: x => x.toLowerCase(),
     },
@@ -83,7 +83,12 @@ export const lexer = compile({
     op_compare: {
         // group other comparison operators
         // ... to add: "IN" and "NOT IN" that are matched by keywords
-        match: ['>', '>=', '<', '<=', '@>', '<@', '?', '?|', '?&', '#>>'],
+        match: ['>', '>=', '<', '<=', '@>', '<@', '?', '?|', '?&', '#>>', '>>', '<<'],
+    },
+    ops_others: {
+        // referenced as (any other operator) in https://www.postgresql.org/docs/12/sql-syntax-lexical.html#SQL-PRECEDENCE
+        // see also https://www.postgresql.org/docs/9.0/functions-math.html
+        match: ['|', '&', '^', '#'],
     },
     codeblock: {
         match: /\$\$(?:.|[\s\t\n\v\f\r])*\$\$/s,

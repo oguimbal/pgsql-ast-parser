@@ -55,6 +55,7 @@ declare var kw_notnull: any;
 declare var kw_true: any;
 declare var kw_false: any;
 declare var op_compare: any;
+declare var ops_others: any;
 declare var op_plus: any;
 declare var op_minus: any;
 declare var op_additive: any;
@@ -170,6 +171,7 @@ declare var kw_create: any;
 declare var kw_as: any;
 declare var comma: any;
 declare var kw_union: any;
+declare var kw_all: any;
 declare var kw_as: any;
 declare var kw_create: any;
 declare var kw_or: any;
@@ -385,6 +387,7 @@ const grammar: Grammar = {
     {"name": "kw_excluding", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('excluding')},
     {"name": "kw_none", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('none')},
     {"name": "kw_drop", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('drop')},
+    {"name": "kw_operator", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('operator')},
     {"name": "kw_minvalue", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('minvalue')},
     {"name": "kw_maxvalue", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('maxvalue')},
     {"name": "kw_data", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('data')},
@@ -564,9 +567,6 @@ const grammar: Grammar = {
                 type: 'select',
             });
         } },
-    {"name": "select_statement_paren$subexpression$1", "symbols": ["select_statement"]},
-    {"name": "select_statement_paren$subexpression$1", "symbols": ["union_statement"]},
-    {"name": "select_statement_paren", "symbols": ["lparen", "select_statement_paren$subexpression$1", "rparen"], "postprocess": get(1)},
     {"name": "select_from", "symbols": [(lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "select_subject"], "postprocess": last},
     {"name": "select_subject", "symbols": ["select_table_base"], "postprocess": get(0)},
     {"name": "select_subject", "symbols": ["select_subject_joins"], "postprocess": get(0)},
@@ -581,7 +581,9 @@ const grammar: Grammar = {
         } },
     {"name": "select_table_base", "symbols": ["select_subject_select_statement"], "postprocess": unwrap},
     {"name": "select_table_base", "symbols": ["select_subject_select_values"], "postprocess": unwrap},
-    {"name": "select_table_base$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "ident"], "postprocess": last},
+    {"name": "select_table_base$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as)], "postprocess": id},
+    {"name": "select_table_base$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "select_table_base$ebnf$1$subexpression$1", "symbols": ["select_table_base$ebnf$1$subexpression$1$ebnf$1", "ident"], "postprocess": last},
     {"name": "select_table_base$ebnf$1", "symbols": ["select_table_base$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "select_table_base$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_table_base", "symbols": ["expr_call", "select_table_base$ebnf$1"], "postprocess":  x =>
@@ -617,7 +619,7 @@ const grammar: Grammar = {
     {"name": "select_join_op$subexpression$4$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_join_op$subexpression$4", "symbols": [(lexerAny.has("kw_full") ? {type: "kw_full"} : kw_full), "select_join_op$subexpression$4$ebnf$1"], "postprocess": x => box(x, 'FULL JOIN')},
     {"name": "select_join_op", "symbols": ["select_join_op$subexpression$4"]},
-    {"name": "select_subject_select_statement", "symbols": ["select_statement_paren", "ident_aliased"], "postprocess":  x => track(x, {
+    {"name": "select_subject_select_statement", "symbols": ["selection_paren", "ident_aliased"], "postprocess":  x => track(x, {
             type: 'statement',
             statement: unwrap(x[0]),
             alias: asName(x[1])
@@ -716,7 +718,11 @@ const grammar: Grammar = {
     {"name": "expr_paren$subexpression$1", "symbols": ["expr_or_select"]},
     {"name": "expr_paren$subexpression$1", "symbols": ["expr_list_many"]},
     {"name": "expr_paren", "symbols": ["lparen", "expr_paren$subexpression$1", "rparen"], "postprocess": get(1)},
-    {"name": "expr_or$macrocall$2", "symbols": [(lexerAny.has("kw_or") ? {type: "kw_or"} : kw_or)]},
+    {"name": "expr_or$macrocall$2$macrocall$2", "symbols": [(lexerAny.has("kw_or") ? {type: "kw_or"} : kw_or)]},
+    {"name": "expr_or$macrocall$2$macrocall$1", "symbols": ["expr_or$macrocall$2$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_or$macrocall$2", "symbols": ["expr_or$macrocall$2$macrocall$1"]},
     {"name": "expr_or$macrocall$3", "symbols": ["expr_or"]},
     {"name": "expr_or$macrocall$4", "symbols": ["expr_and"]},
     {"name": "expr_or$macrocall$1$subexpression$1", "symbols": ["expr_or$macrocall$3"]},
@@ -727,11 +733,15 @@ const grammar: Grammar = {
             type: 'binary',
             left: unwrap(x[0]),
             right: unwrap(x[2]),
-            op: (flattenStr(x[1]).join(' ') || '<error>').toUpperCase(),
+            ...unwrap(x[1]),
         }) },
     {"name": "expr_or$macrocall$1", "symbols": ["expr_or$macrocall$4"], "postprocess": unwrap},
     {"name": "expr_or", "symbols": ["expr_or$macrocall$1"]},
-    {"name": "expr_and$macrocall$2", "symbols": [(lexerAny.has("kw_and") ? {type: "kw_and"} : kw_and)]},
+    {"name": "expr_and$macrocall$2$macrocall$2", "symbols": [(lexerAny.has("kw_and") ? {type: "kw_and"} : kw_and)]},
+    {"name": "expr_and$macrocall$2$macrocall$1", "symbols": ["expr_and$macrocall$2$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_and$macrocall$2", "symbols": ["expr_and$macrocall$2$macrocall$1"]},
     {"name": "expr_and$macrocall$3", "symbols": ["expr_and"]},
     {"name": "expr_and$macrocall$4", "symbols": ["expr_not"]},
     {"name": "expr_and$macrocall$1$subexpression$1", "symbols": ["expr_and$macrocall$3"]},
@@ -742,25 +752,39 @@ const grammar: Grammar = {
             type: 'binary',
             left: unwrap(x[0]),
             right: unwrap(x[2]),
-            op: (flattenStr(x[1]).join(' ') || '<error>').toUpperCase(),
+            ...unwrap(x[1]),
         }) },
     {"name": "expr_and$macrocall$1", "symbols": ["expr_and$macrocall$4"], "postprocess": unwrap},
     {"name": "expr_and", "symbols": ["expr_and$macrocall$1"]},
-    {"name": "expr_not$macrocall$2", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not)]},
+    {"name": "expr_not$macrocall$2$macrocall$2", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not)]},
+    {"name": "expr_not$macrocall$2$macrocall$1", "symbols": ["expr_not$macrocall$2$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_not$macrocall$2", "symbols": ["expr_not$macrocall$2$macrocall$1"]},
     {"name": "expr_not$macrocall$3", "symbols": ["expr_not"]},
     {"name": "expr_not$macrocall$4", "symbols": ["expr_eq"]},
     {"name": "expr_not$macrocall$1$subexpression$1", "symbols": ["expr_not$macrocall$3"]},
     {"name": "expr_not$macrocall$1$subexpression$1", "symbols": ["expr_paren"]},
     {"name": "expr_not$macrocall$1", "symbols": ["expr_not$macrocall$2", "expr_not$macrocall$1$subexpression$1"], "postprocess":  x => track(x, {
             type: 'unary',
-            op: (flattenStr(x[0]).join(' ') || '<error>').toUpperCase(),
+            ...unwrap(x[0]),
             operand: unwrap(x[1]),
         }) },
     {"name": "expr_not$macrocall$1", "symbols": ["expr_not$macrocall$4"], "postprocess": unwrap},
     {"name": "expr_not", "symbols": ["expr_not$macrocall$1"]},
-    {"name": "expr_eq$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_eq") ? {type: "op_eq"} : op_eq)]},
-    {"name": "expr_eq$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_neq") ? {type: "op_neq"} : op_neq)]},
-    {"name": "expr_eq$macrocall$2", "symbols": ["expr_eq$macrocall$2$subexpression$1"]},
+    {"name": "expr_eq$macrocall$2$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_eq") ? {type: "op_eq"} : op_eq)]},
+    {"name": "expr_eq$macrocall$2$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_neq") ? {type: "op_neq"} : op_neq)]},
+    {"name": "expr_eq$macrocall$2$macrocall$2", "symbols": ["expr_eq$macrocall$2$macrocall$2$subexpression$1"]},
+    {"name": "expr_eq$macrocall$2$macrocall$1$macrocall$2", "symbols": ["expr_eq$macrocall$2$macrocall$2"]},
+    {"name": "expr_eq$macrocall$2$macrocall$1$macrocall$1", "symbols": ["expr_eq$macrocall$2$macrocall$1$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_eq$macrocall$2$macrocall$1", "symbols": ["expr_eq$macrocall$2$macrocall$1$macrocall$1"], "postprocess": unwrap},
+    {"name": "expr_eq$macrocall$2$macrocall$1", "symbols": ["kw_operator", "lparen", "ident", "dot", "expr_eq$macrocall$2$macrocall$2", "rparen"], "postprocess":  x => track(x, {
+            op:  (toStr(x[4], ' ') || '<error>').toUpperCase(),
+            opSchema: toStr(x[2]),
+        })},
+    {"name": "expr_eq$macrocall$2", "symbols": ["expr_eq$macrocall$2$macrocall$1"]},
     {"name": "expr_eq$macrocall$3", "symbols": ["expr_eq"]},
     {"name": "expr_eq$macrocall$4", "symbols": ["expr_is"]},
     {"name": "expr_eq$macrocall$1$subexpression$1", "symbols": ["expr_eq$macrocall$3"]},
@@ -771,7 +795,7 @@ const grammar: Grammar = {
             type: 'binary',
             left: unwrap(x[0]),
             right: unwrap(x[2]),
-            op: (flattenStr(x[1]).join(' ') || '<error>').toUpperCase(),
+            ...unwrap(x[1]),
         }) },
     {"name": "expr_eq$macrocall$1", "symbols": ["expr_eq$macrocall$4"], "postprocess": unwrap},
     {"name": "expr_eq", "symbols": ["expr_eq$macrocall$1"]},
@@ -800,7 +824,17 @@ const grammar: Grammar = {
             operand: unwrap(x[0]),
         }) },
     {"name": "expr_is", "symbols": ["expr_compare"], "postprocess": unwrap},
-    {"name": "expr_compare$macrocall$2", "symbols": [(lexerAny.has("op_compare") ? {type: "op_compare"} : op_compare)]},
+    {"name": "expr_compare$macrocall$2$macrocall$2", "symbols": [(lexerAny.has("op_compare") ? {type: "op_compare"} : op_compare)]},
+    {"name": "expr_compare$macrocall$2$macrocall$1$macrocall$2", "symbols": ["expr_compare$macrocall$2$macrocall$2"]},
+    {"name": "expr_compare$macrocall$2$macrocall$1$macrocall$1", "symbols": ["expr_compare$macrocall$2$macrocall$1$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_compare$macrocall$2$macrocall$1", "symbols": ["expr_compare$macrocall$2$macrocall$1$macrocall$1"], "postprocess": unwrap},
+    {"name": "expr_compare$macrocall$2$macrocall$1", "symbols": ["kw_operator", "lparen", "ident", "dot", "expr_compare$macrocall$2$macrocall$2", "rparen"], "postprocess":  x => track(x, {
+            op:  (toStr(x[4], ' ') || '<error>').toUpperCase(),
+            opSchema: toStr(x[2]),
+        })},
+    {"name": "expr_compare$macrocall$2", "symbols": ["expr_compare$macrocall$2$macrocall$1"]},
     {"name": "expr_compare$macrocall$3", "symbols": ["expr_compare"]},
     {"name": "expr_compare$macrocall$4", "symbols": ["expr_range"]},
     {"name": "expr_compare$macrocall$1$subexpression$1", "symbols": ["expr_compare$macrocall$3"]},
@@ -811,14 +845,14 @@ const grammar: Grammar = {
             type: 'binary',
             left: unwrap(x[0]),
             right: unwrap(x[2]),
-            op: (flattenStr(x[1]).join(' ') || '<error>').toUpperCase(),
+            ...unwrap(x[1]),
         }) },
     {"name": "expr_compare$macrocall$1", "symbols": ["expr_compare$macrocall$4"], "postprocess": unwrap},
     {"name": "expr_compare", "symbols": ["expr_compare$macrocall$1"]},
     {"name": "expr_range$macrocall$2", "symbols": ["ops_between"]},
     {"name": "expr_range$macrocall$3", "symbols": [(lexerAny.has("kw_and") ? {type: "kw_and"} : kw_and)]},
     {"name": "expr_range$macrocall$4", "symbols": ["expr_range"]},
-    {"name": "expr_range$macrocall$5", "symbols": ["expr_like"]},
+    {"name": "expr_range$macrocall$5", "symbols": ["expr_others"]},
     {"name": "expr_range$macrocall$1$subexpression$1", "symbols": ["expr_range$macrocall$4"]},
     {"name": "expr_range$macrocall$1$subexpression$1", "symbols": ["expr_paren"]},
     {"name": "expr_range$macrocall$1$subexpression$2", "symbols": ["expr_range$macrocall$4"]},
@@ -834,7 +868,36 @@ const grammar: Grammar = {
         }) },
     {"name": "expr_range$macrocall$1", "symbols": ["expr_range$macrocall$5"], "postprocess": unwrap},
     {"name": "expr_range", "symbols": ["expr_range$macrocall$1"]},
-    {"name": "expr_like$macrocall$2", "symbols": ["ops_like"]},
+    {"name": "expr_others$macrocall$2$macrocall$2", "symbols": [(lexerAny.has("ops_others") ? {type: "ops_others"} : ops_others)]},
+    {"name": "expr_others$macrocall$2$macrocall$1$macrocall$2", "symbols": ["expr_others$macrocall$2$macrocall$2"]},
+    {"name": "expr_others$macrocall$2$macrocall$1$macrocall$1", "symbols": ["expr_others$macrocall$2$macrocall$1$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_others$macrocall$2$macrocall$1", "symbols": ["expr_others$macrocall$2$macrocall$1$macrocall$1"], "postprocess": unwrap},
+    {"name": "expr_others$macrocall$2$macrocall$1", "symbols": ["kw_operator", "lparen", "ident", "dot", "expr_others$macrocall$2$macrocall$2", "rparen"], "postprocess":  x => track(x, {
+            op:  (toStr(x[4], ' ') || '<error>').toUpperCase(),
+            opSchema: toStr(x[2]),
+        })},
+    {"name": "expr_others$macrocall$2", "symbols": ["expr_others$macrocall$2$macrocall$1"]},
+    {"name": "expr_others$macrocall$3", "symbols": ["expr_others"]},
+    {"name": "expr_others$macrocall$4", "symbols": ["expr_like"]},
+    {"name": "expr_others$macrocall$1$subexpression$1", "symbols": ["expr_others$macrocall$3"]},
+    {"name": "expr_others$macrocall$1$subexpression$1", "symbols": ["expr_paren"]},
+    {"name": "expr_others$macrocall$1$subexpression$2", "symbols": ["expr_others$macrocall$4"]},
+    {"name": "expr_others$macrocall$1$subexpression$2", "symbols": ["expr_paren"]},
+    {"name": "expr_others$macrocall$1", "symbols": ["expr_others$macrocall$1$subexpression$1", "expr_others$macrocall$2", "expr_others$macrocall$1$subexpression$2"], "postprocess":  x => track(x, {
+            type: 'binary',
+            left: unwrap(x[0]),
+            right: unwrap(x[2]),
+            ...unwrap(x[1]),
+        }) },
+    {"name": "expr_others$macrocall$1", "symbols": ["expr_others$macrocall$4"], "postprocess": unwrap},
+    {"name": "expr_others", "symbols": ["expr_others$macrocall$1"]},
+    {"name": "expr_like$macrocall$2$macrocall$2", "symbols": ["ops_like"]},
+    {"name": "expr_like$macrocall$2$macrocall$1", "symbols": ["expr_like$macrocall$2$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_like$macrocall$2", "symbols": ["expr_like$macrocall$2$macrocall$1"]},
     {"name": "expr_like$macrocall$3", "symbols": ["expr_like"]},
     {"name": "expr_like$macrocall$4", "symbols": ["expr_in"]},
     {"name": "expr_like$macrocall$1$subexpression$1", "symbols": ["expr_like$macrocall$3"]},
@@ -845,11 +908,15 @@ const grammar: Grammar = {
             type: 'binary',
             left: unwrap(x[0]),
             right: unwrap(x[2]),
-            op: (flattenStr(x[1]).join(' ') || '<error>').toUpperCase(),
+            ...unwrap(x[1]),
         }) },
     {"name": "expr_like$macrocall$1", "symbols": ["expr_like$macrocall$4"], "postprocess": unwrap},
     {"name": "expr_like", "symbols": ["expr_like$macrocall$1"]},
-    {"name": "expr_in$macrocall$2", "symbols": ["ops_in"]},
+    {"name": "expr_in$macrocall$2$macrocall$2", "symbols": ["ops_in"]},
+    {"name": "expr_in$macrocall$2$macrocall$1", "symbols": ["expr_in$macrocall$2$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_in$macrocall$2", "symbols": ["expr_in$macrocall$2$macrocall$1"]},
     {"name": "expr_in$macrocall$3", "symbols": ["expr_in"]},
     {"name": "expr_in$macrocall$4", "symbols": ["expr_add"]},
     {"name": "expr_in$macrocall$1$subexpression$1", "symbols": ["expr_in$macrocall$3"]},
@@ -860,14 +927,24 @@ const grammar: Grammar = {
             type: 'binary',
             left: unwrap(x[0]),
             right: unwrap(x[2]),
-            op: (flattenStr(x[1]).join(' ') || '<error>').toUpperCase(),
+            ...unwrap(x[1]),
         }) },
     {"name": "expr_in$macrocall$1", "symbols": ["expr_in$macrocall$4"], "postprocess": unwrap},
     {"name": "expr_in", "symbols": ["expr_in$macrocall$1"]},
-    {"name": "expr_add$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_plus") ? {type: "op_plus"} : op_plus)]},
-    {"name": "expr_add$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_minus") ? {type: "op_minus"} : op_minus)]},
-    {"name": "expr_add$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_additive") ? {type: "op_additive"} : op_additive)]},
-    {"name": "expr_add$macrocall$2", "symbols": ["expr_add$macrocall$2$subexpression$1"]},
+    {"name": "expr_add$macrocall$2$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_plus") ? {type: "op_plus"} : op_plus)]},
+    {"name": "expr_add$macrocall$2$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_minus") ? {type: "op_minus"} : op_minus)]},
+    {"name": "expr_add$macrocall$2$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_additive") ? {type: "op_additive"} : op_additive)]},
+    {"name": "expr_add$macrocall$2$macrocall$2", "symbols": ["expr_add$macrocall$2$macrocall$2$subexpression$1"]},
+    {"name": "expr_add$macrocall$2$macrocall$1$macrocall$2", "symbols": ["expr_add$macrocall$2$macrocall$2"]},
+    {"name": "expr_add$macrocall$2$macrocall$1$macrocall$1", "symbols": ["expr_add$macrocall$2$macrocall$1$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_add$macrocall$2$macrocall$1", "symbols": ["expr_add$macrocall$2$macrocall$1$macrocall$1"], "postprocess": unwrap},
+    {"name": "expr_add$macrocall$2$macrocall$1", "symbols": ["kw_operator", "lparen", "ident", "dot", "expr_add$macrocall$2$macrocall$2", "rparen"], "postprocess":  x => track(x, {
+            op:  (toStr(x[4], ' ') || '<error>').toUpperCase(),
+            opSchema: toStr(x[2]),
+        })},
+    {"name": "expr_add$macrocall$2", "symbols": ["expr_add$macrocall$2$macrocall$1"]},
     {"name": "expr_add$macrocall$3", "symbols": ["expr_add"]},
     {"name": "expr_add$macrocall$4", "symbols": ["expr_mult"]},
     {"name": "expr_add$macrocall$1$subexpression$1", "symbols": ["expr_add$macrocall$3"]},
@@ -878,14 +955,24 @@ const grammar: Grammar = {
             type: 'binary',
             left: unwrap(x[0]),
             right: unwrap(x[2]),
-            op: (flattenStr(x[1]).join(' ') || '<error>').toUpperCase(),
+            ...unwrap(x[1]),
         }) },
     {"name": "expr_add$macrocall$1", "symbols": ["expr_add$macrocall$4"], "postprocess": unwrap},
     {"name": "expr_add", "symbols": ["expr_add$macrocall$1"]},
-    {"name": "expr_mult$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("star") ? {type: "star"} : star)]},
-    {"name": "expr_mult$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_div") ? {type: "op_div"} : op_div)]},
-    {"name": "expr_mult$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_mod") ? {type: "op_mod"} : op_mod)]},
-    {"name": "expr_mult$macrocall$2", "symbols": ["expr_mult$macrocall$2$subexpression$1"]},
+    {"name": "expr_mult$macrocall$2$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("star") ? {type: "star"} : star)]},
+    {"name": "expr_mult$macrocall$2$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_div") ? {type: "op_div"} : op_div)]},
+    {"name": "expr_mult$macrocall$2$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_mod") ? {type: "op_mod"} : op_mod)]},
+    {"name": "expr_mult$macrocall$2$macrocall$2", "symbols": ["expr_mult$macrocall$2$macrocall$2$subexpression$1"]},
+    {"name": "expr_mult$macrocall$2$macrocall$1$macrocall$2", "symbols": ["expr_mult$macrocall$2$macrocall$2"]},
+    {"name": "expr_mult$macrocall$2$macrocall$1$macrocall$1", "symbols": ["expr_mult$macrocall$2$macrocall$1$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_mult$macrocall$2$macrocall$1", "symbols": ["expr_mult$macrocall$2$macrocall$1$macrocall$1"], "postprocess": unwrap},
+    {"name": "expr_mult$macrocall$2$macrocall$1", "symbols": ["kw_operator", "lparen", "ident", "dot", "expr_mult$macrocall$2$macrocall$2", "rparen"], "postprocess":  x => track(x, {
+            op:  (toStr(x[4], ' ') || '<error>').toUpperCase(),
+            opSchema: toStr(x[2]),
+        })},
+    {"name": "expr_mult$macrocall$2", "symbols": ["expr_mult$macrocall$2$macrocall$1"]},
     {"name": "expr_mult$macrocall$3", "symbols": ["expr_mult"]},
     {"name": "expr_mult$macrocall$4", "symbols": ["expr_exp"]},
     {"name": "expr_mult$macrocall$1$subexpression$1", "symbols": ["expr_mult$macrocall$3"]},
@@ -896,11 +983,21 @@ const grammar: Grammar = {
             type: 'binary',
             left: unwrap(x[0]),
             right: unwrap(x[2]),
-            op: (flattenStr(x[1]).join(' ') || '<error>').toUpperCase(),
+            ...unwrap(x[1]),
         }) },
     {"name": "expr_mult$macrocall$1", "symbols": ["expr_mult$macrocall$4"], "postprocess": unwrap},
     {"name": "expr_mult", "symbols": ["expr_mult$macrocall$1"]},
-    {"name": "expr_exp$macrocall$2", "symbols": [(lexerAny.has("op_exp") ? {type: "op_exp"} : op_exp)]},
+    {"name": "expr_exp$macrocall$2$macrocall$2", "symbols": [(lexerAny.has("op_exp") ? {type: "op_exp"} : op_exp)]},
+    {"name": "expr_exp$macrocall$2$macrocall$1$macrocall$2", "symbols": ["expr_exp$macrocall$2$macrocall$2"]},
+    {"name": "expr_exp$macrocall$2$macrocall$1$macrocall$1", "symbols": ["expr_exp$macrocall$2$macrocall$1$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_exp$macrocall$2$macrocall$1", "symbols": ["expr_exp$macrocall$2$macrocall$1$macrocall$1"], "postprocess": unwrap},
+    {"name": "expr_exp$macrocall$2$macrocall$1", "symbols": ["kw_operator", "lparen", "ident", "dot", "expr_exp$macrocall$2$macrocall$2", "rparen"], "postprocess":  x => track(x, {
+            op:  (toStr(x[4], ' ') || '<error>').toUpperCase(),
+            opSchema: toStr(x[2]),
+        })},
+    {"name": "expr_exp$macrocall$2", "symbols": ["expr_exp$macrocall$2$macrocall$1"]},
     {"name": "expr_exp$macrocall$3", "symbols": ["expr_exp"]},
     {"name": "expr_exp$macrocall$4", "symbols": ["expr_unary_add"]},
     {"name": "expr_exp$macrocall$1$subexpression$1", "symbols": ["expr_exp$macrocall$3"]},
@@ -911,20 +1008,30 @@ const grammar: Grammar = {
             type: 'binary',
             left: unwrap(x[0]),
             right: unwrap(x[2]),
-            op: (flattenStr(x[1]).join(' ') || '<error>').toUpperCase(),
+            ...unwrap(x[1]),
         }) },
     {"name": "expr_exp$macrocall$1", "symbols": ["expr_exp$macrocall$4"], "postprocess": unwrap},
     {"name": "expr_exp", "symbols": ["expr_exp$macrocall$1"]},
-    {"name": "expr_unary_add$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_plus") ? {type: "op_plus"} : op_plus)]},
-    {"name": "expr_unary_add$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_minus") ? {type: "op_minus"} : op_minus)]},
-    {"name": "expr_unary_add$macrocall$2", "symbols": ["expr_unary_add$macrocall$2$subexpression$1"]},
+    {"name": "expr_unary_add$macrocall$2$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_plus") ? {type: "op_plus"} : op_plus)]},
+    {"name": "expr_unary_add$macrocall$2$macrocall$2$subexpression$1", "symbols": [(lexerAny.has("op_minus") ? {type: "op_minus"} : op_minus)]},
+    {"name": "expr_unary_add$macrocall$2$macrocall$2", "symbols": ["expr_unary_add$macrocall$2$macrocall$2$subexpression$1"]},
+    {"name": "expr_unary_add$macrocall$2$macrocall$1$macrocall$2", "symbols": ["expr_unary_add$macrocall$2$macrocall$2"]},
+    {"name": "expr_unary_add$macrocall$2$macrocall$1$macrocall$1", "symbols": ["expr_unary_add$macrocall$2$macrocall$1$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_unary_add$macrocall$2$macrocall$1", "symbols": ["expr_unary_add$macrocall$2$macrocall$1$macrocall$1"], "postprocess": unwrap},
+    {"name": "expr_unary_add$macrocall$2$macrocall$1", "symbols": ["kw_operator", "lparen", "ident", "dot", "expr_unary_add$macrocall$2$macrocall$2", "rparen"], "postprocess":  x => track(x, {
+            op:  (toStr(x[4], ' ') || '<error>').toUpperCase(),
+            opSchema: toStr(x[2]),
+        })},
+    {"name": "expr_unary_add$macrocall$2", "symbols": ["expr_unary_add$macrocall$2$macrocall$1"]},
     {"name": "expr_unary_add$macrocall$3", "symbols": ["expr_unary_add"]},
     {"name": "expr_unary_add$macrocall$4", "symbols": ["expr_array_index"]},
     {"name": "expr_unary_add$macrocall$1$subexpression$1", "symbols": ["expr_unary_add$macrocall$3"]},
     {"name": "expr_unary_add$macrocall$1$subexpression$1", "symbols": ["expr_paren"]},
     {"name": "expr_unary_add$macrocall$1", "symbols": ["expr_unary_add$macrocall$2", "expr_unary_add$macrocall$1$subexpression$1"], "postprocess":  x => track(x, {
             type: 'unary',
-            op: (flattenStr(x[0]).join(' ') || '<error>').toUpperCase(),
+            ...unwrap(x[0]),
             operand: unwrap(x[1]),
         }) },
     {"name": "expr_unary_add$macrocall$1", "symbols": ["expr_unary_add$macrocall$4"], "postprocess": unwrap},
@@ -987,6 +1094,10 @@ const grammar: Grammar = {
     {"name": "expr_array", "symbols": [(lexerAny.has("kw_array") ? {type: "kw_array"} : kw_array), (lexerAny.has("lbracket") ? {type: "lbracket"} : lbracket), "expr_array$ebnf$1", (lexerAny.has("rbracket") ? {type: "rbracket"} : rbracket)], "postprocess":  x => track(x, {
             type: 'array',
             expressions: x[2] || [],
+        }) },
+    {"name": "expr_array", "symbols": [(lexerAny.has("kw_array") ? {type: "kw_array"} : kw_array), "lparen", "selection", "rparen"], "postprocess":  x => track(x, {
+            type: 'array select',
+            select: unwrap(x[2]),
         }) },
     {"name": "expr_call$ebnf$1", "symbols": ["expr_list_raw"], "postprocess": id},
     {"name": "expr_call$ebnf$1", "symbols": [], "postprocess": () => null},
@@ -1051,10 +1162,8 @@ const grammar: Grammar = {
     {"name": "expr_list_raw_many", "symbols": ["expr_or_select", "expr_list_raw_many$ebnf$1"], "postprocess":  ([head, tail]) => {
             return [unwrap(head), ...(tail || []).map(unwrap)];
         } },
-    {"name": "expr_or_select$subexpression$1", "symbols": ["expr_nostar"]},
-    {"name": "expr_or_select$subexpression$1", "symbols": ["select_statement"]},
-    {"name": "expr_or_select$subexpression$1", "symbols": ["with_statement"]},
-    {"name": "expr_or_select", "symbols": ["expr_or_select$subexpression$1"], "postprocess": unwrap},
+    {"name": "expr_or_select", "symbols": ["expr_nostar"], "postprocess": unwrap},
+    {"name": "expr_or_select", "symbols": ["selection"], "postprocess": unwrap},
     {"name": "expr_list_many", "symbols": ["expr_list_raw_many"], "postprocess":  x => track(x, {
             type: 'list',
             expressions: x[0],
@@ -1471,8 +1580,8 @@ const grammar: Grammar = {
     {"name": "insert_statement$ebnf$3$subexpression$1", "symbols": ["kw_values", "insert_values"], "postprocess": last},
     {"name": "insert_statement$ebnf$3", "symbols": ["insert_statement$ebnf$3$subexpression$1"], "postprocess": id},
     {"name": "insert_statement$ebnf$3", "symbols": [], "postprocess": () => null},
-    {"name": "insert_statement$ebnf$4$subexpression$1", "symbols": ["select_statement"]},
-    {"name": "insert_statement$ebnf$4$subexpression$1", "symbols": ["select_statement_paren"]},
+    {"name": "insert_statement$ebnf$4$subexpression$1", "symbols": ["selection"]},
+    {"name": "insert_statement$ebnf$4$subexpression$1", "symbols": ["selection_paren"]},
     {"name": "insert_statement$ebnf$4", "symbols": ["insert_statement$ebnf$4$subexpression$1"], "postprocess": id},
     {"name": "insert_statement$ebnf$4", "symbols": [], "postprocess": () => null},
     {"name": "insert_statement$ebnf$5$subexpression$1", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_conflict", "insert_on_conflict"], "postprocess": last},
@@ -1818,11 +1927,10 @@ const grammar: Grammar = {
             alias: asName(x[0]),
             statement: unwrap(x[3]),
         }) },
-    {"name": "with_statement_statement", "symbols": ["select_statement"]},
+    {"name": "with_statement_statement", "symbols": ["selection"]},
     {"name": "with_statement_statement", "symbols": ["insert_statement"]},
     {"name": "with_statement_statement", "symbols": ["update_statement"]},
     {"name": "with_statement_statement", "symbols": ["delete_statement"]},
-    {"name": "with_statement_statement", "symbols": ["union_statement"]},
     {"name": "createtype_statement$subexpression$1", "symbols": ["createtype_enum"]},
     {"name": "createtype_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "kw_type", "qualified_name", "createtype_statement$subexpression$1"], "postprocess":  x => track(x, {
             name: x[2],
@@ -1840,13 +1948,16 @@ const grammar: Grammar = {
             values: x[3],
         }) },
     {"name": "enum_value", "symbols": ["string"], "postprocess": x => track(x, {value: toStr(x) })},
-    {"name": "union_item", "symbols": ["select_statement"]},
-    {"name": "union_item", "symbols": ["select_statement_paren"]},
-    {"name": "union_statement$subexpression$1", "symbols": ["union_item"]},
-    {"name": "union_statement$subexpression$1", "symbols": ["union_statement"]},
-    {"name": "union_statement", "symbols": ["union_item", (lexerAny.has("kw_union") ? {type: "kw_union"} : kw_union), "union_statement$subexpression$1"], "postprocess":  x => {
+    {"name": "union_right", "symbols": ["selection"]},
+    {"name": "union_right", "symbols": ["selection_paren"]},
+    {"name": "union_left", "symbols": ["select_statement"]},
+    {"name": "union_left", "symbols": ["selection_paren"]},
+    {"name": "union_statement$subexpression$1$ebnf$1", "symbols": [(lexerAny.has("kw_all") ? {type: "kw_all"} : kw_all)], "postprocess": id},
+    {"name": "union_statement$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "union_statement$subexpression$1", "symbols": [(lexerAny.has("kw_union") ? {type: "kw_union"} : kw_union), "union_statement$subexpression$1$ebnf$1"]},
+    {"name": "union_statement", "symbols": ["union_left", "union_statement$subexpression$1", "union_right"], "postprocess":  x => {
             return track(x, {
-                type: 'union',
+                type: toStr(x[1], ' '),
                 left: unwrap(x[0]),
                 right: unwrap(x[2]),
             });
@@ -1888,7 +1999,7 @@ const grammar: Grammar = {
     {"name": "create_view$ebnf$6$subexpression$1", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with), "create_view$ebnf$6$subexpression$1$subexpression$1", (lexerAny.has("kw_check") ? {type: "kw_check"} : kw_check), "kw_option"], "postprocess": get(1)},
     {"name": "create_view$ebnf$6", "symbols": ["create_view$ebnf$6$subexpression$1"], "postprocess": id},
     {"name": "create_view$ebnf$6", "symbols": [], "postprocess": () => null},
-    {"name": "create_view", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "create_view$ebnf$1", "create_view$ebnf$2", "create_view$ebnf$3", "kw_view", "qualified_name", "create_view$ebnf$4", "create_view$ebnf$5", (lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "select_statement", "create_view$ebnf$6"], "postprocess":  x => {
+    {"name": "create_view", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "create_view$ebnf$1", "create_view$ebnf$2", "create_view$ebnf$3", "kw_view", "qualified_name", "create_view$ebnf$4", "create_view$ebnf$5", (lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "selection", "create_view$ebnf$6"], "postprocess":  x => {
             return track(x, {
                 type: 'create view',
                 ... x[1] && {orReplace: true},
@@ -1932,7 +2043,7 @@ const grammar: Grammar = {
     {"name": "create_materialized_view$ebnf$5$subexpression$1", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with), "create_materialized_view$ebnf$5$subexpression$1$ebnf$1", "kw_data"]},
     {"name": "create_materialized_view$ebnf$5", "symbols": ["create_materialized_view$ebnf$5$subexpression$1"], "postprocess": id},
     {"name": "create_materialized_view$ebnf$5", "symbols": [], "postprocess": () => null},
-    {"name": "create_materialized_view", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "kw_materialized", "kw_view", "create_materialized_view$ebnf$1", "qualified_name", "create_materialized_view$ebnf$2", "create_materialized_view$ebnf$3", "create_materialized_view$ebnf$4", (lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "select_statement", "create_materialized_view$ebnf$5"], "postprocess":  x => {
+    {"name": "create_materialized_view", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "kw_materialized", "kw_view", "create_materialized_view$ebnf$1", "qualified_name", "create_materialized_view$ebnf$2", "create_materialized_view$ebnf$3", "create_materialized_view$ebnf$4", (lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "selection", "create_materialized_view$ebnf$5"], "postprocess":  x => {
             return track(x, {
                 type: 'create materialized view',
                 ... x[3] && {ifNotExists: true},
@@ -2063,7 +2174,7 @@ const grammar: Grammar = {
     {"name": "statement_separator", "symbols": [(lexerAny.has("semicolon") ? {type: "semicolon"} : semicolon)]},
     {"name": "statement", "symbols": ["statement_noprep"]},
     {"name": "statement", "symbols": ["prepare"]},
-    {"name": "statement_noprep", "symbols": ["select_statement"]},
+    {"name": "statement_noprep", "symbols": ["selection"]},
     {"name": "statement_noprep", "symbols": ["createtable_statement"]},
     {"name": "statement_noprep", "symbols": ["createextension_statement"]},
     {"name": "statement_noprep", "symbols": ["createindex_statement"]},
@@ -2076,13 +2187,15 @@ const grammar: Grammar = {
     {"name": "statement_noprep", "symbols": ["alter_sequence_statement"]},
     {"name": "statement_noprep", "symbols": ["drop_statement"]},
     {"name": "statement_noprep", "symbols": ["createtype_statement"]},
-    {"name": "statement_noprep", "symbols": ["with_statement"]},
-    {"name": "statement_noprep", "symbols": ["union_statement"]},
     {"name": "statement_noprep", "symbols": ["create_view_statements"]},
     {"name": "statement_noprep", "symbols": ["create_schema"]},
     {"name": "statement_noprep", "symbols": ["raise_statement"]},
     {"name": "statement_noprep", "symbols": ["comment_statement"]},
-    {"name": "statement_noprep", "symbols": ["functions_statements"]}
+    {"name": "statement_noprep", "symbols": ["functions_statements"]},
+    {"name": "selection", "symbols": ["select_statement"], "postprocess": unwrap},
+    {"name": "selection", "symbols": ["with_statement"], "postprocess": unwrap},
+    {"name": "selection", "symbols": ["union_statement"], "postprocess": unwrap},
+    {"name": "selection_paren", "symbols": ["lparen", "selection", "rparen"], "postprocess": get(1)}
   ],
   ParserStart: "main",
 };
