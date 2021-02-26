@@ -19,7 +19,7 @@ create_view -> %kw_create
                 (lparen array_of[ident] rparen {% get(1) %}):?
                 create_view_opts:?
                 %kw_as
-                select_statement
+                selection
                 (%kw_with (kw_local | kw_cascaded) %kw_check kw_option {% get(1) %}):? {% x => {
                     return track(x, {
                         type: 'create view',
@@ -53,7 +53,7 @@ create_materialized_view -> %kw_create
                 create_view_opts:?
                 (kw_tablespace ident {% last %}):?
                 %kw_as
-                select_statement
+                selection
                 (%kw_with kw_no:? kw_data):? {% x => {
                     return track(x, {
                         type: 'create materialized view',

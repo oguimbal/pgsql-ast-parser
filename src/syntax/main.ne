@@ -41,7 +41,7 @@ statement_separator -> %semicolon
 statement -> statement_noprep | prepare
 
 statement_noprep
-    -> select_statement
+    -> selection
     | createtable_statement
     | createextension_statement
     | createindex_statement
@@ -54,10 +54,15 @@ statement_noprep
     | alter_sequence_statement
     | drop_statement
     | createtype_statement
-    | with_statement
-    | union_statement
     | create_view_statements
     | create_schema
     | raise_statement
     | comment_statement
     | functions_statements
+
+
+selection -> select_statement {% unwrap %}
+            | with_statement {% unwrap %}
+            | union_statement {% unwrap %}
+
+selection_paren -> lparen selection rparen {% get(1) %}

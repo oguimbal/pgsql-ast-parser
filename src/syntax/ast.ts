@@ -603,6 +603,7 @@ export type JoinType = 'INNER JOIN'
 export type Expr = ExprRef
     | ExprParameter
     | ExprList
+    | ExprArrayFromSelect
     | ExprNull
     | ExprExtract
     | ExprInteger
@@ -754,6 +755,11 @@ export interface ExprExtract extends PGNode {
 export interface ExprList extends PGNode {
     type: 'list' | 'array';
     expressions: Expr[];
+}
+
+export interface ExprArrayFromSelect extends PGNode {
+    type: 'array select';
+    select: SelectStatement;
 }
 
 export interface ExprArrayIndex extends PGNode {

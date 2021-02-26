@@ -20,9 +20,7 @@ with_statement_binding -> word %kw_as lparen with_statement_statement rparen {% 
 }) %}
 
 with_statement_statement
-    -> select_statement
+    -> selection
     | insert_statement
     | update_statement
     | delete_statement
-    | union_statement
-    | with_statement

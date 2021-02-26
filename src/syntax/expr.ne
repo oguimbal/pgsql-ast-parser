@@ -142,9 +142,13 @@ expr_basic
                 }) %}
 
 expr_array -> %kw_array %lbracket expr_list_raw:? %rbracket {% x => track(x, {
-    type: 'array',
-    expressions: x[2] || [],
-}) %}
+                type: 'array',
+                expressions: x[2] || [],
+            }) %}
+        | %kw_array lparen selection rparen {% x => track(x, {
+                    type: 'array select',
+                    select: unwrap(x[2]),
+                }) %}
 
 expr_call -> expr_fn_name lparen expr_list_raw:? rparen {% x => track(x, {
         type: 'call',
@@ -193,11 +197,8 @@ expr_list_raw -> (expr_or_select | expr_star) (comma (expr_or_select | expr_star
 expr_list_raw_many -> expr_or_select (comma expr_or_select {% last %}):+ {% ([head, tail]) => {
     return [unwrap(head), ...(tail || []).map(unwrap)];
 } %}
-expr_or_select -> (expr_nostar
-                    | select_statement
-                    | with_statement
-                    | union_statement
-                ) {% unwrap %}
+expr_or_select -> expr_nostar {% unwrap %}
+                | selection {%unwrap%}
 
 expr_list_many -> expr_list_raw_many {% x => track(x, {
     type: 'list',

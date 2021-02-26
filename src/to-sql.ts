@@ -1082,6 +1082,12 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         m.statement(s.statement);
     },
 
+    arraySelect: s => {
+        ret.push('array(');
+        m.select(s.select);
+        ret.push(')');
+    },
+
     union: s => {
         ret.push('(');
         m.statement(s.left);

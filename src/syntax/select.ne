@@ -21,7 +21,6 @@ select_statement
         });
     } %}
 
-select_statement_paren -> lparen (select_statement | union_statement) rparen {% get(1) %}
 
 # FROM [subject] [alias?]
 select_from -> %kw_from select_subject {% last %}
@@ -74,7 +73,7 @@ select_join_op
     | (%kw_full %kw_outer:? {% x => box(x, 'FULL JOIN') %})
 
 # Selects on subselects MUST have an alias
-select_subject_select_statement -> select_statement_paren ident_aliased {% x => track(x, {
+select_subject_select_statement -> selection_paren ident_aliased {% x => track(x, {
     type: 'statement',
     statement: unwrap(x[0]),
     alias: asName(x[1])

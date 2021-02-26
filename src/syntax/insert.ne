@@ -8,7 +8,7 @@ insert_statement -> (kw_insert %kw_into)
                     collist_paren:?
                     (kw_overriding (kw_system | %kw_user) kw_value {% get(1) %}):?
                     (kw_values insert_values {% last %}):?
-                    (select_statement | select_statement_paren):?
+                    (selection | selection_paren):?
                     (%kw_on kw_conflict insert_on_conflict {% last %}):?
                     (%kw_returning select_expr_list_aliased {% last %}):?
                     {% x => {

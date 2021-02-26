@@ -7,8 +7,7 @@ import { SelectedColumn } from './ast';
 
 describe('With clause', () => {
 
-    checkStatement([`WITH sel AS (select v from data)
-        SELECT v from sel`], {
+    checkStatement([`WITH sel AS (select v from data) SELECT v from sel`], {
         type: 'with',
         bind: [
             {
@@ -27,9 +26,7 @@ describe('With clause', () => {
         }
     });
 
-    checkStatement([`WITH sel1 AS (select v from data)
-            , sel2 AS (select v from data)
-        SELECT v from sel`], {
+    checkStatement([`WITH sel1 AS (select v from data) , sel2 AS (select v from data) SELECT v from sel`], {
         type: 'with',
         bind: [
             {
@@ -55,16 +52,14 @@ describe('With clause', () => {
         }
     });
 
-    checkStatement([`WITH sel AS (select v from data)
-                        SELECT * from sel s union (select * from sel);`], {
+    checkStatement([`WITH sel AS (select 1) SELECT * from sel s union (select 2);`], {
         type: 'with',
         bind: [
             {
                 alias: { name: 'sel' },
                 statement: {
                     type: 'select',
-                    from: [{ type: 'table', name: 'data' }],
-                    columns: [{ expr: { type: 'ref', name: 'v' } }],
+                    columns: [{ expr: { type: 'integer', value: 1 } }],
                 }
             }
         ],
@@ -77,8 +72,7 @@ describe('With clause', () => {
             },
             right: {
                 type: 'select',
-                from: [{ type: 'table', name: 'sel' }],
-                columns: [{ expr: { type: 'ref', name: '*' } }],
+                columns: [{ expr: { type: 'integer', value: 2 } }],
             },
         }
     });

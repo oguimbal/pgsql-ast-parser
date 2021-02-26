@@ -1248,6 +1248,15 @@ line`,
                 from: [{ type: 'table', name: 'tb' }],
             }
         });
+
+
+        checkTreeExpr(`array( select 1 )`, {
+            type: 'array select',
+            select: {
+                type: 'select',
+                columns: [{ expr: { type: 'integer', value: 1 } }],
+            },
+        })
     });
 
 
