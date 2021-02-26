@@ -86,6 +86,14 @@ describe('Lexer', () => {
         next({ type: 'word', value: 'name' });
     })
 
+    it('supports edge cases names', () => {
+        lexer.reset(`_Name "_Name" a_b name_`);
+        next({ type: 'word', value: '_name' });
+        next({ type: 'word', value: '"_Name"' });
+        next({ type: 'word', value: 'a_b' });
+        next({ type: 'word', value: 'name_' });
+    })
+
     it('tokenizes additive binaries', () => {
         lexer.reset('2+2');
         next({ type: 'int', value: '2' });

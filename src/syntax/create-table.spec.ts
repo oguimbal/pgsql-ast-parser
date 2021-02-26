@@ -598,4 +598,14 @@ describe('Create table', () => {
             options: [{ verb: 'including', option: 'all' }],
         }],
     })
+
+    checkCreateTable(`create table _example (_id text)`, {
+        type: 'create table',
+        name: { name: '_example', },
+        columns: [{
+            kind: 'column',
+            dataType: { name: 'text' },
+            name: { name: '_id' },
+        }],
+    })
 });
