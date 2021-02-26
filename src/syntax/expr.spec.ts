@@ -541,6 +541,24 @@ line`,
             },
         });
 
+        checkTreeExprLoc(`ARRAY[]::text[]`, {
+            [LOCATION]: { start: 0, end: 15 },
+            type: 'cast',
+            to: {
+                [LOCATION]: { start: 9, end: 15 },
+                kind: 'array',
+                arrayOf: {
+                    [LOCATION]: { start: 9, end: 13 },
+                    name: 'text',
+                }
+            },
+            operand: {
+                [LOCATION]: { start: 0, end: 7 },
+                type: 'array',
+                expressions: []
+            },
+        });
+
         checkTreeExprLoc(`timestamp 'value'`, {
             [LOCATION]: { start: 0, end: 17 },
             type: 'cast',
@@ -703,6 +721,15 @@ line`,
             op: '-',
             operand: { type: 'ref', name: 'a' }
         });
+
+
+        checkTreeExpr('operator(pg_catalog.-) a', {
+            type: 'unary',
+            op: '-',
+            opSchema: 'pg_catalog',
+            operand: { type: 'ref', name: 'a' }
+        });
+
     });
 
 
@@ -810,6 +837,14 @@ line`,
             left: { type: 'ref', name: 'a' },
             right: { type: 'ref', name: 'b' },
         });
+
+        checkTreeExpr(`a operator(pg_catalog.+) b`, {
+            type: 'binary',
+            op: '+',
+            opSchema: 'pg_catalog',
+            left: { type: 'ref', name: 'a' },
+            right: { type: 'ref', name: 'b' },
+        })
     });
 
 

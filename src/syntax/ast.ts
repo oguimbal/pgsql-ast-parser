@@ -662,6 +662,7 @@ export interface ExprBinary extends PGNode {
     left: Expr;
     right: Expr;
     op: BinaryOperator;
+    opSchema?: string;
 }
 
 export interface ExprConstant extends PGNode {
@@ -693,6 +694,7 @@ export interface ExprUnary extends PGNode {
     type: 'unary';
     operand: Expr;
     op: UnaryOperator;
+    opSchema?: string;
 }
 
 export interface ExprRef extends PGNode {

@@ -7,12 +7,26 @@ opt_paren[X]
     -> lparen $X rparen {% x => x[1] %}
     | $X {% ([x]) => x[0] %}
 
+
+op_single[OP]
+        -> $OP {% x => track(x, {
+                            op: (toStr(x, ' ') || '<error>').toUpperCase()
+                        }) %}
+
+op_scopable[OP]
+    -> op_single[$OP] {% unwrap %}
+    | kw_operator lparen ident dot $OP rparen {% x => track(x, {
+                op:  (toStr(x[4], ' ') || '<error>').toUpperCase(),
+                opSchema: toStr(x[2]),
+            })%}
+
+
 expr_binary[KW, This, Next]
     -> ($This | expr_paren) $KW ($Next | expr_paren) {% x => track(x, {
                     type: 'binary',
                     left: unwrap(x[0]),
                     right: unwrap(x[2]),
-                    op: (flattenStr(x[1]).join(' ') || '<error>').toUpperCase(),
+                    ...unwrap(x[1]),
                 }) %}
     | $Next {% unwrap %}
 
@@ -29,7 +43,7 @@ expr_ternary[KW1, KW2, This, Next]
 expr_left_unary[KW, This, Next]
     -> $KW ($This | expr_paren) {% x => track(x, {
                     type: 'unary',
-                    op: (flattenStr(x[0]).join(' ') || '<error>').toUpperCase(),
+                    ...unwrap(x[0]),
                     operand: unwrap(x[1]),
                 }) %}
     | $Next  {% unwrap %}
@@ -42,10 +56,10 @@ expr_left_unary[KW, This, Next]
 expr -> expr_nostar {% unwrap %} | expr_star {% unwrap %}
 expr_nostar -> expr_paren {% unwrap %} | expr_or {% unwrap %}
 expr_paren -> lparen (expr_or_select | expr_list_many) rparen {% get(1) %}
-expr_or -> expr_binary[%kw_or, expr_or, expr_and]
-expr_and -> expr_binary[%kw_and, expr_and, expr_not]
-expr_not -> expr_left_unary[%kw_not, expr_not, expr_eq]
-expr_eq -> expr_binary[(%op_eq | %op_neq), expr_eq, expr_is]
+expr_or -> expr_binary[op_single[%kw_or], expr_or, expr_and]
+expr_and -> expr_binary[op_single[%kw_and], expr_and, expr_not]
+expr_not -> expr_left_unary[op_single[%kw_not], expr_not, expr_eq]
+expr_eq -> expr_binary[op_scopable[(%op_eq | %op_neq)], expr_eq, expr_is]
 
 expr_star -> star  {% x => track(x, { type: 'ref', name: '*' }) %}
 
@@ -62,14 +76,14 @@ expr_is
     | expr_compare {% unwrap %}
 
 
-expr_compare -> expr_binary[%op_compare, expr_compare, expr_range]
+expr_compare -> expr_binary[op_scopable[%op_compare], expr_compare, expr_range]
 expr_range -> expr_ternary[ops_between, %kw_and, expr_range, expr_like]
-expr_like -> expr_binary[ops_like, expr_like, expr_in]
-expr_in -> expr_binary[ops_in, expr_in, expr_add]
-expr_add -> expr_binary[(%op_plus | %op_minus | %op_additive), expr_add, expr_mult]
-expr_mult -> expr_binary[(%star | %op_div | %op_mod),  expr_mult, expr_exp]
-expr_exp -> expr_binary[%op_exp, expr_exp, expr_unary_add]
-expr_unary_add -> expr_left_unary[(%op_plus | %op_minus), expr_unary_add, expr_array_index]
+expr_like -> expr_binary[op_single[ops_like], expr_like, expr_in]
+expr_in -> expr_binary[op_single[ops_in], expr_in, expr_add]
+expr_add -> expr_binary[op_scopable[(%op_plus | %op_minus | %op_additive)], expr_add, expr_mult]
+expr_mult -> expr_binary[op_scopable[(%star | %op_div | %op_mod)],  expr_mult, expr_exp]
+expr_exp -> expr_binary[op_scopable[%op_exp], expr_exp, expr_unary_add]
+expr_unary_add -> expr_left_unary[op_scopable[(%op_plus | %op_minus)], expr_unary_add, expr_array_index]
 
 expr_array_index
     -> (expr_array_index | expr_paren) %lbracket expr_nostar %rbracket {% x => track(x, {

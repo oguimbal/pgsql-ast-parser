@@ -159,6 +159,7 @@ kw_including -> %word {% notReservedKw('including')  %}
 kw_excluding -> %word {% notReservedKw('excluding')  %}
 kw_none -> %word {% notReservedKw('none')  %}
 kw_drop -> %word {% notReservedKw('drop')  %}
+kw_operator -> %word {% notReservedKw('operator')  %}
 kw_minvalue -> %word {% notReservedKw('minvalue')  %}
 kw_maxvalue -> %word {% notReservedKw('maxvalue')  %}
 kw_data -> %word {% notReservedKw('data')  %}
