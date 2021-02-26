@@ -77,7 +77,8 @@ expr_is
 
 
 expr_compare -> expr_binary[op_scopable[%op_compare], expr_compare, expr_range]
-expr_range -> expr_ternary[ops_between, %kw_and, expr_range, expr_like]
+expr_range -> expr_ternary[ops_between, %kw_and, expr_range, expr_others]
+expr_others -> expr_binary[op_scopable[%ops_others], expr_others, expr_like]
 expr_like -> expr_binary[op_single[ops_like], expr_like, expr_in]
 expr_in -> expr_binary[op_single[ops_in], expr_in, expr_add]
 expr_add -> expr_binary[op_scopable[(%op_plus | %op_minus | %op_additive)], expr_add, expr_mult]
