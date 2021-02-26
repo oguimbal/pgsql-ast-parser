@@ -520,7 +520,7 @@ export interface SelectFromStatement extends PGNode {
 }
 
 export interface SelectFromUnion extends PGNode {
-    type: 'union',
+    type: 'union' | 'union all',
     left: SelectStatement;
     right: SelectStatement;
 }

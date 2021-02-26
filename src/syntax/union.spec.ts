@@ -77,4 +77,15 @@ describe('Union statement', () => {
         },
     })
 
+    checkSelect(`SELECT 'a' UNION ALL SELECT 'b'`, {
+        type: 'union all',
+        left: {
+            type: 'select',
+            columns: columns({ type: 'string', value: 'a' }),
+        },
+        right: {
+            type: 'select',
+            columns: columns({ type: 'string', value: 'b' }),
+        },
+    })
 });

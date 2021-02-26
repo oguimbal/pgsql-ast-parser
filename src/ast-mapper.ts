@@ -177,6 +177,7 @@ function withAccepts(val: a.Statement | nil): val is a.WithStatementBinding {
         case 'insert':
         case 'update':
         case 'union':
+        case 'union all':
         case 'with':
             return true;
         default:
@@ -244,6 +245,7 @@ export class AstDefaultMapper implements IAstMapper {
             case 'create enum':
                 return this.createEnum(val);
             case 'union':
+            case 'union all':
                 return this.union(val);
             case 'show':
                 return this.show(val);
@@ -794,6 +796,7 @@ export class AstDefaultMapper implements IAstMapper {
             case 'select':
                 return this.selection(val);
             case 'union':
+            case 'union all':
                 return this.union(val);
             case 'with':
                 return this.with(val);
@@ -980,6 +983,7 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.ternary(val);
             case 'select':
             case 'union':
+            case 'union all':
             case 'with':
                 return this.select(val);
             case 'keyword':

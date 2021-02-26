@@ -1085,8 +1085,8 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     union: s => {
         ret.push('(');
         m.statement(s.left);
-        ret.push(') UNION ');
-        if (s.right.type === 'union') {
+        ret.push(') ', s.type.toUpperCase(), ' ');
+        if (s.right.type === 'union' || s.right.type === 'union all') {
             m.union(s.right);
         } else {
             ret.push('(');
