@@ -94,28 +94,48 @@ describe('Select statements', () => {
         type: 'select',
         from: [{ type: 'table', name: 'test' }],
         columns: columns({ type: 'ref', name: '*' }),
-        limit: { limit: 5 },
+        limit: {
+            limit: { type: 'integer', value: 5 }
+        },
     });
 
     checkSelect(['select * from test limit 0'], {
         type: 'select',
         from: [{ type: 'table', name: 'test' }],
         columns: columns({ type: 'ref', name: '*' }),
-        limit: { limit: 0 },
+        limit: {
+            limit: { type: 'integer', value: 0 }
+        },
     });
 
     checkSelect(['select * from test limit 5 offset 3', 'select * from test offset 3 rows fetch first 5'], {
         type: 'select',
         from: [{ type: 'table', name: 'test' }],
         columns: columns({ type: 'ref', name: '*' }),
-        limit: { limit: 5, offset: 3 },
+        limit: {
+            limit: { type: 'integer', value: 5 }
+            , offset: { type: 'integer', value: 3 },
+        },
+    });
+
+
+    checkSelect(['select * from test limit $1 offset $2'], {
+        type: 'select',
+        from: [{ type: 'table', name: 'test' }],
+        columns: columns({ type: 'ref', name: '*' }),
+        limit: {
+            limit: { type: 'parameter', name: '$1' },
+            offset: { type: 'parameter', name: '$2' },
+        },
     });
 
     checkSelect(['select * from test offset 3', 'select * from test offset 3 rows'], {
         type: 'select',
         from: [{ type: 'table', name: 'test' }],
         columns: columns({ type: 'ref', name: '*' }),
-        limit: { offset: 3 },
+        limit: {
+            offset: { type: 'integer', value: 3 },
+        },
     });
 
 
@@ -123,7 +143,9 @@ describe('Select statements', () => {
         type: 'select',
         from: [{ type: 'table', name: 'test' }],
         columns: columns({ type: 'ref', name: '*' }),
-        limit: { limit: 3 },
+        limit: {
+            limit: { type: 'integer', value: 3 }
+        },
         orderBy: [{
             by: { type: 'ref', name: 'a' },
             order: 'ASC',
@@ -134,7 +156,9 @@ describe('Select statements', () => {
         type: 'select',
         from: [{ type: 'table', name: 'test' }],
         columns: columns({ type: 'ref', name: '*' }),
-        limit: { limit: 3 },
+        limit: {
+            limit: { type: 'integer', value: 3 }
+        },
         orderBy: [{
             by: { type: 'ref', name: 'a' },
         }]

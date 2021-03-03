@@ -1077,13 +1077,16 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
 
         if (s.limit) {
-            if (typeof s.limit.offset === 'number') {
-                ret.push(`OFFSET ${s.limit.offset} `);
-                if (typeof s.limit.limit === 'number') {
-                    ret.push(`FETCH ${s.limit.limit} `);
+            if (s.limit.offset) {
+                ret.push(`OFFSET `);
+                m.expr(s.limit.offset);
+                if (s.limit.limit) {
+                    ret.push(`FETCH `);
+                    m.expr(s.limit.limit);
                 }
-            } else if (typeof s.limit.limit === 'number') {
-                ret.push(`LIMIT ${s.limit.limit} `);
+            } else if (s.limit.limit) {
+                ret.push(`LIMIT `);
+                m.expr(s.limit.limit);
             }
         }
     },

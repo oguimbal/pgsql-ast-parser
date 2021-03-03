@@ -531,8 +531,8 @@ export interface OrderByStatement extends PGNode {
 }
 
 export interface LimitStatement extends PGNode {
-    limit?: number;
-    offset?: number;
+    limit?: Expr | nil;
+    offset?: Expr | nil;
 }
 
 

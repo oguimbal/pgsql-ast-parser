@@ -116,22 +116,22 @@ select_groupby -> %kw_group kw_by expr_list_raw {% last %}
 # [ LIMIT { count | ALL } ]
 # [ OFFSET start [ ROW | ROWS ] ]
 # [ FETCH { FIRST | NEXT } [ count ] { ROW | ROWS } ONLY ]
-select_limit -> (%kw_limit int {%last%}):?
-                (%kw_offset int (kw_row | kw_rows):? {% get(1) %}):?
-                (%kw_fetch (kw_first | kw_next):? int (kw_row | kw_rows):? {% get(2) %}):?
+select_limit -> (%kw_limit expr_nostar {%last%}):?
+                (%kw_offset expr_nostar (kw_row | kw_rows):? {% get(1) %}):?
+                (%kw_fetch (kw_first | kw_next):? expr_nostar (kw_row | kw_rows):? {% get(2) %}):?
                 {% (x, _, rej) => {
                     const limit1 = unbox(x[0]);
                     const offset = unbox(x[1]);
                     const limit2 = unbox(x[2]);
-                    if (typeof limit1 === 'number' && typeof limit2 === 'number') {
+                    if (limit1 && limit2) {
                         return rej;
                     }
-                    if (typeof limit1 !== 'number' && typeof limit2 !== 'number' && typeof offset !== 'number') {
+                    if (!limit1 && !limit2  && !offset) {
                         return null;
                     }
-                    const limit = typeof limit1 === 'number' ? limit1 : limit2;
+                    const limit = limit1 || limit2;
                     return track(x, {
-                        ...typeof limit === 'number' ? {limit}: {},
+                        ...limit ? {limit}: {},
                         ...offset ? {offset} : {},
                     });
                 }%}

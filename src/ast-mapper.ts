@@ -126,6 +126,9 @@ type PartialNil<T> = {
  * Will return the original object if not.
  */
 export function assignChanged<T>(orig: T, assign: PartialNil<T>): T {
+    if (!orig) {
+        return orig;
+    }
     let changed = false;
     for (const k of Object.keys(assign)) {
         if ((orig as any)[k] !== (assign as any)[k]) {
@@ -812,6 +815,10 @@ export class AstDefaultMapper implements IAstMapper {
         const where = val.where && this.expr(val.where);
         const groupBy = arrayNilMap(val.groupBy, c => this.expr(c));
         const orderBy = this.orderBy(val.orderBy);
+        const limit = assignChanged(val.limit, {
+            limit: this.expr(val.limit?.limit),
+            offset: this.expr(val.limit?.offset),
+        });
 
         return assignChanged(val, {
             from,
@@ -819,6 +826,7 @@ export class AstDefaultMapper implements IAstMapper {
             where,
             groupBy,
             orderBy,
+            limit,
         });
     }
 
