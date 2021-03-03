@@ -186,6 +186,12 @@ line`,
             name: 'b',
         });
 
+        checkTreeExpr('a.b.c', {
+            type: 'ref',
+            table: { name: 'b', schema: 'a' },
+            name: 'c',
+        });
+
         checkTreeExpr([`a->>'b'`], {
             type: 'member',
             op: '->>',

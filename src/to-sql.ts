@@ -1,6 +1,6 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor';
-import { NotSupported, nil, ReplaceReturnType } from './utils';
+import { NotSupported, nil, ReplaceReturnType, NoExtraProperties } from './utils';
 import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn, Name, OrderByStatement } from './syntax/ast';
 import { literal } from './pg-escape';
 
@@ -10,7 +10,7 @@ export type IAstToSql = { readonly [key in keyof IAstPartialMapper]-?: ReplaceRe
 
 
 let ret: string[] = [];
-function name(nm: Name) {
+function name<T extends Name>(nm: NoExtraProperties<Name, T>) {
     return '"' + nm.name + '"';
 }
 function ident(nm: string) {
@@ -952,7 +952,8 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     ref: r => {
         if (r.table) {
-            ret.push(name(r.table), '.');
+            visitQualifiedName(r.table);
+            ret.push('.');
         }
         ret.push(r.name === '*' ? '*' : ident(r.name));
     },
@@ -1145,10 +1146,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     statement: s => m.super().statement(s),
 
     tableRef: r => {
-        if (r.schema) {
-            ret.push(ident(r.schema), '.');
-        }
-        ret.push(name(r));
+        visitQualifiedName(r);
         if (r.alias) {
             ret.push(' AS ', ident(r.alias));
         }
