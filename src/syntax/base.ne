@@ -3,12 +3,12 @@
     import {track, box, unbox} from '../lexer';
 
     // usage ex:  replace track(whatever) with debug(track)(whatever)
-    function debug<T>(fn: T): T {
-        fn = fn || (x => x);
+    function debug<T>(fn: any): any {
+        fn = fn || ((x: any) => x);
         return ((x: any, ...args: any[]) => {
             debugger;
             return fn(x, ...args);
-        }) as T;
+        });
     }
 
     function asName(val: any): any {

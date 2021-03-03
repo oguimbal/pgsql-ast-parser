@@ -166,11 +166,11 @@ expr_subarray_items
     # Support ARRAY[expressions]
     -> array_of[expr_list_item] {% x => x[0].map(unwrap) %}
     # Support ARRAY[[expressions]]
-    | array_of[expr_subarray] {% ([x]) => {
-        return x.map(([v]) => {
+    | array_of[expr_subarray] {% (x: any) => {
+        return x[0].map((v: any[]) => {
             return track(v, {
                 type: 'array',
-                expressions: v.map(unwrap),
+                expressions: v[0].map(unwrap),
             })
         })
     } %}
