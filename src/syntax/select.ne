@@ -142,5 +142,5 @@ select_order_by -> (%kw_order kw_by) select_order_by_expr (comma select_order_by
 
 select_order_by_expr -> expr (%kw_asc | %kw_desc):? {% x => track(x, {
     by: x[0],
-    order: toStr(x[1]).toUpperCase() || 'ASC',
+    ...x[1] && {order: toStr(x[1]).toUpperCase()},
 }) %}

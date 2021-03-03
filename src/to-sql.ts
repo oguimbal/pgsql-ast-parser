@@ -1052,7 +1052,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push('ORDER BY ');
             list(s.orderBy, e => {
                 m.expr(e.by);
-                ret.push(' ', e.order);
+                if (e.order) {
+                    ret.push(' ', e.order);
+                }
             }, false);
             ret.push(' ');
         }

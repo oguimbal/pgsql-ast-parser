@@ -119,7 +119,7 @@ describe('Select statements', () => {
     });
 
 
-    checkSelect(['select * from test order by a asc limit 3', 'select * from test order by a limit 3'], {
+    checkSelect(['select * from test order by a asc limit 3'], {
         type: 'select',
         from: [{ type: 'table', name: 'test' }],
         columns: columns({ type: 'ref', name: '*' }),
@@ -127,6 +127,16 @@ describe('Select statements', () => {
         orderBy: [{
             by: { type: 'ref', name: 'a' },
             order: 'ASC',
+        }]
+    });
+
+    checkSelect(['select * from test order by a limit 3'], {
+        type: 'select',
+        from: [{ type: 'table', name: 'test' }],
+        columns: columns({ type: 'ref', name: '*' }),
+        limit: { limit: 3 },
+        orderBy: [{
+            by: { type: 'ref', name: 'a' },
         }]
     });
 
