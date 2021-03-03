@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper.ts';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor.ts';
-import { NotSupported, nil, ReplaceReturnType } from './utils.ts';
-import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn, Name } from './syntax/ast.ts';
+import { NotSupported, nil, ReplaceReturnType, NoExtraProperties } from './utils.ts';
+import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn, Name, OrderByStatement } from './syntax/ast.ts';
 import { literal } from './pg-escape.ts';
 
 
@@ -10,7 +10,7 @@ export type IAstToSql = { readonly [key in keyof IAstPartialMapper]-?: ReplaceRe
 
 
 let ret: string[] = [];
-function name(nm: Name) {
+function name<T extends Name>(nm: NoExtraProperties<Name, T>) {
     return '"' + nm.name + '"';
 }
 function ident(nm: string) {
@@ -88,6 +88,16 @@ function visitQualifiedName(cs: QName) {
         ret.push(ident(cs.schema), '.');
     }
     ret.push(ident(cs.name), ' ');
+}
+
+function visitOrderBy(m: IAstVisitor, orderBy: OrderByStatement[]) {
+    ret.push('ORDER BY ');
+    list(orderBy, e => {
+        m.expr(e.by);
+        if (e.order) {
+            ret.push(' ', e.order);
+        }
+    }, false);
 }
 
 function visitSetVal(set: SetGlobalValue) {
@@ -364,7 +374,20 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     call: v => {
         visitQualifiedName(v.function);
-        list(v.args, e => m.expr(e), true);
+        ret.push('(');
+        if (v.distinct) {
+            ret.push(v.distinct, ' ');
+        }
+        list(v.args, e => m.expr(e), false);
+        if (v.orderBy) {
+            visitOrderBy(m, v.orderBy);
+        }
+        ret.push(') ');
+        if (v.filter) {
+            ret.push('filter (where ');
+            m.expr(v.filter);
+            ret.push(') ');
+        }
     },
 
     case: c => {
@@ -929,7 +952,8 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     ref: r => {
         if (r.table) {
-            ret.push(name(r.table), '.');
+            visitQualifiedName(r.table);
+            ret.push('.');
         }
         ret.push(r.name === '*' ? '*' : ident(r.name));
     },
@@ -1049,22 +1073,21 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
 
         if (s.orderBy) {
-            ret.push('ORDER BY ');
-            list(s.orderBy, e => {
-                m.expr(e.by);
-                ret.push(' ', e.order);
-            }, false);
+            visitOrderBy(m, s.orderBy);
             ret.push(' ');
         }
 
         if (s.limit) {
-            if (typeof s.limit.offset === 'number') {
-                ret.push(`OFFSET ${s.limit.offset} `);
-                if (typeof s.limit.limit === 'number') {
-                    ret.push(`FETCH ${s.limit.limit} `);
+            if (s.limit.offset) {
+                ret.push(`OFFSET `);
+                m.expr(s.limit.offset);
+                if (s.limit.limit) {
+                    ret.push(`FETCH `);
+                    m.expr(s.limit.limit);
                 }
-            } else if (typeof s.limit.limit === 'number') {
-                ret.push(`LIMIT ${s.limit.limit} `);
+            } else if (s.limit.limit) {
+                ret.push(`LIMIT `);
+                m.expr(s.limit.limit);
             }
         }
     },
@@ -1123,10 +1146,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     statement: s => m.super().statement(s),
 
     tableRef: r => {
-        if (r.schema) {
-            ret.push(ident(r.schema), '.');
-        }
-        ret.push(name(r));
+        visitQualifiedName(r);
         if (r.alias) {
             ret.push(' AS ', ident(r.alias));
         }

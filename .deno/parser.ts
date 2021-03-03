@@ -1,4 +1,4 @@
-import { Statement, Expr, LOCATION, QName, GeometricLiteral, Point, Line, Segment, Box, Path, Polygon, Circle, Interval, PGComment } from './syntax/ast.ts';
+import { Statement, Expr, QName, GeometricLiteral, Point, Line, Segment, Box, Path, Polygon, Circle, Interval, PGComment } from './syntax/ast.ts';
 import { Parser, Grammar } from 'https://deno.land/x/nearley@2.19.7-deno/mod.ts';
 import sqlGrammar from './syntax/main.ne.ts';
 import arrayGrammar from './literal-syntaxes/array.ne.ts';

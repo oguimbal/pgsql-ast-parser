@@ -1,10 +1,8 @@
 // import { IType } from '../../interfaces';
 import { nil } from '../utils.ts';
 
-export const LOCATION = Symbol('_location_');
-
-export function locationOf(node: PGNode): StatementLocation {
-    const n = node[LOCATION];
+export function locationOf(node: PGNode): NodeLocation {
+    const n = node._location;
     if (!n) {
         throw new Error('This statement has not been parsed using location tracking (which has a small performance hit). ')
     }
@@ -44,7 +42,7 @@ export type Statement = SelectStatement
     | StartTransactionStatement;
 
 export interface PGNode {
-    [LOCATION]?: StatementLocation;
+    _location?: NodeLocation;
 }
 
 export interface PGComment extends PGNode {
@@ -170,7 +168,7 @@ export interface DropIndexStatement extends PGNode {
     concurrently?: boolean;
 }
 
-export interface StatementLocation {
+export interface NodeLocation {
     /** Location of the last ";" prior to this statement */
     start: number;
     /** Location of the first ";" after this statement (if any) */
@@ -527,12 +525,12 @@ export interface SelectFromUnion extends PGNode {
 
 export interface OrderByStatement extends PGNode {
     by: Expr;
-    order: 'ASC' | 'DESC';
+    order?: 'ASC' | 'DESC' | nil;
 }
 
 export interface LimitStatement extends PGNode {
-    limit?: number;
-    offset?: number;
+    limit?: Expr | nil;
+    offset?: Expr | nil;
 }
 
 
@@ -651,7 +649,7 @@ export type LogicOperator = 'OR' | 'AND';
 export type EqualityOperator = 'IN' | 'NOT IN' | 'LIKE' | 'NOT LIKE' | 'ILIKE' | 'NOT ILIKE' | '=' | '!=';
 // see https://www.postgresql.org/docs/12/functions-math.html
 export type MathOpsBinary = '|' | '&' | '>>' | '^' | '#' | '<<' | '>>';
-export type ComparisonOperator = '>' | '>=' | '<' | '<=' | '@>' | '<@' | '?' | '?|' | '?&' | '#>>';
+export type ComparisonOperator = '>' | '>=' | '<' | '<=' | '@>' | '<@' | '?' | '?|' | '?&' | '#>>' | '~';
 export type AdditiveOperator = '||' | '-' | '#-' | '&&' | '+';
 export type MultiplicativeOperator = '*' | '%' | '/';
 export type BinaryOperator = LogicOperator
@@ -742,7 +740,14 @@ export interface ExprCall extends PGNode {
     type: 'call';
     /** Function name */
     function: QName;
+    /** Arguments list */
     args: Expr[];
+    /** [AGGREGATION FUNCTIONS] Distinct clause specified ? */
+    distinct?: 'all' | 'distinct';
+    /** [AGGREGATION FUNCTIONS] Inner order by clause */
+    orderBy?: OrderByStatement[] | nil;
+    /** [AGGREGATION FUNCTIONS] Filter clause */
+    filter?: Expr | nil;
 }
 
 
