@@ -1,10 +1,8 @@
 // import { IType } from '../../interfaces';
 import { nil } from '../utils';
 
-export const LOCATION = Symbol('_location_');
-
-export function locationOf(node: PGNode): StatementLocation {
-    const n = node[LOCATION];
+export function locationOf(node: PGNode): NodeLocation {
+    const n = node._location;
     if (!n) {
         throw new Error('This statement has not been parsed using location tracking (which has a small performance hit). ')
     }
@@ -44,7 +42,7 @@ export type Statement = SelectStatement
     | StartTransactionStatement;
 
 export interface PGNode {
-    [LOCATION]?: StatementLocation;
+    _location?: NodeLocation;
 }
 
 export interface PGComment extends PGNode {
@@ -170,7 +168,7 @@ export interface DropIndexStatement extends PGNode {
     concurrently?: boolean;
 }
 
-export interface StatementLocation {
+export interface NodeLocation {
     /** Location of the last ";" prior to this statement */
     start: number;
     /** Location of the first ";" after this statement (if any) */

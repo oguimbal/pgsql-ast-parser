@@ -1,4 +1,4 @@
-import { Statement, Expr, LOCATION, QName, GeometricLiteral, Point, Line, Segment, Box, Path, Polygon, Circle, Interval, PGComment } from './syntax/ast';
+import { Statement, Expr, QName, GeometricLiteral, Point, Line, Segment, Box, Path, Polygon, Circle, Interval, PGComment } from './syntax/ast';
 import { Parser, Grammar } from 'nearley';
 import sqlGrammar from './syntax/main.ne';
 import arrayGrammar from './literal-syntaxes/array.ne';

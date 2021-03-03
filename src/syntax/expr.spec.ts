@@ -1,7 +1,7 @@
 import 'mocha';
 import 'chai';
 import { checkTreeExpr, checkInvalidExpr, checkInvalid, checkTreeExprLoc, starCol, star, col, ref } from './spec-utils';
-import { LOCATION } from './ast';
+
 
 
 describe('Expressions', () => {
@@ -32,7 +32,7 @@ describe('Expressions', () => {
         });
 
         checkTreeExprLoc(['(42)'], {
-            [LOCATION]: { start: 1, end: 3 },
+            _location: { start: 1, end: 3 },
             type: 'integer',
             value: 42,
         });
@@ -57,7 +57,7 @@ describe('Expressions', () => {
         checkInvalidExpr('42.-51');
 
         checkTreeExprLoc(['null'], {
-            [LOCATION]: { start: 0, end: 4 },
+            _location: { start: 0, end: 4 },
             type: 'null',
         });
 
@@ -67,7 +67,7 @@ describe('Expressions', () => {
         });
 
         checkTreeExprLoc(['(true)'], {
-            [LOCATION]: { start: 1, end: 5 },
+            _location: { start: 1, end: 5 },
             type: 'boolean',
             value: true,
         });
@@ -79,13 +79,13 @@ describe('Expressions', () => {
 
 
         checkTreeExprLoc(['(false)'], {
-            [LOCATION]: { start: 1, end: 6 },
+            _location: { start: 1, end: 6 },
             type: 'boolean',
             value: false,
         });
 
         checkTreeExprLoc([`'test'`], {
-            [LOCATION]: { start: 0, end: 6 },
+            _location: { start: 0, end: 6 },
             type: 'string',
             value: 'test',
         });
@@ -204,12 +204,12 @@ line`,
 
 
         checkTreeExprLoc([`a ->> 'b'`], {
-            [LOCATION]: { start: 0, end: 9 },
+            _location: { start: 0, end: 9 },
             type: 'member',
             op: '->>',
             member: 'b',
             operand: {
-                [LOCATION]: { start: 0, end: 1 },
+                _location: { start: 0, end: 1 },
                 type: 'ref',
                 name: 'a',
             }
@@ -259,22 +259,22 @@ line`,
         });
 
         checkTreeExprLoc(`ARRAY[1, '2']`, {
-            [LOCATION]: { start: 0, end: 13 },
+            _location: { start: 0, end: 13 },
             type: 'array',
             expressions: [
                 {
-                    [LOCATION]: { start: 6, end: 7 },
+                    _location: { start: 6, end: 7 },
                     type: 'integer', value: 1,
                 },
                 {
-                    [LOCATION]: { start: 9, end: 12 },
+                    _location: { start: 9, end: 12 },
                     type: 'string', value: '2'
                 },
             ]
         });
 
         checkTreeExprLoc(`ARRAY[]`, {
-            [LOCATION]: { start: 0, end: 7 },
+            _location: { start: 0, end: 7 },
             type: 'array',
             expressions: [
             ]
@@ -552,20 +552,20 @@ line`,
         });
 
         checkTreeExprLoc('a.b or c', {
-            [LOCATION]: { start: 0, end: 8 },
+            _location: { start: 0, end: 8 },
             type: 'binary',
             op: 'OR',
             left: {
-                [LOCATION]: { start: 0, end: 3 },
+                _location: { start: 0, end: 3 },
                 type: 'ref',
                 table: {
-                    [LOCATION]: { start: 0, end: 1 },
+                    _location: { start: 0, end: 1 },
                     name: 'a'
                 },
                 name: 'b',
             },
             right: {
-                [LOCATION]: { start: 7, end: 8 },
+                _location: { start: 7, end: 8 },
                 type: 'ref',
                 name: 'c'
             },
@@ -596,32 +596,32 @@ line`,
         });
 
         checkTreeExprLoc(`ARRAY[]::text[]`, {
-            [LOCATION]: { start: 0, end: 15 },
+            _location: { start: 0, end: 15 },
             type: 'cast',
             to: {
-                [LOCATION]: { start: 9, end: 15 },
+                _location: { start: 9, end: 15 },
                 kind: 'array',
                 arrayOf: {
-                    [LOCATION]: { start: 9, end: 13 },
+                    _location: { start: 9, end: 13 },
                     name: 'text',
                 }
             },
             operand: {
-                [LOCATION]: { start: 0, end: 7 },
+                _location: { start: 0, end: 7 },
                 type: 'array',
                 expressions: []
             },
         });
 
         checkTreeExprLoc(`timestamp 'value'`, {
-            [LOCATION]: { start: 0, end: 17 },
+            _location: { start: 0, end: 17 },
             type: 'cast',
             to: {
-                [LOCATION]: { start: 0, end: 9 },
+                _location: { start: 0, end: 9 },
                 name: 'timestamp',
             },
             operand: {
-                [LOCATION]: { start: 10, end: 17 },
+                _location: { start: 10, end: 17 },
                 type: 'string',
                 value: 'value',
             },
@@ -684,20 +684,20 @@ line`,
     // ====================================
     describe('Unaries', () => {
         checkTreeExprLoc(['not e and b'], {
-            [LOCATION]: { start: 0, end: 11 },
+            _location: { start: 0, end: 11 },
             type: 'binary',
             op: 'AND',
             left: {
-                [LOCATION]: { start: 0, end: 5 },
+                _location: { start: 0, end: 5 },
                 type: 'unary',
                 op: 'NOT',
                 operand: {
-                    [LOCATION]: { start: 4, end: 5 },
+                    _location: { start: 4, end: 5 },
                     type: 'ref', name: 'e'
                 },
             },
             right: {
-                [LOCATION]: { start: 10, end: 11 },
+                _location: { start: 10, end: 11 },
                 type: 'ref', name: 'b'
             },
         });
@@ -939,19 +939,19 @@ line`,
         });
 
         checkTreeExprLoc(['a between b and 42'], {
-            [LOCATION]: { start: 0, end: 18 },
+            _location: { start: 0, end: 18 },
             type: 'ternary',
             op: 'BETWEEN',
             value: {
-                [LOCATION]: { start: 0, end: 1 },
+                _location: { start: 0, end: 1 },
                 type: 'ref', name: 'a'
             },
             lo: {
-                [LOCATION]: { start: 10, end: 11 },
+                _location: { start: 10, end: 11 },
                 type: 'ref', name: 'b'
             },
             hi: {
-                [LOCATION]: { start: 16, end: 18 },
+                _location: { start: 16, end: 18 },
                 type: 'integer', value: 42
             },
         });
@@ -967,18 +967,18 @@ line`,
 
         // SUBSTRING FROM-FOR
         checkTreeExprLoc(`substring('val' from 2 for 3)`, {
-            [LOCATION]: { start: 0, end: 29 },
+            _location: { start: 0, end: 29 },
             type: 'substring',
             value: {
-                [LOCATION]: { start: 10, end: 15 },
+                _location: { start: 10, end: 15 },
                 type: 'string', value: 'val'
             },
             from: {
-                [LOCATION]: { start: 21, end: 22 },
+                _location: { start: 21, end: 22 },
                 type: 'integer', value: 2,
             },
             for: {
-                [LOCATION]: { start: 27, end: 28 },
+                _location: { start: 27, end: 28 },
                 type: 'integer', value: 3
             },
         });
@@ -1003,18 +1003,18 @@ line`,
             for: { type: 'integer', value: 4 },
         });
         checkTreeExprLoc(`overlay('12345678' placing 'ab' from 2)`, {
-            [LOCATION]: { start: 0, end: 39 },
+            _location: { start: 0, end: 39 },
             type: 'overlay',
             value: {
-                [LOCATION]: { start: 8, end: 18 },
+                _location: { start: 8, end: 18 },
                 type: 'string', value: '12345678'
             },
             placing: {
-                [LOCATION]: { start: 27, end: 31 },
+                _location: { start: 27, end: 31 },
                 type: 'string', value: 'ab'
             },
             from: {
-                [LOCATION]: { start: 37, end: 38 },
+                _location: { start: 37, end: 38 },
                 type: 'integer', value: 2
             },
         });
@@ -1030,19 +1030,19 @@ line`,
     describe('Member access', () => {
 
         checkTreeExprLoc(['a.b[c]'], {
-            [LOCATION]: { start: 0, end: 6 },
+            _location: { start: 0, end: 6 },
             type: 'arrayIndex',
             array: {
-                [LOCATION]: { start: 0, end: 3 },
+                _location: { start: 0, end: 3 },
                 type: 'ref',
                 table: {
-                    [LOCATION]: { start: 0, end: 1 },
+                    _location: { start: 0, end: 1 },
                     name: 'a'
                 },
                 name: 'b',
             },
             index: {
-                [LOCATION]: { start: 4, end: 5 },
+                _location: { start: 4, end: 5 },
                 type: 'ref', name: 'c'
             }
         })
@@ -1085,28 +1085,28 @@ line`,
         });
 
         checkTreeExprLoc('"ab" ( "c" )', {
-            [LOCATION]: { start: 0, end: 12 },
+            _location: { start: 0, end: 12 },
             type: 'call',
             function: {
-                [LOCATION]: { start: 0, end: 4 },
+                _location: { start: 0, end: 4 },
                 name: 'ab'
             },
             args: [{
-                [LOCATION]: { start: 7, end: 10 },
+                _location: { start: 7, end: 10 },
                 type: 'ref',
                 name: 'c'
             }],
         });
 
         checkTreeExprLoc([`any(c)`], {
-            [LOCATION]: { start: 0, end: 6 },
+            _location: { start: 0, end: 6 },
             type: 'call',
             function: {
-                [LOCATION]: { start: 0, end: 3 },
+                _location: { start: 0, end: 3 },
                 name: 'any'
             },
             args: [{
-                [LOCATION]: { start: 4, end: 5 },
+                _location: { start: 4, end: 5 },
                 type: 'ref',
                 name: 'c'
             }],
@@ -1114,29 +1114,29 @@ line`,
 
 
         checkTreeExprLoc([`now()`], {
-            [LOCATION]: { start: 0, end: 5 },
+            _location: { start: 0, end: 5 },
             type: 'call',
             function: {
-                [LOCATION]: { start: 0, end: 3 },
+                _location: { start: 0, end: 3 },
                 name: 'now'
             },
             args: [],
         });
 
         checkTreeExprLoc([`pg_catalog.col_description(23208,4)`], {
-            [LOCATION]: { start: 0, end: 35 },
+            _location: { start: 0, end: 35 },
             type: 'call',
             function: {
-                [LOCATION]: { start: 0, end: 26 },
+                _location: { start: 0, end: 26 },
                 name: 'col_description',
                 schema: 'pg_catalog'
             },
             args: [{
-                [LOCATION]: { start: 27, end: 32 },
+                _location: { start: 27, end: 32 },
                 type: 'integer',
                 value: 23208,
             }, {
-                [LOCATION]: { start: 33, end: 34 },
+                _location: { start: 33, end: 34 },
                 type: 'integer',
                 value: 4,
             }]
@@ -1168,21 +1168,21 @@ line`,
         });
 
         checkTreeExprLoc([`EXTRACT (CENTURY FROM 'value'::TIMESTAMP)`], {
-            [LOCATION]: { start: 0, end: 41 },
+            _location: { start: 0, end: 41 },
             type: 'extract',
             field: {
-                [LOCATION]: { start: 9, end: 16 },
+                _location: { start: 9, end: 16 },
                 name: 'century'
             },
             from: {
-                [LOCATION]: { start: 22, end: 40 },
+                _location: { start: 22, end: 40 },
                 type: 'cast',
                 to: {
-                    [LOCATION]: { start: 31, end: 40 },
+                    _location: { start: 31, end: 40 },
                     name: 'timestamp',
                 },
                 operand: {
-                    [LOCATION]: { start: 22, end: 29 },
+                    _location: { start: 22, end: 29 },
                     type: 'string',
                     value: 'value',
                 },
@@ -1199,21 +1199,21 @@ line`,
 
     describe('Case expression', () => {
         checkTreeExprLoc(['case a when b then 1 end'], {
-            [LOCATION]: { start: 0, end: 24 },
+            _location: { start: 0, end: 24 },
             type: 'case',
             value: {
-                [LOCATION]: { start: 5, end: 6 },
+                _location: { start: 5, end: 6 },
                 type: 'ref', name: 'a'
             },
             whens: [
                 {
-                    [LOCATION]: { start: 7, end: 20 },
+                    _location: { start: 7, end: 20 },
                     when: {
-                        [LOCATION]: { start: 12, end: 13 },
+                        _location: { start: 12, end: 13 },
                         type: 'ref', name: 'b'
                     },
                     value: {
-                        [LOCATION]: { start: 19, end: 20 },
+                        _location: { start: 19, end: 20 },
                         type: 'integer', value: 1
                     }
                 }],
@@ -1225,21 +1225,21 @@ line`,
         });
 
         checkTreeExprLoc(['case when b then 1 else 2 end'], {
-            [LOCATION]: { start: 0, end: 29 },
+            _location: { start: 0, end: 29 },
             type: 'case',
             whens: [{
-                [LOCATION]: { start: 5, end: 18 },
+                _location: { start: 5, end: 18 },
                 when: {
-                    [LOCATION]: { start: 10, end: 11 },
+                    _location: { start: 10, end: 11 },
                     type: 'ref', name: 'b'
                 },
                 value: {
-                    [LOCATION]: { start: 17, end: 18 },
+                    _location: { start: 17, end: 18 },
                     type: 'integer', value: 1
                 }
             }],
             else: {
-                [LOCATION]: { start: 24, end: 25 },
+                _location: { start: 24, end: 25 },
                 type: 'integer', value: 2
             },
         });
@@ -1267,32 +1267,32 @@ line`,
     describe('Selection expressions', () => {
 
         checkTreeExprLoc(['a = any(select * from tbl)'], {
-            [LOCATION]: { start: 0, end: 26 },
+            _location: { start: 0, end: 26 },
             type: 'binary',
             op: '=',
             left: {
-                [LOCATION]: { start: 0, end: 1 },
+                _location: { start: 0, end: 1 },
                 type: 'ref', name: 'a',
             },
             right: {
-                [LOCATION]: { start: 4, end: 26 },
+                _location: { start: 4, end: 26 },
                 type: 'call',
                 function: {
-                    [LOCATION]: { start: 4, end: 7 },
+                    _location: { start: 4, end: 7 },
                     name: 'any'
                 },
                 args: [{
-                    [LOCATION]: { start: 8, end: 25 },
+                    _location: { start: 8, end: 25 },
                     type: 'select',
                     columns: [{
-                        [LOCATION]: { start: 15, end: 16 },
+                        _location: { start: 15, end: 16 },
                         expr: {
-                            [LOCATION]: { start: 15, end: 16 },
+                            _location: { start: 15, end: 16 },
                             type: 'ref', name: '*'
                         }
                     }],
                     from: [{
-                        [LOCATION]: { start: 22, end: 25 },
+                        _location: { start: 22, end: 25 },
                         type: 'table', name: 'tbl'
                     }],
                 }]
@@ -1416,36 +1416,36 @@ line`,
 
     describe('Value keywords', () => {
         checkTreeExprLoc(['LOCALTIMESTAMP'], {
-            [LOCATION]: { start: 0, end: 14 },
+            _location: { start: 0, end: 14 },
             type: 'keyword',
             keyword: 'localtimestamp',
         });
 
         checkTreeExprLoc(['LOCALTIMESTAMP(5)'], {
-            [LOCATION]: { start: 0, end: 14 + 3 },
+            _location: { start: 0, end: 14 + 3 },
             type: 'call',
             function: {
-                [LOCATION]: { start: 0, end: 14 },
+                _location: { start: 0, end: 14 },
                 name: 'localtimestamp',
             },
             args: [{
-                [LOCATION]: { start: 15, end: 16 },
+                _location: { start: 15, end: 16 },
                 type: 'integer',
                 value: 5,
             }],
         });
 
         checkTreeExprLoc(['current_schema'], {
-            [LOCATION]: { start: 0, end: 14 },
+            _location: { start: 0, end: 14 },
             type: 'keyword',
             keyword: 'current_schema',
         });
 
         checkTreeExprLoc(['current_schema()'], {
-            [LOCATION]: { start: 0, end: 14 + 2 },
+            _location: { start: 0, end: 14 + 2 },
             type: 'call',
             function: {
-                [LOCATION]: { start: 0, end: 14 },
+                _location: { start: 0, end: 14 },
                 name: 'current_schema',
             },
             args: [],

@@ -1,11 +1,9 @@
 import 'mocha';
 import 'chai';
 import { checkSelect, checkInvalid, columns, ref } from './spec-utils';
-import { SelectedColumn, Expr, ExprBinary, JoinType, SelectStatement, Statement, LOCATION } from './ast';
+import { JoinType, SelectStatement } from './ast';
 
 describe('Select statements', () => {
-
-
 
     // yea... thats a valid query. Try it oO'
     checkSelect(['select'], {

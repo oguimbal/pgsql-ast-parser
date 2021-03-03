@@ -1,7 +1,7 @@
 import 'mocha';
 import 'chai';
 import { checkInsert, checkInsertLoc } from './spec-utils';
-import { LOCATION } from './ast';
+
 
 describe('Insert', () => {
 
@@ -19,18 +19,18 @@ describe('Insert', () => {
     });
 
     checkInsertLoc([`insert into test(a) values (1)`], {
-        [LOCATION]: { start: 0, end: 29 },
+        _location: { start: 0, end: 29 },
         type: 'insert',
         into: {
-            [LOCATION]: { start: 12, end: 16 },
+            _location: { start: 12, end: 16 },
             name: 'test',
         },
         columns: [{
-            [LOCATION]: { start: 17, end: 18 },
+            _location: { start: 17, end: 18 },
             name: 'a'
         }],
         values: [[{
-            [LOCATION]: { start: 28, end: 29 },
+            _location: { start: 28, end: 29 },
             type: 'integer',
             value: 1,
         },]],

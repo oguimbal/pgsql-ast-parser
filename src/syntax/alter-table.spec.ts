@@ -1,22 +1,22 @@
 import 'mocha';
 import 'chai';
 import { checkAlterTable, checkAlterTableLoc, checkInvalid } from './spec-utils';
-import { LOCATION } from './ast';
+
 
 describe('Alter table', () => {
 
     checkAlterTableLoc(['alter table test rename to newname'], {
-        [LOCATION]: { start: 0, end: 34 },
+        _location: { start: 0, end: 34 },
         type: 'alter table',
         table: {
-            [LOCATION]: { start: 12, end: 16 },
+            _location: { start: 12, end: 16 },
             name: 'test'
         },
         change: {
-            [LOCATION]: { start: 17, end: 34 },
+            _location: { start: 17, end: 34 },
             type: 'rename',
             to: {
-                [LOCATION]: { start: 27, end: 34 },
+                _location: { start: 27, end: 34 },
                 name: 'newname'
             },
         }
@@ -163,32 +163,32 @@ describe('Alter table', () => {
     checkInvalid(`ALTER TABLE tbl ADD CONSTRAINT "cname" check a > 0`);
 
     checkAlterTableLoc(`ALTER TABLE tbl ADD CONSTRAINT "cname" check (a > 0)`, {
-        [LOCATION]: { start: 0, end: 51 },
+        _location: { start: 0, end: 51 },
         type: 'alter table',
         table: {
-            [LOCATION]: { start: 12, end: 15 },
+            _location: { start: 12, end: 15 },
             name: 'tbl'
         },
         change: {
             type: 'add constraint',
-            [LOCATION]: { start: 16, end: 51 },
+            _location: { start: 16, end: 51 },
             constraint: {
-                [LOCATION]: { start: 20, end: 51 },
+                _location: { start: 20, end: 51 },
                 type: 'check',
                 constraintName: {
-                    [LOCATION]: { start: 31, end: 38 },
+                    _location: { start: 31, end: 38 },
                     name: 'cname'
                 },
                 expr: {
-                    [LOCATION]: { start: 46, end: 51 },
+                    _location: { start: 46, end: 51 },
                     type: 'binary',
                     left: {
-                        [LOCATION]: { start: 46, end: 47 },
+                        _location: { start: 46, end: 47 },
                         type: 'ref', name: 'a'
                     },
                     op: '>',
                     right: {
-                        [LOCATION]: { start: 50, end: 51 },
+                        _location: { start: 50, end: 51 },
                         type: 'integer', value: 0
                     },
                 }

@@ -1,7 +1,7 @@
 import 'mocha';
 import 'chai';
-import { checkSelect, checkInvalid, columns } from './spec-utils';
-import { SelectedColumn, Expr, ExprBinary, JoinType, SelectStatement, Statement, LOCATION } from './ast';
+import { checkSelect, columns } from './spec-utils';
+import { SelectedColumn } from './ast';
 
 describe('Union statement', () => {
 

@@ -1,7 +1,7 @@
 import 'mocha';
 import 'chai';
 import { checkCreateIndex, checkCreateIndexLoc, checkInvalid } from './spec-utils';
-import { LOCATION } from './ast';
+
 
 describe('Create index', () => {
 
@@ -98,24 +98,24 @@ describe('Create index', () => {
 
 
     checkCreateIndexLoc(['create index on test((a * 2))'], {
-        [LOCATION]: { start: 0, end: 29 },
+        _location: { start: 0, end: 29 },
         type: 'create index',
         table: {
-            [LOCATION]: { start: 16, end: 20 },
+            _location: { start: 16, end: 20 },
             name: 'test',
         },
         expressions: [{
-            [LOCATION]: { start: 22, end: 27 },
+            _location: { start: 22, end: 27 },
             expression: {
-                [LOCATION]: { start: 22, end: 27 },
+                _location: { start: 22, end: 27 },
                 type: 'binary',
                 op: '*',
                 left: {
-                    [LOCATION]: { start: 22, end: 23 },
+                    _location: { start: 22, end: 23 },
                     type: 'ref', name: 'a'
                 },
                 right: {
-                    [LOCATION]: { start: 26, end: 27 },
+                    _location: { start: 26, end: 27 },
                     type: 'integer', value: 2
                 },
             }

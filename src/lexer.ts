@@ -1,7 +1,6 @@
 import { compile, keywords } from 'moo';
-import { LOCATION, PGComment, StatementLocation } from './syntax/ast';
+import { PGComment, NodeLocation } from './syntax/ast';
 import { sqlKeywords } from './keywords';
-export { LOCATION } from './syntax/ast';
 
 // build keywords
 const keywodsMap: any = {};
@@ -105,7 +104,7 @@ lexer.next = (next => () => {
         }
         if (tok.type === 'commentLine' || tok.type === 'commentFull') {
             comments?.push({
-                [LOCATION]: { start: tok.offset, end: tok.offset + tok.text.length },
+                _location: { start: tok.offset, end: tok.offset + tok.text.length },
                 comment: tok.text,
             })
             continue;
@@ -115,11 +114,11 @@ lexer.next = (next => () => {
 
     if (trackingLoc && tok) {
         const start = tok.offset;
-        const loc: StatementLocation = {
+        const loc: NodeLocation = {
             start,
             end: start + tok.text.length,
         };
-        (tok as any)[LOCATION] = loc;
+        (tok as any)._location = loc;
     }
     return tok;
 })(lexer.next);
@@ -164,13 +163,13 @@ export function track(xs: any, ret: any) {
         return ret;
     }
     if (start === end) {
-        ret[LOCATION] = start;
+        ret._location = start;
     } else {
-        const loc: StatementLocation = {
+        const loc: NodeLocation = {
             start: start.start,
             end: end.end,
         };
-        ret[LOCATION] = loc;
+        ret._location = loc;
     }
 
     return ret;
@@ -194,7 +193,7 @@ export function unbox(value: any): any {
 }
 
 
-function seek(xs: any, start: boolean): StatementLocation | null {
+function seek(xs: any, start: boolean): NodeLocation | null {
     if (!xs) {
         return null;
     }
@@ -211,5 +210,5 @@ function seek(xs: any, start: boolean): StatementLocation | null {
     if (typeof xs !== 'object') {
         return null;
     }
-    return xs[LOCATION];
+    return xs._location;
 }

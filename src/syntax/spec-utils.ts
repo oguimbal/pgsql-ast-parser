@@ -2,7 +2,7 @@ import { Parser, Grammar } from 'nearley';
 import { expect, assert } from 'chai';
 import grammar from '../syntax/main.ne';
 import { trimNullish } from '../utils';
-import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, DropTableStatement, SelectedColumn, Interval, LOCATION } from './ast';
+import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, SelectedColumn, Interval } from './ast';
 import { astMapper, IAstMapper } from '../ast-mapper';
 import { toSql, IAstToSql } from '../to-sql';
 import { parseIntervalLiteral } from '../parser';
@@ -61,7 +61,7 @@ export function checkStatement(value: string | string[], expected: Statement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 
-function locsVisible(val: any): any {
+function hideLocs(val: any): any {
     if (!val) {
         return val;
     }
@@ -69,13 +69,13 @@ function locsVisible(val: any): any {
         return val;
     }
     if (Array.isArray(val)) {
-        return val.map(locsVisible);
+        return val.map(hideLocs);
     }
-    const loc = val[LOCATION];
-    const ret: any = loc ? { LOCATION: loc } : {};
+    const ret = {} as any;
     for (const [k, v] of Object.entries(val)) {
-        ret[k] = locsVisible(v);
+        ret[k] = hideLocs(v);
     }
+    delete ret._location;
     return ret;
 }
 
@@ -107,14 +107,14 @@ function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T,
                     : parsedWithoutTracking;
 
             // check that it is what we expected
-            expect(locsVisible(parsed))
-                .to.deep.equal(locsVisible(expected), 'Parser has not returned the expected AST');
+            expect(parsed)
+                .to.deep.equal(expected, 'Parser has not returned the expected AST');
 
             // check that top-level statements always have at least some kind of basic position
-            assert.exists(parsedWithLocations[LOCATION], 'Top level statements must have a location');
+            assert.exists(parsedWithLocations._location, 'Top level statements must have a location');
 
             // check that it generates the same with/without location tracking
-            expect(parsedWithLocations).to.deep.equal(parsedWithoutTracking, 'Parser did not return the same thing with and without location tracking enabled');
+            expect(hideLocs(parsedWithLocations)).to.deep.equal(hideLocs(parsedWithoutTracking), 'Parser did not return the same thing with and without location tracking enabled');
 
             // check that it is stable through ast modifier
             const modified = mapper(parsed, astMapper(() => ({})));
@@ -152,7 +152,7 @@ function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T,
             }
 
             // ...and check it still produces the same ast.
-            expect(reparsed).to.deep.equal(expected, `⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
+            expect(hideLocs(reparsed)).to.deep.equal(hideLocs(expected), `⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
     SQL  -> AST  -> SQL transformation is not stable !
              => This means that the parser is OK, but you might have forgotten to implement something in to-sql.ts
 ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔  `);

@@ -1,7 +1,7 @@
 @preprocessor typescript
 
 @{%
-import {lexerAny, LOCATION} from '../lexer';
+import {lexerAny} from '../lexer';
 %}
 @lexer lexerAny
 @include "base.ne"
