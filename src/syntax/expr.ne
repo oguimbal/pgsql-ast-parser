@@ -3,6 +3,15 @@
 @include "select.ne"
 
 # === MACROS
+
+array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
+    return [head, ...(tail || [])];
+} %}
+
+array_of_many[EXP] -> $EXP (%comma $EXP {% last %}):+ {% ([head, tail]) => {
+    return [head, ...(tail || [])];
+} %}
+
 opt_paren[X]
     -> lparen $X rparen {% x => x[1] %}
     | $X {% ([x]) => x[0] %}
@@ -141,7 +150,7 @@ expr_basic
                     name: unwrap(x[0]),
                 }) %}
 
-expr_array -> %kw_array %lbracket expr_list_raw:? %rbracket {% x => track(x, {
+expr_array -> %kw_array %lbracket expr_subarray_items:? %rbracket {% x => track(x, {
                 type: 'array',
                 expressions: x[2] || [],
             }) %}
@@ -149,6 +158,22 @@ expr_array -> %kw_array %lbracket expr_list_raw:? %rbracket {% x => track(x, {
                     type: 'array select',
                     select: unwrap(x[2]),
                 }) %}
+
+
+expr_subarray -> %lbracket expr_subarray_items:? %rbracket {% get(1) %}
+
+expr_subarray_items
+    # Support ARRAY[expressions]
+    -> array_of[expr_list_item] {% x => x[0].map(unwrap) %}
+    # Support ARRAY[[expressions]]
+    | array_of[expr_subarray] {% ([x]) => {
+        return x.map(([v]) => {
+            return track(v, {
+                type: 'array',
+                expressions: v.map(unwrap),
+            })
+        })
+    } %}
 
 expr_call -> expr_fn_name lparen expr_list_raw:? rparen {% x => track(x, {
         type: 'call',
@@ -190,13 +215,10 @@ ops_between -> %kw_not:? kw_between # {% x => x[0] ? `${x[0][0].value} ${x[1].va
 ops_member -> (%op_member | %op_membertext) {% x => unwrap(x)?.value %}
 
 # x,y,z
-expr_list_raw -> (expr_or_select | expr_star) (comma (expr_or_select | expr_star) {% last %}):* {% ([head, tail]) => {
-    const u = unwrap(tail) || [];
-    return [unwrap(head), ...(Array.isArray(u) ? u : [u]).map(unwrap)];
-} %}
-expr_list_raw_many -> expr_or_select (comma expr_or_select {% last %}):+ {% ([head, tail]) => {
-    return [unwrap(head), ...(tail || []).map(unwrap)];
-} %}
+expr_list_item -> expr_or_select {% unwrap %} | expr_star {% unwrap %}
+expr_list_raw -> array_of[expr_list_item] {% ([x]) => x.map(unwrap) %}
+expr_list_raw_many -> array_of_many[expr_list_item]  {% ([x]) => x.map(unwrap) %}
+
 expr_or_select -> expr_nostar {% unwrap %}
                 | selection {%unwrap%}
 

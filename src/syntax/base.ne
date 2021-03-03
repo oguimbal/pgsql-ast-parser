@@ -4,8 +4,11 @@
 
     // usage ex:  replace track(whatever) with debug(track)(whatever)
     function debug<T>(fn: T): T {
-        debugger;
-        return fn;
+        fn = fn || (x => x);
+        return ((x: any, ...args: any[]) => {
+            debugger;
+            return fn(x, ...args);
+        }) as T;
     }
 
     function asName(val: any): any {

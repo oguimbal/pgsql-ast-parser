@@ -274,6 +274,54 @@ line`,
             ]
         });
 
+        checkTreeExpr(`ARRAY[['a', 'b']]`, {
+            type: 'array',
+            expressions: [{
+                type: 'array',
+                expressions: [{
+                    type: 'string',
+                    value: 'a',
+                }, {
+                    type: 'string',
+                    value: 'b',
+                }]
+            }]
+        });
+
+
+        checkTreeExpr(`ARRAY[ARRAY['a', 'b']]`, {
+            type: 'array',
+            expressions: [{
+                type: 'array',
+                expressions: [{
+                    type: 'string',
+                    value: 'a',
+                }, {
+                    type: 'string',
+                    value: 'b',
+                }]
+            }]
+        });
+
+        checkTreeExpr(`ARRAY[['a'], ['b']]`, {
+            type: 'array',
+            expressions: [{
+                type: 'array',
+                expressions: [{
+                    type: 'string',
+                    value: 'a',
+                }]
+            }, {
+                type: 'array',
+                expressions: [{
+                    type: 'string',
+                    value: 'b',
+                }]
+            }]
+        })
+
+        checkInvalidExpr(`ARRAY[ARRAY['a'], ['b']]`);
+        checkInvalidExpr(`ARRAY[['a'], ARRAY['b']]`);
 
         checkTreeExpr(`a->>42`, {
             type: 'member',
