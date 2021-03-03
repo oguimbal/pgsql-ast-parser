@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkTreeExpr, checkInvalidExpr, checkInvalid, checkTreeExprLoc } from './spec-utils';
+import { checkTreeExpr, checkInvalidExpr, checkInvalid, checkTreeExprLoc, starCol, star, col, ref } from './spec-utils';
 import { LOCATION } from './ast';
 
 
@@ -1292,7 +1292,7 @@ line`,
             left: { type: 'ref', name: 'a' },
             right: {
                 type: 'select',
-                columns: [{ expr: { type: 'ref', name: '*' } }],
+                columns: [starCol],
                 from: [{ type: 'table', name: 'tb' }],
             }
         });
@@ -1306,6 +1306,98 @@ line`,
             },
         })
     });
+
+
+
+    describe('Aggregation expressions', () => {
+        checkTreeExpr(`count(*)`, {
+            type: 'call',
+            args: [star],
+            function: { name: 'count' },
+        })
+
+        checkTreeExpr(`count(ALL *)`, {
+            type: 'call',
+            args: [star],
+            function: { name: 'count' },
+            distinct: 'all',
+        })
+
+
+        checkTreeExpr(`count(DISTINCT *)`, {
+            type: 'call',
+            args: [star],
+            function: { name: 'count' },
+            distinct: 'distinct',
+        })
+
+
+        checkTreeExpr(`string_agg(distinct a, b)`, {
+            type: 'call',
+            args: [ref('a'), ref('b')],
+            function: { name: 'string_agg' },
+            distinct: 'distinct',
+        })
+
+        checkTreeExpr(`count(distinct (a, b))`, {
+            type: 'call',
+            args: [{
+                type: 'list',
+                expressions: [ref('a'), ref('b')],
+            }],
+            function: { name: 'count' },
+            distinct: 'distinct',
+        });
+
+        checkInvalidExpr(`string_agg(distinct a, distinct  b)`);
+
+
+        checkTreeExpr(`count(DISTINCT a, b)`, {
+            type: 'call',
+            args: [ref('a'), ref('b')],
+            function: { name: 'count' },
+            distinct: 'distinct',
+        })
+
+        checkTreeExpr(`count(*) filter (where val)`, {
+            type: 'call',
+            args: [star],
+            function: { name: 'count' },
+            filter: ref('val'),
+        });
+
+
+        checkTreeExpr(`pg_catalog.count(*) filter (where val)`, {
+            type: 'call',
+            args: [star],
+            function: { name: 'count', schema: 'pg_catalog' },
+            filter: ref('val'),
+        });
+
+        checkInvalidExpr(`count(*) filter where val`);
+
+        checkTreeExpr(`count(a,b order by c) filter (where val)`, {
+            type: 'call',
+            function: { name: 'count' },
+            args: [ref('a'), ref('b')],
+            orderBy: [{ by: ref('c') }],
+            filter: ref('val'),
+        });
+
+        checkTreeExpr(`count(a order by b, c)`, {
+            type: 'call',
+            function: { name: 'count' },
+            args: [ref('a')],
+            orderBy: [{ by: ref('b') }, { by: ref('c') }]
+        });
+
+        checkTreeExpr(`count(c order by o)`, {
+            type: 'call',
+            function: { name: 'count' },
+            args: [ref('c')],
+            orderBy: [{ by: ref('o') }]
+        });
+    })
 
 
     describe('Value keywords', () => {
@@ -1341,16 +1433,6 @@ line`,
             function: {
                 [LOCATION]: { start: 0, end: 14 },
                 name: 'current_schema',
-            },
-            args: [],
-        });
-
-        checkTreeExprLoc(['distinct()'], {
-            [LOCATION]: { start: 0, end: 10 },
-            type: 'call',
-            function: {
-                [LOCATION]: { start: 0, end: 8 },
-                name: 'distinct'
             },
             args: [],
         });

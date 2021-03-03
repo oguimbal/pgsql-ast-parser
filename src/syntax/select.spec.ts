@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkSelect, checkInvalid, columns } from './spec-utils';
+import { checkSelect, checkInvalid, columns, ref } from './spec-utils';
 import { SelectedColumn, Expr, ExprBinary, JoinType, SelectStatement, Statement, LOCATION } from './ast';
 
 describe('Select statements', () => {
@@ -345,11 +345,8 @@ describe('Select statements', () => {
         columns: columns({
             type: 'call',
             function: { name: 'count' },
-            args: [{
-                type: 'call',
-                function: { name: 'distinct' },
-                args: [{ type: 'ref', name: 'userId' }],
-            }],
+            distinct: 'distinct',
+            args: [ref('userId')],
         })
     });
 
@@ -359,14 +356,10 @@ describe('Select statements', () => {
         columns: columns({
             type: 'call',
             function: { name: 'max' },
-            args: [{
-                type: 'call',
-                function: { name: 'distinct' },
-                args: [{ type: 'ref', name: 'userId' }],
-            }],
+            distinct: 'distinct',
+            args: [ref('userId')],
         })
     });
-
 
     checkSelect(['select all a from test'], {
         type: 'select',

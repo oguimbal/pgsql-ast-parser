@@ -811,7 +811,19 @@ export class AstDefaultMapper implements IAstMapper {
         const columns = arrayNilMap(val.columns, c => this.selectionColumn(c));
         const where = val.where && this.expr(val.where);
         const groupBy = arrayNilMap(val.groupBy, c => this.expr(c));
-        const orderBy = arrayNilMap(val.orderBy, c => {
+        const orderBy = this.orderBy(val.orderBy);
+
+        return assignChanged(val, {
+            from,
+            columns,
+            where,
+            groupBy,
+            orderBy,
+        });
+    }
+
+    orderBy(orderBy: a.OrderByStatement[] | null | undefined) {
+        return arrayNilMap(orderBy, c => {
             const by = this.expr(c.by);
             if (!by) {
                 return null;
@@ -823,14 +835,6 @@ export class AstDefaultMapper implements IAstMapper {
                 ...c,
                 by,
             };
-        });
-
-        return assignChanged(val, {
-            from,
-            columns,
-            where,
-            groupBy,
-            orderBy,
         });
     }
 
@@ -1105,8 +1109,12 @@ export class AstDefaultMapper implements IAstMapper {
         if (!args) {
             return null;
         }
+        const orderBy = this.orderBy(val.orderBy);
+        const filter = this.expr(val.filter);
         return assignChanged(val, {
             args,
+            orderBy,
+            filter,
         });
     }
 

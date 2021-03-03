@@ -742,7 +742,14 @@ export interface ExprCall extends PGNode {
     type: 'call';
     /** Function name */
     function: QName;
+    /** Arguments list */
     args: Expr[];
+    /** [AGGREGATION FUNCTIONS] Distinct clause specified ? */
+    distinct?: 'all' | 'distinct';
+    /** [AGGREGATION FUNCTIONS] Inner order by clause */
+    orderBy?: OrderByStatement[] | nil;
+    /** [AGGREGATION FUNCTIONS] Filter clause */
+    filter?: Expr | nil;
 }
 
 

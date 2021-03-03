@@ -175,11 +175,21 @@ expr_subarray_items
         })
     } %}
 
-expr_call -> expr_fn_name lparen expr_list_raw:? rparen {% x => track(x, {
-        type: 'call',
-        function: unwrap(x[0]),
-        args: x[2] || [],
-    }) %}
+expr_call -> expr_fn_name
+            lparen
+                (%kw_all | %kw_distinct):?
+                expr_list_raw:?
+                select_order_by:?
+            rparen
+            (kw_filter lparen %kw_where expr rparen {% get(3) %}):?
+            {% x => track(x, {
+                type: 'call',
+                function: unwrap(x[0]),
+                ...x[2] && {distinct: toStr(x[2])},
+                args: x[3] || [],
+                ...x[4] && {orderBy: x[4]},
+                ...x[6] && {filter: unwrap(x[6])},
+            }) %}
 
 
 # https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-EXTRACT
@@ -251,7 +261,6 @@ expr_fn_name -> ((word %dot):?  word_or_keyword {% x => track(x, {
 
 word_or_keyword
     -> word
-    | %kw_distinct {% x => box(x, 'distinct') %}
     | value_keyword {% x => box(x, toStr(x)) %}
 
 

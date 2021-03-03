@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor';
 import { NotSupported, nil, ReplaceReturnType } from './utils';
-import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn, Name } from './syntax/ast';
+import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn, Name, OrderByStatement } from './syntax/ast';
 import { literal } from './pg-escape';
 
 
@@ -88,6 +88,16 @@ function visitQualifiedName(cs: QName) {
         ret.push(ident(cs.schema), '.');
     }
     ret.push(ident(cs.name), ' ');
+}
+
+function visitOrderBy(m: IAstVisitor, orderBy: OrderByStatement[]) {
+    ret.push('ORDER BY ');
+    list(orderBy, e => {
+        m.expr(e.by);
+        if (e.order) {
+            ret.push(' ', e.order);
+        }
+    }, false);
 }
 
 function visitSetVal(set: SetGlobalValue) {
@@ -364,7 +374,20 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     call: v => {
         visitQualifiedName(v.function);
-        list(v.args, e => m.expr(e), true);
+        ret.push('(');
+        if (v.distinct) {
+            ret.push(v.distinct, ' ');
+        }
+        list(v.args, e => m.expr(e), false);
+        if (v.orderBy) {
+            visitOrderBy(m, v.orderBy);
+        }
+        ret.push(') ');
+        if (v.filter) {
+            ret.push('filter (where ');
+            m.expr(v.filter);
+            ret.push(') ');
+        }
     },
 
     case: c => {
@@ -1049,13 +1072,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
 
         if (s.orderBy) {
-            ret.push('ORDER BY ');
-            list(s.orderBy, e => {
-                m.expr(e.by);
-                if (e.order) {
-                    ret.push(' ', e.order);
-                }
-            }, false);
+            visitOrderBy(m, s.orderBy);
             ret.push(' ');
         }
 
