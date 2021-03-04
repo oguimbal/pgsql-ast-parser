@@ -209,7 +209,7 @@ function join(m: IAstVisitor, j: JoinClause | nil, tbl: () => void) {
     }
     if (j.using) {
         ret.push('USING (');
-        list(j.using, x => m.expr(x), false);
+        list(j.using, x => ret.push(name(x)), false);
         ret.push(') ');
     }
     ret.push(' ');

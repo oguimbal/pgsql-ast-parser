@@ -28,6 +28,7 @@ declare var kw_as: any;
 declare var kw_join: any;
 declare var kw_on: any;
 declare var kw_using: any;
+declare var comma: any;
 declare var kw_inner: any;
 declare var kw_left: any;
 declare var kw_outer: any;
@@ -69,7 +70,6 @@ declare var rbracket: any;
 declare var op_cast: any;
 declare var dot: any;
 declare var kw_array: any;
-declare var comma: any;
 declare var qparam: any;
 declare var kw_like: any;
 declare var kw_ilike: any;
@@ -611,7 +611,14 @@ const grammar: Grammar = {
             }
         }) },
     {"name": "select_table_join_clause", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "expr"], "postprocess": x => track(x, { on: last(x) })},
-    {"name": "select_table_join_clause", "symbols": [(lexerAny.has("kw_using") ? {type: "kw_using"} : kw_using), "lparen", "expr_list_raw", "rparen"], "postprocess": x => track(x, { using: x[2] })},
+    {"name": "select_table_join_clause$macrocall$2", "symbols": ["ident"]},
+    {"name": "select_table_join_clause$macrocall$1$ebnf$1", "symbols": []},
+    {"name": "select_table_join_clause$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("comma") ? {type: "comma"} : comma), "select_table_join_clause$macrocall$2"], "postprocess": last},
+    {"name": "select_table_join_clause$macrocall$1$ebnf$1", "symbols": ["select_table_join_clause$macrocall$1$ebnf$1", "select_table_join_clause$macrocall$1$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "select_table_join_clause$macrocall$1", "symbols": ["select_table_join_clause$macrocall$2", "select_table_join_clause$macrocall$1$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [unwrap(head), ...(tail.map(unwrap) || [])];
+        } },
+    {"name": "select_table_join_clause", "symbols": [(lexerAny.has("kw_using") ? {type: "kw_using"} : kw_using), "lparen", "select_table_join_clause$macrocall$1", "rparen"], "postprocess": x => track(x, { using: x[2].map(asName) })},
     {"name": "select_join_op$subexpression$1$ebnf$1", "symbols": [(lexerAny.has("kw_inner") ? {type: "kw_inner"} : kw_inner)], "postprocess": id},
     {"name": "select_join_op$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_join_op$subexpression$1", "symbols": ["select_join_op$subexpression$1$ebnf$1"], "postprocess": x => box(x, 'INNER JOIN')},
