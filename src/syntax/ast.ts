@@ -591,6 +591,7 @@ export interface FromStatement extends PGNode {
 export interface JoinClause extends PGNode {
     type: JoinType;
     on?: Expr | nil;
+    using?: Expr[] | nil;
 }
 
 export type JoinType = 'INNER JOIN'

@@ -57,13 +57,18 @@ select_table_base
 
 
 select_table_join
-    -> select_join_op %kw_join select_table_base (%kw_on expr {% last %}):? {% x => track(x, {
+    -> select_join_op %kw_join select_table_base select_table_join_clause:? {% x => track(x, {
         ...unwrap(x[2]),
         join: {
             type: toStr(x[0], ' '),
-            on: unwrap(x[3]),
+            ...x[3] && unwrap(x[3]),
         }
     }) %}
+
+select_table_join_clause
+    -> %kw_on expr {% x => track(x, { on: last(x) }) %}
+    | %kw_using lparen expr_list_raw rparen  {% x => track(x, { using: x[2] }) %}
+
 
 # Join expression keywords (ex: INNER JOIN)
 select_join_op

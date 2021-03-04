@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkSelect, checkInvalid, columns, ref } from './spec-utils';
+import { checkSelect, checkInvalid, columns, ref, star } from './spec-utils';
 import { JoinType, SelectStatement } from './ast';
 
 describe('Select statements', () => {
@@ -309,6 +309,28 @@ describe('Select statements', () => {
         , 'select * from ta full outer join tb on ta.id=tb.id']
         , buildJoin('FULL JOIN'));
 
+
+    checkSelect(`SELECT *
+                FROM STUD_ASS_PROGRESS
+                LEFT JOIN ACCURACY
+                USING("studentId")`, {
+        type: 'select',
+        columns: [{ expr: star }],
+        from: [
+            {
+                type: 'table',
+                name: 'stud_ass_progress',
+            },
+            {
+                type: 'table',
+                name: 'accuracy',
+                join: {
+                    type: 'LEFT JOIN',
+                    using: [ref('studentId')],
+                }
+            }
+        ]
+    });
 
     checkSelect(['select current_schema()'], {
         type: 'select',
