@@ -2,6 +2,11 @@
 @include "base.ne"
 @include "expr.ne"
 
+array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
+    return [unwrap(head), ...(tail.map(unwrap) || [])];
+} %}
+
+
 # https://www.postgresql.org/docs/12/sql-select.html
 
 select_statement
@@ -67,7 +72,7 @@ select_table_join
 
 select_table_join_clause
     -> %kw_on expr {% x => track(x, { on: last(x) }) %}
-    | %kw_using lparen expr_list_raw rparen  {% x => track(x, { using: x[2] }) %}
+    | %kw_using lparen array_of[ident] rparen  {% x => track(x, { using: x[2].map(asName) }) %}
 
 
 # Join expression keywords (ex: INNER JOIN)

@@ -929,13 +929,11 @@ export class AstDefaultMapper implements IAstMapper {
 
     join(join: a.JoinClause): a.JoinClause | nil {
         const on = join.on && this.expr(join.on);
-        const using = join.using && arrayNilMap(join.using, u => this.expr(u));
-        if (!on && !using) {
+        if (!on && !join.using) {
             return null;
         }
         return assignChanged(join, {
             on,
-            using,
         });
     }
 

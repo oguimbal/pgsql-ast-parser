@@ -326,7 +326,7 @@ describe('Select statements', () => {
                 name: 'accuracy',
                 join: {
                     type: 'LEFT JOIN',
-                    using: [ref('studentId')],
+                    using: [{ name: 'studentId' }],
                 }
             }
         ]
