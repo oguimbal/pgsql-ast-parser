@@ -196,6 +196,7 @@ kw_cascaded -> %word {% notReservedKw('cascaded')  %}
 kw_option -> %word {% notReservedKw('option')  %}
 kw_materialized -> %word {% notReservedKw('materialized')  %}
 kw_partial -> %word {% notReservedKw('partial')  %}
+kw_partition -> %word {% notReservedKw('partition')  %}
 kw_simple -> %word {% notReservedKw('simple')  %}
 kw_generated -> %word {% notReservedKw('generated')  %}
 kw_always -> %word {% notReservedKw('always')  %}
@@ -204,6 +205,7 @@ kw_name -> %word {% notReservedKw('name')  %}
 kw_enum -> %word {% notReservedKw('enum')  %}
 kw_show -> %word {% notReservedKw('show')  %}
 kw_overriding -> %word {% notReservedKw('overriding')  %}
+kw_over -> %word {% notReservedKw('over')  %}
 kw_system -> %word {% notReservedKw('system')  %}
 kw_comment -> %word {% notReservedKw('comment')  %}
 kw_time -> %word {% notReservedKw('time')  %}

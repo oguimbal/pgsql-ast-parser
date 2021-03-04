@@ -1380,6 +1380,41 @@ line`,
             filter: ref('val'),
         });
 
+        checkTreeExpr(`ROW_NUMBER() OVER (ORDER BY v DESC)`, {
+            type: 'call',
+            args: [],
+            function: { name: 'row_number' },
+            over: {
+                orderBy: [{ by: ref('v'), order: 'DESC' }],
+            }
+        })
+
+        checkTreeExpr(`ROW_NUMBER() OVER (PARTITION BY v)`, {
+            type: 'call',
+            args: [],
+            function: { name: 'row_number' },
+            over: {
+                partitionBy: [ref('v')],
+            }
+        })
+
+        checkTreeExpr(`ROW_NUMBER() OVER ()`, {
+            type: 'call',
+            args: [],
+            function: { name: 'row_number' },
+            over: {
+            }
+        })
+
+        checkTreeExpr(`ROW_NUMBER() OVER (PARTITION BY a ORDER BY b DESC)`, {
+            type: 'call',
+            args: [],
+            function: { name: 'row_number' },
+            over: {
+                partitionBy: [ref('a')],
+                orderBy: [{ by: ref('b'), order: 'DESC' }],
+            }
+        })
 
         checkTreeExpr(`pg_catalog.count(*) filter (where val)`, {
             type: 'call',

@@ -2,6 +2,8 @@
 @include "base.ne"
 @include "select.ne"
 
+# https://www.postgresql.org/docs/13/sql-expressions.html
+
 # === MACROS
 
 array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
@@ -175,6 +177,8 @@ expr_subarray_items
         })
     } %}
 
+
+
 expr_call -> expr_fn_name
             lparen
                 (%kw_all | %kw_distinct):?
@@ -182,6 +186,7 @@ expr_call -> expr_fn_name
                 select_order_by:?
             rparen
             (kw_filter lparen %kw_where expr rparen {% get(3) %}):?
+            expr_call_over:?
             {% x => track(x, {
                 type: 'call',
                 function: unwrap(x[0]),
@@ -189,8 +194,17 @@ expr_call -> expr_fn_name
                 args: x[3] || [],
                 ...x[4] && {orderBy: x[4]},
                 ...x[6] && {filter: unwrap(x[6])},
+                ...x[7] && {over: unwrap(x[7])},
             }) %}
 
+expr_call_over -> kw_over
+            lparen
+                (kw_partition kw_by expr_list_raw {% last %}):?
+                select_order_by:?
+            rparen {% x => track(x, {
+                ...x[2] && { partitionBy: x[2] },
+                ...x[3] && { orderBy: x[3] },
+            }) %}
 
 # https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-EXTRACT
 expr_extract -> (word {% kw('extract') %}) lparen word %kw_from expr rparen {% x => track(x, {

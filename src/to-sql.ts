@@ -388,6 +388,19 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             m.expr(v.filter);
             ret.push(') ');
         }
+        if (v.over) {
+            ret.push('over (');
+            if (v.over.partitionBy) {
+                ret.push('PARTITION BY ');
+                list(v.over.partitionBy, x => m.expr(x), false);
+                ret.push(' ');
+            }
+            if (v.over.orderBy) {
+                visitOrderBy(m, v.over.orderBy);
+                ret.push(' ');
+            }
+            ret.push(') ');
+        }
     },
 
     case: c => {
