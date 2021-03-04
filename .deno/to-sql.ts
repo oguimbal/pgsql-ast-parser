@@ -207,6 +207,11 @@ function join(m: IAstVisitor, j: JoinClause | nil, tbl: () => void) {
         ret.push('ON ')
         m.expr(j.on);
     }
+    if (j.using) {
+        ret.push('USING (');
+        list(j.using, x => m.expr(x), false);
+        ret.push(') ');
+    }
     ret.push(' ');
 }
 
@@ -386,6 +391,19 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (v.filter) {
             ret.push('filter (where ');
             m.expr(v.filter);
+            ret.push(') ');
+        }
+        if (v.over) {
+            ret.push('over (');
+            if (v.over.partitionBy) {
+                ret.push('PARTITION BY ');
+                list(v.over.partitionBy, x => m.expr(x), false);
+                ret.push(' ');
+            }
+            if (v.over.orderBy) {
+                visitOrderBy(m, v.over.orderBy);
+                ret.push(' ');
+            }
             ret.push(') ');
         }
     },

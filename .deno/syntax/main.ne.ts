@@ -27,6 +27,7 @@ declare var kw_from: any;
 declare var kw_as: any;
 declare var kw_join: any;
 declare var kw_on: any;
+declare var kw_using: any;
 declare var kw_inner: any;
 declare var kw_left: any;
 declare var kw_outer: any;
@@ -425,6 +426,7 @@ const grammar: Grammar = {
     {"name": "kw_option", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('option')},
     {"name": "kw_materialized", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('materialized')},
     {"name": "kw_partial", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('partial')},
+    {"name": "kw_partition", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('partition')},
     {"name": "kw_simple", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('simple')},
     {"name": "kw_generated", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('generated')},
     {"name": "kw_always", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('always')},
@@ -433,6 +435,7 @@ const grammar: Grammar = {
     {"name": "kw_enum", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('enum')},
     {"name": "kw_show", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('show')},
     {"name": "kw_overriding", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('overriding')},
+    {"name": "kw_over", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('over')},
     {"name": "kw_system", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('system')},
     {"name": "kw_comment", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('comment')},
     {"name": "kw_time", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('time')},
@@ -598,16 +601,17 @@ const grammar: Grammar = {
                ...x[0],
                alias: asName(x[1]),
            }) },
-    {"name": "select_table_join$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "expr"], "postprocess": last},
-    {"name": "select_table_join$ebnf$1", "symbols": ["select_table_join$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "select_table_join$ebnf$1", "symbols": ["select_table_join_clause"], "postprocess": id},
     {"name": "select_table_join$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_table_join", "symbols": ["select_join_op", (lexerAny.has("kw_join") ? {type: "kw_join"} : kw_join), "select_table_base", "select_table_join$ebnf$1"], "postprocess":  x => track(x, {
             ...unwrap(x[2]),
             join: {
                 type: toStr(x[0], ' '),
-                on: unwrap(x[3]),
+                ...x[3] && unwrap(x[3]),
             }
         }) },
+    {"name": "select_table_join_clause", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "expr"], "postprocess": x => track(x, { on: last(x) })},
+    {"name": "select_table_join_clause", "symbols": [(lexerAny.has("kw_using") ? {type: "kw_using"} : kw_using), "lparen", "expr_list_raw", "rparen"], "postprocess": x => track(x, { using: x[2] })},
     {"name": "select_join_op$subexpression$1$ebnf$1", "symbols": [(lexerAny.has("kw_inner") ? {type: "kw_inner"} : kw_inner)], "postprocess": id},
     {"name": "select_join_op$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_join_op$subexpression$1", "symbols": ["select_join_op$subexpression$1$ebnf$1"], "postprocess": x => box(x, 'INNER JOIN')},
@@ -1141,13 +1145,25 @@ const grammar: Grammar = {
     {"name": "expr_call$ebnf$4$subexpression$1", "symbols": ["kw_filter", "lparen", (lexerAny.has("kw_where") ? {type: "kw_where"} : kw_where), "expr", "rparen"], "postprocess": get(3)},
     {"name": "expr_call$ebnf$4", "symbols": ["expr_call$ebnf$4$subexpression$1"], "postprocess": id},
     {"name": "expr_call$ebnf$4", "symbols": [], "postprocess": () => null},
-    {"name": "expr_call", "symbols": ["expr_fn_name", "lparen", "expr_call$ebnf$1", "expr_call$ebnf$2", "expr_call$ebnf$3", "rparen", "expr_call$ebnf$4"], "postprocess":  x => track(x, {
+    {"name": "expr_call$ebnf$5", "symbols": ["expr_call_over"], "postprocess": id},
+    {"name": "expr_call$ebnf$5", "symbols": [], "postprocess": () => null},
+    {"name": "expr_call", "symbols": ["expr_fn_name", "lparen", "expr_call$ebnf$1", "expr_call$ebnf$2", "expr_call$ebnf$3", "rparen", "expr_call$ebnf$4", "expr_call$ebnf$5"], "postprocess":  x => track(x, {
             type: 'call',
             function: unwrap(x[0]),
             ...x[2] && {distinct: toStr(x[2])},
             args: x[3] || [],
             ...x[4] && {orderBy: x[4]},
             ...x[6] && {filter: unwrap(x[6])},
+            ...x[7] && {over: unwrap(x[7])},
+        }) },
+    {"name": "expr_call_over$ebnf$1$subexpression$1", "symbols": ["kw_partition", "kw_by", "expr_list_raw"], "postprocess": last},
+    {"name": "expr_call_over$ebnf$1", "symbols": ["expr_call_over$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "expr_call_over$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "expr_call_over$ebnf$2", "symbols": ["select_order_by"], "postprocess": id},
+    {"name": "expr_call_over$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "expr_call_over", "symbols": ["kw_over", "lparen", "expr_call_over$ebnf$1", "expr_call_over$ebnf$2", "rparen"], "postprocess":  x => track(x, {
+            ...x[2] && { partitionBy: x[2] },
+            ...x[3] && { orderBy: x[3] },
         }) },
     {"name": "expr_extract$subexpression$1", "symbols": ["word"], "postprocess": kw('extract')},
     {"name": "expr_extract", "symbols": ["expr_extract$subexpression$1", "lparen", "word", (lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "expr", "rparen"], "postprocess":  x => track(x, {

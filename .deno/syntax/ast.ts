@@ -591,6 +591,7 @@ export interface FromStatement extends PGNode {
 export interface JoinClause extends PGNode {
     type: JoinType;
     on?: Expr | nil;
+    using?: Expr[] | nil;
 }
 
 export type JoinType = 'INNER JOIN'
@@ -736,6 +737,12 @@ export type ValueKeyword = 'current_catalog'
     | 'current_user'
     | 'distinct';
 
+
+/**
+ * Function calls.
+ *
+ * For aggregation functions, see https://www.postgresql.org/docs/13/sql-expressions.html#SYNTAX-AGGREGATES
+ */
 export interface ExprCall extends PGNode {
     type: 'call';
     /** Function name */
@@ -748,6 +755,13 @@ export interface ExprCall extends PGNode {
     orderBy?: OrderByStatement[] | nil;
     /** [AGGREGATION FUNCTIONS] Filter clause */
     filter?: Expr | nil;
+    /** [AGGREGATION FUNCTIONS] OVER clause */
+    over?: CallOver | nil;
+}
+
+export interface CallOver extends PGNode {
+    orderBy?: OrderByStatement[] | nil;
+    partitionBy?: Expr[] | nil;
 }
 
 
