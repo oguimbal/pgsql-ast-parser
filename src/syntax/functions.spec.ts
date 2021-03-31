@@ -2,6 +2,8 @@ import 'mocha';
 import 'chai';
 import { checkStatement } from './spec-utils';
 import { CreateFunctionStatement } from './ast';
+import { parse } from '../parser';
+import { expect } from 'chai';
 
 describe('Create function', () => {
 
@@ -150,5 +152,12 @@ $$ VOLATILE LANGUAGE plpgsql`, {
         type: 'do',
         language: { name: 'js' },
         code: ' something ',
+    });
+
+
+    it ('is not greedy', () => {
+        const parsed = parse(`create function foo() returns text as $$ select 'hi'; $$ language sql;
+                create function bar() returns text as $$ select 'there'; $$ language sql;`);
+        expect(parsed.length).to.equal(2);
     });
 });
