@@ -1,6 +1,8 @@
 import 'mocha';
 import 'chai';
 import { checkTreeExpr, checkInvalidExpr, checkInvalid, checkTreeExprLoc, starCol, star, col, ref } from './spec-utils';
+import { toSql } from '../to-sql';
+import { expect } from 'chai';
 
 
 
@@ -885,6 +887,24 @@ line`,
                 ]
             },
         });
+
+        it('does not wrap list expressions in parenthesis', () => {
+            const generated = toSql.expr({
+                type: 'binary',
+                op: 'IN',
+                left: { type: 'ref', name: 'a' },
+                right: {
+                    type: 'list',
+                    expressions: [
+                        { type: 'ref', name: 'a' },
+                        { type: 'ref', name: 'b' },
+                        { type: 'ref', name: 'c' },
+                    ]
+                },
+            });
+
+            expect(generated).to.equal('("a" IN ("a", "b", "c"))');
+        })
 
         checkTreeExpr(['a in (b)', 'a in ( b )'], {
             type: 'binary',
