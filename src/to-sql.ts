@@ -336,6 +336,12 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             m.ref(e);
             return;
         }
+        // lists can become incorrect with an additional set of parentheses
+        if (e.type === 'list') {
+            m.super().expr(e);
+            return;
+        }
+
         // this forces to respect precedence
         // (however, it will introduce lots of unecessary parenthesis)
         ret.push('(');
