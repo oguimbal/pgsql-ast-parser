@@ -139,6 +139,9 @@ declare var comma: any;
 declare var kw_table: any;
 declare var kw_is: any;
 declare var kw_column: any;
+declare var kw_only: any;
+declare var kw_not: any;
+declare var kw_deferrable: any;
 declare var kw_into: any;
 declare var kw_user: any;
 declare var kw_on: any;
@@ -374,6 +377,12 @@ const grammar: Grammar = {
     {"name": "kw_commit", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('commit')},
     {"name": "kw_tablespace", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('tablespace')},
     {"name": "kw_transaction", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('transaction')},
+    {"name": "kw_work", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('work')},
+    {"name": "kw_read", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('read')},
+    {"name": "kw_write", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('write')},
+    {"name": "kw_isolation", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('isolation')},
+    {"name": "kw_level", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('level')},
+    {"name": "kw_serializable", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('serializable')},
     {"name": "kw_rollback", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('rollback')},
     {"name": "kw_insert", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('insert')},
     {"name": "kw_value", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('value')},
@@ -1528,8 +1537,8 @@ const grammar: Grammar = {
     {"name": "simplestatements_all", "symbols": ["simplestatements_tablespace"]},
     {"name": "simplestatements_all", "symbols": ["simplestatements_set"]},
     {"name": "simplestatements_all", "symbols": ["simplestatements_show"]},
+    {"name": "simplestatements_all", "symbols": ["simplestatements_begin"]},
     {"name": "simplestatements_start_transaction$subexpression$1", "symbols": ["kw_start", "kw_transaction"]},
-    {"name": "simplestatements_start_transaction$subexpression$1", "symbols": ["kw_begin"]},
     {"name": "simplestatements_start_transaction", "symbols": ["simplestatements_start_transaction$subexpression$1"], "postprocess": x => track(x, { type: 'start transaction' })},
     {"name": "simplestatements_commit", "symbols": ["kw_commit"], "postprocess": x => track(x, { type: 'commit' })},
     {"name": "simplestatements_rollback", "symbols": ["kw_rollback"], "postprocess": x => track(x, { type: 'rollback' })},
@@ -1634,6 +1643,42 @@ const grammar: Grammar = {
     {"name": "comment_what_col", "symbols": [(lexerAny.has("kw_column") ? {type: "kw_column"} : kw_column), "qcolumn"], "postprocess":  x => track(x, {
             type: 'column',
             column: last(x),
+        }) },
+    {"name": "simplestatements_begin$ebnf$1$subexpression$1", "symbols": ["kw_transaction"]},
+    {"name": "simplestatements_begin$ebnf$1$subexpression$1", "symbols": ["kw_work"]},
+    {"name": "simplestatements_begin$ebnf$1", "symbols": ["simplestatements_begin$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "simplestatements_begin$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "simplestatements_begin$ebnf$2", "symbols": []},
+    {"name": "simplestatements_begin$ebnf$2$subexpression$1", "symbols": ["simplestatements_begin_isol"]},
+    {"name": "simplestatements_begin$ebnf$2$subexpression$1", "symbols": ["simplestatements_begin_writ"]},
+    {"name": "simplestatements_begin$ebnf$2$subexpression$1", "symbols": ["simplestatements_begin_def"]},
+    {"name": "simplestatements_begin$ebnf$2", "symbols": ["simplestatements_begin$ebnf$2", "simplestatements_begin$ebnf$2$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "simplestatements_begin", "symbols": ["kw_begin", "simplestatements_begin$ebnf$1", "simplestatements_begin$ebnf$2"], "postprocess": 
+        x => track(x, {
+            type: 'begin',
+            ...x[2].reduce((a: any, b: any) => ({...unwrap(a), ...unwrap(b)}), {}),
+        })
+        },
+    {"name": "simplestatements_begin_isol$subexpression$1", "symbols": ["kw_isolation", "kw_level"]},
+    {"name": "simplestatements_begin_isol$subexpression$2", "symbols": ["kw_serializable"]},
+    {"name": "simplestatements_begin_isol$subexpression$2$subexpression$1", "symbols": ["word"], "postprocess": kw('repeatable')},
+    {"name": "simplestatements_begin_isol$subexpression$2", "symbols": ["simplestatements_begin_isol$subexpression$2$subexpression$1", "kw_read"]},
+    {"name": "simplestatements_begin_isol$subexpression$2$subexpression$2", "symbols": ["word"], "postprocess": kw('committed')},
+    {"name": "simplestatements_begin_isol$subexpression$2", "symbols": ["kw_read", "simplestatements_begin_isol$subexpression$2$subexpression$2"]},
+    {"name": "simplestatements_begin_isol$subexpression$2$subexpression$3", "symbols": ["word"], "postprocess": kw('uncommitted')},
+    {"name": "simplestatements_begin_isol$subexpression$2", "symbols": ["kw_read", "simplestatements_begin_isol$subexpression$2$subexpression$3"]},
+    {"name": "simplestatements_begin_isol", "symbols": ["simplestatements_begin_isol$subexpression$1", "simplestatements_begin_isol$subexpression$2"], "postprocess":  x => track(x, {
+            isolationLevel: toStr(x[1], ' '),
+        }) },
+    {"name": "simplestatements_begin_writ$subexpression$1", "symbols": ["kw_read", "kw_write"]},
+    {"name": "simplestatements_begin_writ$subexpression$1", "symbols": ["kw_read", (lexerAny.has("kw_only") ? {type: "kw_only"} : kw_only)]},
+    {"name": "simplestatements_begin_writ", "symbols": ["simplestatements_begin_writ$subexpression$1"], "postprocess":  x => track(x, {
+            writeable: toStr(x, ' '),
+        }) },
+    {"name": "simplestatements_begin_def$ebnf$1", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not)], "postprocess": id},
+    {"name": "simplestatements_begin_def$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "simplestatements_begin_def", "symbols": ["simplestatements_begin_def$ebnf$1", (lexerAny.has("kw_deferrable") ? {type: "kw_deferrable"} : kw_deferrable)], "postprocess":  x => track(x, {
+            deferrable: !x[0]
         }) },
     {"name": "insert_statement$subexpression$1", "symbols": ["kw_insert", (lexerAny.has("kw_into") ? {type: "kw_into"} : kw_into)]},
     {"name": "insert_statement$ebnf$1", "symbols": ["collist_paren"], "postprocess": id},

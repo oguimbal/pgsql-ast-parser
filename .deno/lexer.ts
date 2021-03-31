@@ -90,7 +90,7 @@ export const lexer = compile({
         match: ['|', '&', '^', '#'],
     },
     codeblock: {
-        match: /\$\$(?:.|[\s\t\n\v\f\r])*\$\$/s,
+        match: /\$\$(?:.|[\s\t\n\v\f\r])*?\$\$/s,
         lineBreaks: true,
         value: (x: string) => x.substr(2, x.length - 4),
     },

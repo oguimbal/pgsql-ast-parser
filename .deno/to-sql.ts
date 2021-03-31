@@ -336,6 +336,12 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             m.ref(e);
             return;
         }
+        // lists can become incorrect with an additional set of parentheses
+        if (e.type === 'list') {
+            m.super().expr(e);
+            return;
+        }
+
         // this forces to respect precedence
         // (however, it will introduce lots of unecessary parenthesis)
         ret.push('(');
@@ -494,6 +500,22 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
         for (const cst of c.constraints ?? []) {
             m.constraint(cst);
+        }
+    },
+
+    begin: beg => {
+        ret.push('BEGIN ');
+        if (beg.isolationLevel) {
+            ret.push('ISOLATION LEVEL ', beg.isolationLevel.toUpperCase(), ' ');
+        }
+        if (beg.writeable) {
+            ret.push(beg.writeable.toUpperCase(), ' ');
+        }
+        if (typeof beg.deferrable === 'boolean') {
+            if (!beg.deferrable) {
+                ret.push('NOT ');
+            }
+            ret.push('DEFERRABLE ');
         }
     },
 
