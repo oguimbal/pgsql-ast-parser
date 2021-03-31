@@ -6,7 +6,7 @@ import { assert, expect } from 'chai';
 
 describe('Simple statements', () => {
 
-    checkStatement(['start transaction', 'begin'], {
+    checkStatement(['start transaction'], {
         type: 'start transaction',
     });
 
@@ -217,5 +217,22 @@ describe('Simple statements', () => {
         }]);
         assert.deepEqual(comments.map(c => c.comment), ['/* comment a */ ', '/* comment b */ '])
     });
+
+
+    checkStatement(`begin isolation level read uncommitted isolation level read committed read write`, {
+        type: 'begin',
+        isolationLevel: 'read committed',
+        writeable: 'read write',
+    });
+
+    checkStatement(`begin deferrable`, {
+        type: 'begin',
+        deferrable: true,
+    })
+
+    checkStatement(`begin not deferrable`, {
+        type: 'begin',
+        deferrable: false,
+    })
 
 });

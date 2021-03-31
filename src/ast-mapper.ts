@@ -79,6 +79,7 @@ export interface IAstPartialMapper {
     setTimezone?(val: a.SetTimezone): a.Statement | nil
     createSequence?(seq: a.CreateSequenceStatement): a.Statement | nil
     alterSequence?(seq: a.AlterSequenceStatement): a.Statement | nil
+    begin?(begin: a.BeginStatement): a.Statement | nil
 }
 
 export type IAstFullMapper = {
@@ -240,6 +241,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.createSequence(val);
             case 'alter sequence':
                 return this.alterSequence(val);
+            case 'begin':
+                return this.begin(val);
             case 'drop index':
                 return this.dropIndex(val);
             case 'drop sequence':
@@ -373,6 +376,10 @@ export class AstDefaultMapper implements IAstMapper {
             }
         }
         return seq;
+    }
+
+    begin(begin: a.BeginStatement): a.Statement | nil {
+        return begin;
     }
 
     createSequence(seq: a.CreateSequenceStatement): a.Statement | nil {

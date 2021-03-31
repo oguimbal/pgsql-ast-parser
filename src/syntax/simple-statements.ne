@@ -11,6 +11,7 @@ simplestatements_all
     | simplestatements_tablespace
     | simplestatements_set
     | simplestatements_show
+    | simplestatements_begin
 
 
 array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
@@ -19,7 +20,7 @@ array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
 
 
 # https://www.postgresql.org/docs/12/sql-start-transaction.html
-simplestatements_start_transaction -> (kw_start kw_transaction | kw_begin) {% x => track(x, { type: 'start transaction' }) %}
+simplestatements_start_transaction -> (kw_start kw_transaction) {% x => track(x, { type: 'start transaction' }) %}
 
 # https://www.postgresql.org/docs/12/sql-commit.html
 simplestatements_commit -> kw_commit {% x => track(x, { type: 'commit' }) %}
@@ -124,3 +125,37 @@ comment_what_col -> %kw_column qcolumn {% x => track(x, {
                 type: 'column',
                 column: last(x),
             }) %}
+
+
+# https://www.postgresql.org/docs/current/sql-begin.html
+simplestatements_begin -> kw_begin
+                    (kw_transaction | kw_work):?
+                    (simplestatements_begin_isol | simplestatements_begin_writ | simplestatements_begin_def):* {%
+                    x => track(x, {
+                        type: 'begin',
+                        ...x[2].reduce((a, b) => ({...unwrap(a), ...unwrap(b)}), {}),
+                    })
+                    %}
+
+
+simplestatements_begin_isol -> (kw_isolation kw_level)
+                    (   kw_serializable
+                        | (word {% kw('repeatable') %}) kw_read
+                        | kw_read (word {% kw('committed') %})
+                        | kw_read (word {% kw('uncommitted') %})
+                    )
+                    {% x => track(x, {
+                        isolationLevel: toStr(x[1], ' '),
+                    }) %}
+
+simplestatements_begin_writ
+    -> (kw_read kw_write | kw_read %kw_only)
+    {% x => track(x, {
+            writeable: toStr(x, ' '),
+        }) %}
+
+simplestatements_begin_def
+    -> %kw_not:? %kw_deferrable
+    {% x => track(x, {
+        deferrable: !x[0]
+    }) %}

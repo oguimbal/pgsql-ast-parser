@@ -39,6 +39,7 @@ export type Statement = SelectStatement
     | RaiseStatement
     | CreateFunctionStatement
     | DoStatement
+    | BeginStatement
     | StartTransactionStatement;
 
 export interface PGNode {
@@ -47,6 +48,13 @@ export interface PGNode {
 
 export interface PGComment extends PGNode {
     comment: string;
+}
+
+export interface BeginStatement extends PGNode {
+    type: 'begin';
+    isolationLevel?: 'serializable' | 'repeatable read' | 'read committed' | 'read uncommitted';
+    writeable?: 'read write' | 'read only';
+    deferrable?: boolean;
 }
 
 export interface DoStatement extends PGNode {
