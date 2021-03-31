@@ -133,7 +133,7 @@ simplestatements_begin -> kw_begin
                     (simplestatements_begin_isol | simplestatements_begin_writ | simplestatements_begin_def):* {%
                     x => track(x, {
                         type: 'begin',
-                        ...x[2].reduce((a, b) => ({...unwrap(a), ...unwrap(b)}), {}),
+                        ...x[2].reduce((a: any, b: any) => ({...unwrap(a), ...unwrap(b)}), {}),
                     })
                     %}
 
