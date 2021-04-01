@@ -20,6 +20,7 @@ declare var kw_null: any;
 declare var kw_array: any;
 declare var lbracket: any;
 declare var rbracket: any;
+declare var kw_precision: any;
 declare var kw_with: any;
 declare var kw_as: any;
 declare var kw_current_schema: any;
@@ -68,6 +69,7 @@ declare var op_exp: any;
 declare var lbracket: any;
 declare var rbracket: any;
 declare var op_cast: any;
+declare var kw_cast: any;
 declare var dot: any;
 declare var kw_array: any;
 declare var qparam: any;
@@ -509,8 +511,7 @@ const grammar: Grammar = {
     {"name": "data_type_simple", "symbols": ["data_type_date"], "postprocess": x => track(x, { name: toStr(x, ' ') })},
     {"name": "data_type_simple", "symbols": ["qualified_name"]},
     {"name": "data_type_numeric$subexpression$1", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('double')},
-    {"name": "data_type_numeric$subexpression$2", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('precision')},
-    {"name": "data_type_numeric", "symbols": ["data_type_numeric$subexpression$1", "data_type_numeric$subexpression$2"]},
+    {"name": "data_type_numeric", "symbols": ["data_type_numeric$subexpression$1", (lexerAny.has("kw_precision") ? {type: "kw_precision"} : kw_precision)]},
     {"name": "data_type_text$subexpression$1", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('character')},
     {"name": "data_type_text$subexpression$2", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('varying')},
     {"name": "data_type_text", "symbols": ["data_type_text$subexpression$1", "data_type_text$subexpression$2"]},
@@ -1085,6 +1086,11 @@ const grammar: Grammar = {
             type: 'cast',
             operand: unwrap(x[0]),
             to: x[2],
+        }) },
+    {"name": "expr_member", "symbols": [(lexerAny.has("kw_cast") ? {type: "kw_cast"} : kw_cast), "lparen", "expr_nostar", (lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "data_type", "rparen"], "postprocess":  x => track(x, {
+            type: 'cast',
+            operand: unwrap(x[2]),
+            to: x[4],
         }) },
     {"name": "expr_member", "symbols": ["data_type", "string"], "postprocess":  x => track(x, {
             type: 'cast',
