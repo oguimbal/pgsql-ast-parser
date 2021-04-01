@@ -269,7 +269,7 @@ data_type_simple
 
 
 # https://www.postgresql.org/docs/9.5/datatype-numeric.html
-data_type_numeric -> (%word {% kw('double') %}) (%word {% kw('precision') %})
+data_type_numeric -> (%word {% kw('double') %}) %kw_precision
             # | word {% anyKw('smallint', 'int', 'float', 'integer', 'bigint', 'bigint', 'decimal', 'numeric', 'real', 'smallserial', 'serial', 'bigserial') %}
 
 # https://www.postgresql.org/docs/9.5/datatype-character.html

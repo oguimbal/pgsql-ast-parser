@@ -597,6 +597,24 @@ line`,
             },
         });
 
+        checkTreeExpr(`'1'::double precision`, {
+            type: 'cast',
+            operand: { type: 'string', value: '1' },
+            to: { name: 'double precision' },
+        });
+
+        checkTreeExpr(`CAST('1' AS INTEGER)`, {
+            type: 'cast',
+            operand: { type: 'string', value: '1' },
+            to: { name: 'integer' },
+        });
+
+        checkTreeExpr(`CAST('1' AS DOUBLE PRECISION)`, {
+            type: 'cast',
+            operand: { type: 'string', value: '1' },
+            to: { name: 'double precision' },
+        });
+
         checkTreeExprLoc(`ARRAY[]::text[]`, {
             _location: { start: 0, end: 15 },
             type: 'cast',

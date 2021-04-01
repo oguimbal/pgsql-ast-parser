@@ -117,6 +117,11 @@ expr_member
             operand: unwrap(x[0]),
             to: x[2],
         }) %}
+    | %kw_cast lparen expr_nostar %kw_as data_type rparen {% x => track(x, {
+            type: 'cast',
+            operand: unwrap(x[2]),
+            to: x[4],
+        }) %}
     | data_type string  {% x => track(x, {
             type: 'cast',
             operand: track(x[1], {

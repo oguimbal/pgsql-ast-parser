@@ -346,6 +346,30 @@ describe('Select statements', () => {
     })
 
 
+    checkSelect(`select '1'::double precision`, {
+        type: 'select',
+        columns: [{
+            expr: {
+                type: 'cast',
+                operand: { type: 'string', value: '1' },
+                to: { name: 'double precision' },
+            }
+        }]
+    });
+
+
+    checkSelect(`select '1'::double precision x`, {
+        type: 'select',
+        columns: [{
+            alias: { name: 'x' },
+            expr: {
+                type: 'cast',
+                operand: { type: 'string', value: '1' },
+                to: { name: 'double precision' },
+            }
+        }]
+    });
+
     checkSelect(['select now()::time without time zone'], {
         type: 'select',
         columns: [{
