@@ -3,6 +3,7 @@ import 'chai';
 import { checkTreeExpr, checkInvalidExpr, checkInvalid, checkTreeExprLoc, starCol, star, col, ref } from './spec-utils';
 import { toSql } from '../to-sql';
 import { expect } from 'chai';
+import { parse } from '../parser';
 
 
 

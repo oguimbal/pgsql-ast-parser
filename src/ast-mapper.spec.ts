@@ -166,7 +166,7 @@ describe('Ast mapper', () => {
         const modified = mapper.statement(parseFirst('select * from foo'));
 
         assert.exists(modified);
-        expect(toSql.statement(modified!)).to.equal('SELECT *  FROM "bar"');
+        expect(toSql.statement(modified!)).to.equal('SELECT *  FROM bar');
     })
 
 
@@ -182,7 +182,7 @@ describe('Ast mapper', () => {
         // parse + map + reconvert to sql
         const modified = mapper.statement(parseFirst('select * from foo'));
         assert.exists(modified);
-        expect(toSql.statement(modified!)).to.equal('SELECT *  FROM "foo"');
+        expect(toSql.statement(modified!)).to.equal('SELECT *  FROM foo');
     })
 
     it('removes node', () => {
@@ -194,7 +194,7 @@ describe('Ast mapper', () => {
         // process sql
         const result = mapper.statement(parseFirst('select foo, bar from test'));
 
-        expect(toSql.statement(result!)).to.deep.equal('SELECT "bar"  FROM "test"');
+        expect(toSql.statement(result!)).to.deep.equal('SELECT bar  FROM test');
 
     })
 
@@ -215,7 +215,7 @@ describe('Ast mapper', () => {
         // parse + map + reconvert to sql
         const modified = mapper.statement(parseFirst('select * from foo'));
 
-        expect(toSql.statement(modified!)).to.equal(`SELECT *  FROM "bar"`);
+        expect(toSql.statement(modified!)).to.equal(`SELECT *  FROM bar`);
     })
 
     it('runs deno test - nomatch', () => {
@@ -234,7 +234,7 @@ describe('Ast mapper', () => {
         // parse + map + reconvert to sql
         const modified = mapper.statement(parseFirst('select * from foo'));
 
-        expect(toSql.statement(modified!)).to.equal(`SELECT *  FROM "foo"`);
+        expect(toSql.statement(modified!)).to.equal(`SELECT *  FROM foo`);
     })
 
 });

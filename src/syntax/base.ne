@@ -274,7 +274,7 @@ data_type_numeric -> (%word {% kw('double') %}) %kw_precision
 
 # https://www.postgresql.org/docs/9.5/datatype-character.html
 data_type_text
-             -> (%word {% kw('character') %}) (%word {% kw('varying') %})
+             -> (%word {% anyKw('character', 'bit') %}) (%word {% kw('varying') %})
 
 #https://www.postgresql.org/docs/9.5/datatype-datetime.html
 data_type_date
