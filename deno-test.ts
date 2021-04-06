@@ -8,7 +8,7 @@ const mapper = astMapper(map => ({
                  // Dont do that... see below
                  // (I wrote this like that for the sake of explainability)
                 ...t,
-                name: 'bar',
+                name: 'bAr',
             }
         }
 
@@ -25,6 +25,6 @@ const modified = mapper.statement(parsed);
 
 const modif = toSql.statement(modified!);
 console.log('Modified', modif); //  =>  SELECT * FROM "bar"
-if (modif !== 'SELECT *  FROM "bar"') {
+if (modif !== 'SELECT *  FROM "bAr"') {
     throw new Error('💀 ' + modif);
 }
