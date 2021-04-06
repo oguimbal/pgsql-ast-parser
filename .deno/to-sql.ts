@@ -3,20 +3,30 @@ import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor.ts';
 import { NotSupported, nil, ReplaceReturnType, NoExtraProperties } from './utils.ts';
 import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn, Name, OrderByStatement } from './syntax/ast.ts';
 import { literal } from './pg-escape.ts';
+import { sqlKeywords } from './keywords.ts';
 
 
 
 export type IAstToSql = { readonly [key in keyof IAstPartialMapper]-?: ReplaceReturnType<IAstPartialMapper[key], string> }
 
+const kwSet = new Set(sqlKeywords.map(x => x.toLowerCase()));
+
 
 let ret: string[] = [];
+
+
 function name<T extends Name>(nm: NoExtraProperties<Name, T>) {
-    return '"' + nm.name + '"';
-}
-function ident(nm: string) {
-    return '"' + nm + '"';
+    return ident(nm.name);
 }
 
+function ident(nm: string) {
+    // only add quotes if has upper cases, or if it is a keyword.
+    const low = nm.toLowerCase();
+    if (low === nm && !kwSet.has(low) && /^[a-z][a-z0-9_]+$/.test(low)) {
+        return nm;
+    }
+    return '"' + nm + '"';
+}
 
 function list<T>(elems: T[], act: (e: T) => any, addParen: boolean) {
     if (addParen) {
@@ -262,7 +272,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(' ADD ');
         const cname = c.constraint.constraintName;
         if (cname) {
-            ret.push(' CONSTRAINT ', name(cname));
+            ret.push(' CONSTRAINT ', name(cname), ' ');
         }
         addConstraint(c.constraint, m);
     },
@@ -732,7 +742,27 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push('unkown');
             return;
         }
-        visitQualifiedName(d);
+        if (d.schema) {
+            visitQualifiedName(d);
+        } else {
+            // see https://www.postgresql.org/docs/13/datatype.html
+            // & issue https://github.com/oguimbal/pgsql-ast-parser/issues/38
+            switch (d.name) {
+                case 'double precision':
+                case 'character varying':
+                case 'bit varying':
+                case 'time without time zone':
+                case 'timestamp without time zone':
+                case 'time with time zone':
+                case 'timestamp with time zone':
+                    ret.push(d.name, ' ');
+                    break;
+                default:
+                    visitQualifiedName(d);
+                    break;
+            }
+        }
+
         if (d.config?.length) {
             list(d.config, v => ret.push(v.toString(10)), true);
         }

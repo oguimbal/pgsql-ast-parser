@@ -512,7 +512,7 @@ const grammar: Grammar = {
     {"name": "data_type_simple", "symbols": ["qualified_name"]},
     {"name": "data_type_numeric$subexpression$1", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('double')},
     {"name": "data_type_numeric", "symbols": ["data_type_numeric$subexpression$1", (lexerAny.has("kw_precision") ? {type: "kw_precision"} : kw_precision)]},
-    {"name": "data_type_text$subexpression$1", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('character')},
+    {"name": "data_type_text$subexpression$1", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": anyKw('character', 'bit')},
     {"name": "data_type_text$subexpression$2", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('varying')},
     {"name": "data_type_text", "symbols": ["data_type_text$subexpression$1", "data_type_text$subexpression$2"]},
     {"name": "data_type_date$subexpression$1", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": anyKw('timestamp', 'time')},
