@@ -922,7 +922,7 @@ line`,
                 },
             });
 
-            expect(generated).to.equal('("a" IN ("a", "b", "c"))');
+            expect(generated).to.equal('(a IN (a, b, c))');
         })
 
         checkTreeExpr(['a in (b)', 'a in ( b )'], {

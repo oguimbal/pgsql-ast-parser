@@ -101,7 +101,7 @@ function visitQualifiedName(cs: QName) {
 }
 
 function visitOrderBy(m: IAstVisitor, orderBy: OrderByStatement[]) {
-    ret.push('ORDER BY ');
+    ret.push(' ORDER BY ');
     list(orderBy, e => {
         m.expr(e.by);
         if (e.order) {
