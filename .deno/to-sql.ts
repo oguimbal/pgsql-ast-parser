@@ -22,7 +22,7 @@ function name<T extends Name>(nm: NoExtraProperties<Name, T>) {
 function ident(nm: string) {
     // only add quotes if has upper cases, or if it is a keyword.
     const low = nm.toLowerCase();
-    if (low === nm && !kwSet.has(low) && /^[a-z][a-z0-9_]+$/.test(low)) {
+    if (low === nm && !kwSet.has(low) && /^[a-z][a-z0-9_]*$/.test(low)) {
         return nm;
     }
     return '"' + nm + '"';
@@ -101,7 +101,7 @@ function visitQualifiedName(cs: QName) {
 }
 
 function visitOrderBy(m: IAstVisitor, orderBy: OrderByStatement[]) {
-    ret.push('ORDER BY ');
+    ret.push(' ORDER BY ');
     list(orderBy, e => {
         m.expr(e.by);
         if (e.order) {
