@@ -76,5 +76,7 @@ describe('SQL builder', () => {
     it('doesnt quote simples', () => {
         expect(stm(`select "abc042"`))
             .to.equal(`SELECT abc042`);
+        expect(stm(`select "a"`))
+            .to.equal(`SELECT a`);
     })
 });

@@ -22,7 +22,7 @@ function name<T extends Name>(nm: NoExtraProperties<Name, T>) {
 function ident(nm: string) {
     // only add quotes if has upper cases, or if it is a keyword.
     const low = nm.toLowerCase();
-    if (low === nm && !kwSet.has(low) && /^[a-z][a-z0-9_]+$/.test(low)) {
+    if (low === nm && !kwSet.has(low) && /^[a-z][a-z0-9_]*$/.test(low)) {
         return nm;
     }
     return '"' + nm + '"';
