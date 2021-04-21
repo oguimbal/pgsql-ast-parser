@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkStatement } from './spec-utils';
+import { checkStatement, tbl } from './spec-utils';
 
 describe('Prepare', () => {
 
@@ -9,7 +9,7 @@ describe('Prepare', () => {
         name: { name: 'st' },
         statement: {
             type: 'select',
-            from: [{ type: 'table', name: 'data' }],
+            from: [tbl('data')],
             columns: [{ expr: { type: 'ref', name: 'c' } }],
         },
     });
@@ -21,7 +21,7 @@ describe('Prepare', () => {
         statement: {
             type: 'select',
             columns: [{ expr: { type: 'ref', name: 'c' } }],
-            from: [{ type: 'table', name: 'data' }],
+            from: [tbl('data')],
             where: {
                 type: 'binary',
                 op: '=',
@@ -37,7 +37,7 @@ describe('Prepare', () => {
         args: [{ name: 'text' }, { name: 'int' }],
         statement: {
             type: 'select',
-            from: [{ type: 'table', name: 'data' }],
+            from: [tbl('data')],
             columns: [{ expr: { type: 'ref', name: 'c' } }],
         },
     });

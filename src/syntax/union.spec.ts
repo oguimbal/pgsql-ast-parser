@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkSelect, columns } from './spec-utils';
+import { checkSelect, columns, tbl } from './spec-utils';
 import { SelectedColumn } from './ast';
 
 describe('Union statement', () => {
@@ -10,11 +10,14 @@ describe('Union statement', () => {
         left: {
             type: 'select',
             from: [{
-                type: 'values',
-                alias: { name: 'fst' },
-                values: [
-                    [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
-                ],
+                type: 'statement',
+                statement: {
+                    type: 'values',
+                    values: [
+                        [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
+                    ],
+                },
+                alias: 'fst',
             }],
             columns: columns({ type: 'ref', name: '*' })
         },
@@ -22,11 +25,14 @@ describe('Union statement', () => {
 
             type: 'select',
             from: [{
-                type: 'values',
-                alias: { name: 'snd' },
-                values: [
-                    [{ type: 'integer', value: 2 }, { type: 'string', value: 'two' }],
-                ],
+                type: 'statement',
+                statement: {
+                    type: 'values',
+                    values: [
+                        [{ type: 'integer', value: 2 }, { type: 'string', value: 'two' }],
+                    ],
+                },
+                alias: 'snd',
             }],
             columns: columns({ type: 'ref', name: '*' })
         }
@@ -41,19 +47,19 @@ describe('Union statement', () => {
         left: {
             type: 'select',
             columns: columns({ type: 'ref', name: '*' }),
-            from: [{ type: 'table', name: 'ta' }],
+            from: [tbl('ta')],
         },
         right: {
             type: 'union',
             left: {
                 type: 'select',
                 columns: columns({ type: 'ref', name: '*' }),
-                from: [{ type: 'table', name: 'tb' }],
+                from: [tbl('tb')],
             },
             right: {
                 type: 'select',
                 columns: columns({ type: 'ref', name: '*' }),
-                from: [{ type: 'table', name: 'tc' }],
+                from: [tbl('tc')],
             }
         }
     });
@@ -98,7 +104,7 @@ describe('Union statement', () => {
       )`, {
         type: 'select',
         columns: [star],
-        from: [{ type: 'table', name: 'tbl' }],
+        from: [tbl('tbl')],
         where: {
             type: 'binary',
             op: 'IN',

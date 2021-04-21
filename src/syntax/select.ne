@@ -42,18 +42,52 @@ select_subject_joins -> select_table_base select_table_join:+ {% ([head, tail]) 
 
 # [tableName] or [select x, y from z]
 select_table_base
-    -> table_ref_aliased {% x => {
-        return track(x, { type: 'table', ...x[0]});
+    -> stb_table {% unwrap %}
+    | stb_statement {% unwrap %}
+    | stb_call {% unwrap %}
+
+
+stb_opts
+     -> ident_aliased collist_paren:? {% x => track(x, {
+         alias: toStr(x[0]),
+        ...x[1] && {columnNames: unbox(x[1]).map(asName)},
+     }) %}
+
+
+# Selects on tables CAN have an alias
+stb_table ->  table_ref stb_opts:? {% x => {
+        return track(x, {
+            type: 'table',
+            name: track(x, {
+                ...x[0],
+                ...x[1],
+            },
+        });
     } %}
-    | select_subject_select_statement {% unwrap %}
-    | select_subject_select_values {% unwrap %}
-    | expr_call (%kw_as:? ident {% last %}):?  {% x =>
+
+
+# Selects on subselects MUST have an alias
+stb_statement -> selection_paren stb_opts {% x => track(x, {
+    type: 'statement',
+    statement: unwrap(x[0]),
+    ...x[1],
+}) %}
+
+
+select_values -> kw_values insert_values {% x => track(x, {
+    type: 'values',
+    values: x[1],
+}) %}
+
+
+stb_call -> expr_call (%kw_as:? ident {% last %}):?  {% x =>
                  !x[1]
                     ? x[0]
                     : track(x, {
                         ...x[0],
                         alias: asName(x[1]),
                     }) %}
+
 
 # [, othertable] or [join expression]
 # select_table_joined
@@ -82,21 +116,7 @@ select_join_op
     | (%kw_right %kw_outer:? {% x => box(x, 'RIGHT JOIN') %})
     | (%kw_full %kw_outer:? {% x => box(x, 'FULL JOIN') %})
 
-# Selects on subselects MUST have an alias
-select_subject_select_statement -> selection_paren ident_aliased {% x => track(x, {
-    type: 'statement',
-    statement: unwrap(x[0]),
-    alias: asName(x[1])
-}) %}
 
-
-# Select values: select * from (values (1, 'one'), (2, 'two')) as vals (num, letter)
-select_subject_select_values -> lparen kw_values insert_values rparen %kw_as ident collist_paren:? {% x => track(x, {
-    type: 'values',
-    alias: asName(x[5]),
-    values: x[2],
-    ...x[6] && {columnNames: unbox(x[6]).map(asName)},
-}) %}
 
 # SELECT x,y as YY,z
 select_what -> %kw_select select_distinct:? select_expr_list_aliased:? {% x => track(x, {

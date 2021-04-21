@@ -227,6 +227,7 @@ expr_primary
     | %kw_null {% x => track(x, { type: 'null' }) %}
     | value_keyword {% x => track(x, {type: 'keyword', keyword: toStr(x) }) %}
     | %qparam {% x => track(x, { type: 'parameter', name: toStr(x[0]) }) %}
+    | %kw_default  {% x => track(x, { type: 'default'}) %}
 
 
 # LIKE-kind operators

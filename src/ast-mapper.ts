@@ -52,7 +52,7 @@ export interface IAstPartialMapper {
     from?: (from: a.From) => a.From | nil
     fromCall?: (from: a.FromCall) => a.From | nil
     fromStatement?: (from: a.FromStatement) => a.From | nil
-    fromValues?: (from: a.FromValues) => a.From | nil;
+    values?: (from: a.ValuesStatement) => a.SelectStatement | nil;
     fromTable?: (from: a.FromTable) => a.From | nil
     selectionColumn?: (val: a.SelectedColumn) => a.SelectedColumn | nil
     expr?: (val: a.Expr) => a.Expr | nil
@@ -68,6 +68,7 @@ export interface IAstPartialMapper {
     callOverlay?: (val: a.ExprOverlay) => a.Expr | nil
     array?: (val: a.ExprList) => a.Expr | nil
     constant?: (value: a.ExprLiteral) => a.Expr | nil
+    default?: (value: a.ExprDefault) => a.Expr | nil;
     ref?: (val: a.ExprRef) => a.Expr | nil
     unary?: (val: a.ExprUnary) => a.Expr | nil
     binary?: (val: a.ExprBinary) => a.Expr | nil
@@ -272,6 +273,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.do(val);
             case 'create function':
                 return this.createFunction(val);
+            case 'values':
+                return this.values(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -432,18 +435,10 @@ export class AstDefaultMapper implements IAstMapper {
         if (!into) {
             return null; // nowhere to insert into
         }
-        const values = arrayNilMap(val.values, valSet => {
-            return arrayNilMap(valSet, v => {
-                if (v === 'default') {
-                    return v;
-                }
-                return this.expr(v);
-            });
-        });
 
-        const select = val.select && this.select(val.select);
+        const select = val.insert && this.select(val.insert);
 
-        if (!values?.length && !select) {
+        if (!select) {
             // nothing to insert
             return null;
         }
@@ -462,8 +457,7 @@ export class AstDefaultMapper implements IAstMapper {
 
         return assignChanged(val, {
             into,
-            values,
-            select,
+            insert: select,
             returning,
             onConflict: !ocdo ? val.onConflict : assignChanged(val.onConflict, {
                 do: ocdo,
@@ -811,6 +805,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.union(val);
             case 'with':
                 return this.with(val);
+            case 'values':
+                return this.values(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -894,8 +890,6 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.fromTable(from);
             case 'statement':
                 return this.fromStatement(from);
-            case 'values':
-                return this.fromValues(from);
             case 'call':
                 return this.fromCall(from);
             default:
@@ -924,7 +918,7 @@ export class AstDefaultMapper implements IAstMapper {
         })
     }
 
-    fromValues(from: a.FromValues): a.From | nil {
+    values(from: a.ValuesStatement): a.SelectStatement | nil {
         const values = arrayNilMap(from.values, x => arrayNilMap(x, y => this.expr(y)));
         if (!values?.length) {
             return null; // nothing to select from
@@ -945,13 +939,13 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     fromTable(from: a.FromTable): a.From | nil {
-        const nfrom = this.tableRef(from);
+        const nfrom = this.tableRef(from.name);
         if (!nfrom) {
             return null; // nothing to select from
         }
         const join = from.join && this.join(from.join);
         return assignChanged(from, {
-            ...nfrom,
+            name: nfrom,
             join,
         })
     }
@@ -1021,6 +1015,10 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.callOverlay(val);
             case 'substring':
                 return this.callSubstring(val);
+            case 'values':
+                return this.values(val);
+            case 'default':
+                return this.default(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -1166,6 +1164,9 @@ export class AstDefaultMapper implements IAstMapper {
         return value;
     }
 
+    default(value: a.ExprDefault): a.Expr | nil {
+        return value;
+    }
 
     /** Called when a reference is used */
     ref(val: a.ExprRef): a.Expr | nil {

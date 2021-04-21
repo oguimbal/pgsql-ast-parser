@@ -37,6 +37,7 @@ export type Statement = SelectStatement
     | CommentStatement
     | CreateSchemaStatement
     | RaiseStatement
+    | ValuesStatement
     | CreateFunctionStatement
     | DoStatement
     | BeginStatement
@@ -212,10 +213,7 @@ export interface InsertStatement extends PGNode {
     returning?: SelectedColumn[] | nil;
     columns?: Name[] | nil;
     overriding?: 'system' | 'user';
-    /** Insert values */
-    values?: (Expr | 'default')[][] | nil;
-    /** Insert into select */
-    select?: SelectStatement | nil;
+    insert: SelectStatement;
     onConflict?: OnConflictAction | nil;
 }
 
@@ -512,6 +510,7 @@ export interface WithStatement extends PGNode {
 
 export type SelectStatement = SelectFromStatement
     | SelectFromUnion
+    | ValuesStatement
     | WithStatement;
 
 export interface SelectFromStatement extends PGNode {
@@ -560,7 +559,9 @@ export interface SelectedColumn extends PGNode {
     alias?: Name;
 }
 
-export type From = FromTable | FromStatement | FromValues | FromCall
+export type From = FromTable
+    | FromStatement
+    | FromCall
 
 
 export interface FromCall extends ExprCall, PGNode {
@@ -570,28 +571,32 @@ export interface FromCall extends ExprCall, PGNode {
 
 
 
-export interface FromValues {
+export interface ValuesStatement extends PGNode {
     type: 'values';
-    alias: Name;
     values: Expr[][];
-    columnNames?: Name[] | nil;
-    join?: JoinClause | nil;
 }
+
 
 
 export interface QNameAliased extends QName, PGNode {
     alias?: string;
 }
 
-export interface FromTable extends QNameAliased, PGNode {
+export interface QNameMapped extends QNameAliased {
+    columnNames?: Name[] | nil;
+}
+
+export interface FromTable extends PGNode {
     type: 'table',
+    name: QNameMapped;
     join?: JoinClause | nil;
 }
 
 export interface FromStatement extends PGNode {
     type: 'statement';
     statement: SelectStatement;
-    alias: Name;
+    alias: string;
+    columnNames?: Name[] | nil;
     db?: null | nil;
     join?: JoinClause | nil;
 }
@@ -614,6 +619,7 @@ export type Expr = ExprRef
     | ExprNull
     | ExprExtract
     | ExprInteger
+    | ExprDefault
     | ExprMember
     | ExprValueKeyword
     | ExprArrayIndex
@@ -802,6 +808,10 @@ export interface ExprNull extends PGNode {
 export interface ExprInteger extends PGNode {
     type: 'integer';
     value: number;
+}
+
+export interface ExprDefault extends PGNode {
+    type: 'default';
 }
 
 export interface ExprNumeric extends PGNode {

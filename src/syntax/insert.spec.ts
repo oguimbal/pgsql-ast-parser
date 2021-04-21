@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkInsert, checkInsertLoc } from './spec-utils';
+import { checkInsert, checkInsertLoc, tbl } from './spec-utils';
 
 
 describe('Insert', () => {
@@ -9,13 +9,16 @@ describe('Insert', () => {
         type: 'insert',
         into: { name: 'test' },
         columns: [{ name: 'a' }, { name: 'b' }],
-        values: [[{
-            type: 'integer',
-            value: 1,
-        }, {
-            type: 'string',
-            value: 'x',
-        }]],
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            }, {
+                type: 'string',
+                value: 'x',
+            }]]
+        },
     });
 
     checkInsertLoc([`insert into test(a) values (1)`], {
@@ -29,21 +32,28 @@ describe('Insert', () => {
             _location: { start: 17, end: 18 },
             name: 'a'
         }],
-        values: [[{
-            _location: { start: 28, end: 29 },
-            type: 'integer',
-            value: 1,
-        },]],
+        insert: {
+            _location: { start: 20, end: 29 },
+            type: 'values',
+            values: [[{
+                _location: { start: 28, end: 29 },
+                type: 'integer',
+                value: 1,
+            },]]
+        },
     });
 
     checkInsert([`insert into test(a) values (1) on conflict do nothing`], {
         type: 'insert',
         into: { name: 'test' },
         columns: [{ name: 'a' }],
-        values: [[{
-            type: 'integer',
-            value: 1,
-        },]],
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            },]]
+        },
         onConflict: {
             do: 'do nothing',
         },
@@ -53,10 +63,13 @@ describe('Insert', () => {
         type: 'insert',
         into: { name: 'test' },
         columns: [{ name: 'a' }],
-        values: [[{
-            type: 'integer',
-            value: 1,
-        },]],
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            },]]
+        },
         onConflict: {
             do: 'do nothing',
             on: [
@@ -70,10 +83,13 @@ describe('Insert', () => {
         type: 'insert',
         into: { name: 'test' },
         columns: [{ name: 'a' }],
-        values: [[{
-            type: 'integer',
-            value: 1,
-        },]],
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            },]]
+        },
         onConflict: {
             do: {
                 sets: [{
@@ -88,42 +104,54 @@ describe('Insert', () => {
         type: 'insert',
         into: { name: 'test' },
         returning: [{ expr: { type: 'ref', name: 'id' } }],
-        values: [[{
-            type: 'integer',
-            value: 1,
-        },]],
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            },]]
+        },
     });
 
     checkInsert([`insert into test values (1) returning "id" as x;`], {
         type: 'insert',
         into: { name: 'test' },
         returning: [{ expr: { type: 'ref', name: 'id' }, alias: { name: 'x' } }],
-        values: [[{
-            type: 'integer',
-            value: 1,
-        },]],
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            },]]
+        },
     });
     checkInsert([`insert into test values (1) returning "id", val;`], {
         type: 'insert',
         into: { name: 'test' },
         returning: [{ expr: { type: 'ref', name: 'id' } }, { expr: { type: 'ref', name: 'val' } }],
-        values: [[{
-            type: 'integer',
-            value: 1,
-        },]],
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            },]]
+        },
     });
 
     checkInsert([`insert into db . test(a, b) values (1, 'x')`, `INSERT INTO"db"."test"(a,"b")VALUES(1,'x')`], {
         type: 'insert',
         into: { name: 'test', schema: 'db' },
         columns: [{ name: 'a' }, { name: 'b' }],
-        values: [[{
-            type: 'integer',
-            value: 1,
-        }, {
-            type: 'string',
-            value: 'x',
-        }]]
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            }, {
+                type: 'string',
+                value: 'x',
+            }]]
+        }
     });
 
 
@@ -132,12 +160,14 @@ describe('Insert', () => {
         type: 'insert',
         into: { name: 'test', schema: 'db' },
         columns: [{ name: 'a' }, { name: 'b' }],
-        select: {
+        insert: {
             type: 'select',
             from: [{
                 type: 'table',
-                name: 'test',
-                schema: 'x'
+                name: {
+                    name: 'test',
+                    schema: 'x',
+                },
             }],
             columns: [{
                 expr: {
@@ -156,12 +186,9 @@ describe('Insert', () => {
     checkInsert([`insert into "test" select * FROM test`, `insert into test(select * FROM test)`], {
         type: 'insert',
         into: { name: 'test' },
-        select: {
+        insert: {
             type: 'select',
-            from: [{
-                type: 'table',
-                name: 'test'
-            }],
+            from: [tbl('test')],
             columns: [{
                 expr: {
                     type: 'ref',
@@ -176,11 +203,14 @@ describe('Insert', () => {
         type: 'insert',
         into: { name: 'test' },
         columns: [{ name: 'a' }, { name: 'b' }],
-        values: [[{
-            type: 'integer',
-            value: 1,
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            }
+                , { type: 'default' }]]
         }
-            , 'default']]
     });
 
     checkInsert([`insert into test(a, b) overriding system value values (1, default)`], {
@@ -188,11 +218,14 @@ describe('Insert', () => {
         into: { name: 'test' },
         columns: [{ name: 'a' }, { name: 'b' }],
         overriding: 'system',
-        values: [[{
-            type: 'integer',
-            value: 1,
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            }
+                , { type: 'default' }]]
         }
-            , 'default']]
     });
 
 
@@ -201,10 +234,13 @@ describe('Insert', () => {
         into: { name: 'test' },
         columns: [{ name: 'a' }, { name: 'b' }],
         overriding: 'user',
-        values: [[{
-            type: 'integer',
-            value: 1,
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            }
+                , { type: 'default' }]]
         }
-            , 'default']]
     });
 });

@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkInvalid, checkStatement, columns } from './spec-utils';
+import { checkInvalid, checkStatement, columns, tbl } from './spec-utils';
 
 describe('Create view statements', () => {
 
@@ -10,7 +10,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 
@@ -23,7 +23,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 
@@ -36,7 +36,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 
@@ -48,7 +48,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 
@@ -60,7 +60,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 
@@ -71,7 +71,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 
@@ -82,7 +82,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 
@@ -94,7 +94,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 
@@ -107,7 +107,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 
@@ -117,7 +117,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 
@@ -128,7 +128,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 
@@ -139,7 +139,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 
@@ -151,7 +151,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
         withData: true,
     });
@@ -163,7 +163,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
         withData: false,
     });
@@ -178,7 +178,7 @@ describe('Create view statements', () => {
         query: {
             type: 'select',
             columns: columns('*'),
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         },
     });
 

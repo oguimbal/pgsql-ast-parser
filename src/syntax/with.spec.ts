@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkStatement, checkInvalidExpr } from './spec-utils';
+import { checkStatement, checkInvalidExpr, tbl } from './spec-utils';
 import { expect } from 'chai';
 import { SelectedColumn } from './ast';
 
@@ -14,14 +14,14 @@ describe('With clause', () => {
                 alias: { name: 'sel' },
                 statement: {
                     type: 'select',
-                    from: [{ type: 'table', name: 'data' }],
+                    from: [tbl('data')],
                     columns: [{ expr: { type: 'ref', name: 'v' } }],
                 }
             }
         ],
         in: {
             type: 'select',
-            from: [{ type: 'table', name: 'sel' }],
+            from: [tbl('sel')],
             columns: [{ expr: { type: 'ref', name: 'v' } }],
         }
     });
@@ -33,21 +33,21 @@ describe('With clause', () => {
                 alias: { name: 'sel1' },
                 statement: {
                     type: 'select',
-                    from: [{ type: 'table', name: 'data' }],
+                    from: [tbl('data')],
                     columns: [{ expr: { type: 'ref', name: 'v' } }],
                 }
             }, {
                 alias: { name: 'sel2' },
                 statement: {
                     type: 'select',
-                    from: [{ type: 'table', name: 'data' }],
+                    from: [tbl('data')],
                     columns: [{ expr: { type: 'ref', name: 'v' } }],
                 }
             }
         ],
         in: {
             type: 'select',
-            from: [{ type: 'table', name: 'sel' }],
+            from: [tbl('sel')],
             columns: [{ expr: { type: 'ref', name: 'v' } }],
         }
     });
@@ -67,7 +67,7 @@ describe('With clause', () => {
             type: 'union',
             left: {
                 type: 'select',
-                from: [{ type: 'table', name: 'sel', alias: 's' }],
+                from: [{ type: 'table', name: { name: 'sel', alias: 's' }, }],
                 columns: [{ expr: { type: 'ref', name: '*' } }],
             },
             right: {
@@ -88,7 +88,7 @@ describe('With clause', () => {
         in: {
             type: 'select',
             columns: [star],
-            from: [{ type: 'table', name: 'a' }]
+            from: [tbl('a')]
         },
         bind: [{
             alias: { name: 'a' },
@@ -109,7 +109,7 @@ describe('With clause', () => {
                 in: {
                     type: 'select',
                     columns: [star],
-                    from: [{ type: 'table', name: 'b' }]
+                    from: [tbl('b')]
                 },
             }
         }],

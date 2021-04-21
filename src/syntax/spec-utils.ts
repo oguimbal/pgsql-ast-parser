@@ -2,7 +2,7 @@ import { Parser, Grammar } from 'nearley';
 import { expect, assert } from 'chai';
 import grammar from '../syntax/main.ne';
 import { trimNullish } from '../utils';
-import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, SelectedColumn, Interval } from './ast';
+import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, SelectedColumn, Interval, BinaryOperator, ExprBinary, Name, ExprInteger, FromTable, QName } from './ast';
 import { astMapper, IAstMapper } from '../ast-mapper';
 import { toSql, IAstToSql } from '../to-sql';
 import { parseIntervalLiteral } from '../parser';
@@ -215,4 +215,22 @@ export function col(name: string, alias?: string): SelectedColumn {
 }
 export function ref(name: string): Expr {
     return { type: 'ref', name };
+}
+export function binary(left: Expr, op: BinaryOperator, right: Expr): ExprBinary {
+    return { type: 'binary', left, op, right };
+}
+export function name(name: string): Name {
+    return { name };
+}
+export function qname(name: string, schema?: string): QName {
+    return { name, schema };
+}
+export function int(value: number): ExprInteger {
+    return { type: 'integer', value };
+}
+export function tbl(nm: string): FromTable {
+    return {
+        type: 'table',
+        name: name(nm),
+    };
 }

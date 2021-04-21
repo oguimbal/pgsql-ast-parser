@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkTreeExpr, checkInvalidExpr, checkInvalid, checkTreeExprLoc, starCol, star, col, ref } from './spec-utils';
+import { checkTreeExpr, checkInvalidExpr, checkInvalid, checkTreeExprLoc, starCol, star, col, ref, tbl, name } from './spec-utils';
 import { toSql } from '../to-sql';
 import { expect } from 'chai';
 import { parse } from '../parser';
@@ -1332,7 +1332,11 @@ line`,
                     }],
                     from: [{
                         _location: { start: 22, end: 25 },
-                        type: 'table', name: 'tbl'
+                        type: 'table',
+                        name: {
+                            _location: { start: 22, end: 25 },
+                            name: 'tbl'
+                        },
                     }],
                 }]
             }
@@ -1346,7 +1350,7 @@ line`,
             right: {
                 type: 'select',
                 columns: [starCol],
-                from: [{ type: 'table', name: 'tb' }],
+                from: [tbl('tb')],
             }
         });
 

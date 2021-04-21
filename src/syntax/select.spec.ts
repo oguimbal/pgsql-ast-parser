@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkSelect, checkInvalid, columns, ref, star } from './spec-utils';
+import { checkSelect, checkInvalid, columns, ref, star, tbl, name, qname, checkStatement, int, binary } from './spec-utils';
 import { JoinType, SelectStatement } from './ast';
 
 describe('Select statements', () => {
@@ -59,7 +59,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from test', 'select*from"test"', 'select* from"test"', 'select *from"test"', 'select*from "test"', 'select * from "test"'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' })
     });
 
@@ -71,7 +71,7 @@ describe('Select statements', () => {
 
     checkSelect(['select a as a1, b as b1 from test', 'select a a1,b b1 from test', 'select a a1 ,b b1 from test'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         columns: [{
             expr: { type: 'ref', name: 'a' },
             alias: { name: 'a1' },
@@ -83,14 +83,14 @@ describe('Select statements', () => {
 
     checkSelect(['select * from db.test'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test', schema: 'db' }],
+        from: [{ type: 'table', name: qname('test', 'db') }],
         columns: columns({ type: 'ref', name: '*' }),
     });
 
 
     checkSelect(['select * from test limit 5', 'select * from test fetch first 5', 'select * from test fetch next 5 rows'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' }),
         limit: {
             limit: { type: 'integer', value: 5 }
@@ -99,7 +99,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from test limit 0'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' }),
         limit: {
             limit: { type: 'integer', value: 0 }
@@ -108,7 +108,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from test limit 5 offset 3', 'select * from test offset 3 rows fetch first 5'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' }),
         limit: {
             limit: { type: 'integer', value: 5 }
@@ -119,7 +119,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from test limit $1 offset $2'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' }),
         limit: {
             limit: { type: 'parameter', name: '$1' },
@@ -129,7 +129,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from test offset 3', 'select * from test offset 3 rows'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' }),
         limit: {
             offset: { type: 'integer', value: 3 },
@@ -139,7 +139,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from test order by a asc limit 3'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' }),
         limit: {
             limit: { type: 'integer', value: 3 }
@@ -152,7 +152,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from test order by a limit 3'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' }),
         limit: {
             limit: { type: 'integer', value: 3 }
@@ -165,7 +165,7 @@ describe('Select statements', () => {
 
     checkSelect(['select * from test order by a asc, b desc'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' }),
         orderBy: [{
             by: { type: 'ref', name: 'a' },
@@ -202,7 +202,7 @@ describe('Select statements', () => {
         , 'select*from test as"a"where a.b > 42'
         , 'select*from test as a where a.b > 42'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test', alias: 'a' }],
+        from: [{ type: 'table', name: { name: 'test', alias: 'a' } }],
         columns: columns({ type: 'ref', name: '*' }),
         where: {
             type: 'binary',
@@ -232,24 +232,24 @@ describe('Select statements', () => {
             type: 'statement',
             statement: {
                 type: 'select',
-                from: [{ type: 'table', name: 'test' }],
+                from: [tbl('test')],
                 columns: columns({ type: 'ref', name: 'id' }),
             },
-            alias: { name: 'd' },
+            alias: 'd',
         }]
     })
 
     checkSelect(['select * from test group by grp', 'select * from test group by (grp)'], {
         type: 'select',
         columns: columns({ type: 'ref', name: '*' }),
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         groupBy: [{ type: 'ref', name: 'grp' }]
     })
 
     checkSelect(['select * from test group by a,b', 'select * from test group by (a,b)'], {
         type: 'select',
         columns: columns({ type: 'ref', name: '*' }),
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         groupBy: [
             { type: 'ref', name: 'a' },
             { type: 'ref', name: 'b' }
@@ -261,12 +261,9 @@ describe('Select statements', () => {
         return {
             type: 'select',
             columns: columns({ type: 'ref', name: '*' }),
-            from: [{
+            from: [tbl('ta'), {
                 type: 'table',
-                name: 'ta'
-            }, {
-                type: 'table',
-                name: 'tb',
+                name: name('tb'),
                 join: {
                     type: t,
                     on: {
@@ -316,19 +313,15 @@ describe('Select statements', () => {
                 USING("studentId")`, {
         type: 'select',
         columns: [{ expr: star }],
-        from: [
-            {
-                type: 'table',
-                name: 'stud_ass_progress',
-            },
-            {
-                type: 'table',
-                name: 'accuracy',
-                join: {
-                    type: 'LEFT JOIN',
-                    using: [{ name: 'studentId' }],
-                }
+        from: [tbl('stud_ass_progress'),
+        {
+            type: 'table',
+            name: name('accuracy'),
+            join: {
+                type: 'LEFT JOIN',
+                using: [{ name: 'studentId' }],
             }
+        }
         ]
     });
 
@@ -387,21 +380,21 @@ describe('Select statements', () => {
 
     checkSelect(['select distinct a from test'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         distinct: 'distinct',
         columns: columns({ type: 'ref', name: 'a' }),
     });
 
     checkSelect(['select distinct on (a) a from test'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         distinct: [{ type: 'ref', name: 'a' }],
         columns: columns({ type: 'ref', name: 'a' }),
     });
 
     checkSelect(['select distinct on (a, b) a from test'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         distinct: [{ type: 'ref', name: 'a' }, { type: 'ref', name: 'b' }],
         columns: columns({ type: 'ref', name: 'a' }),
     });
@@ -409,7 +402,7 @@ describe('Select statements', () => {
 
     checkSelect(['select count(distinct("userId")) from photo'], {
         type: 'select',
-        from: [{ type: 'table', name: 'photo' }],
+        from: [tbl('photo')],
         columns: columns({
             type: 'call',
             function: { name: 'count' },
@@ -420,7 +413,7 @@ describe('Select statements', () => {
 
     checkSelect(['select max(distinct("userId")) from photo'], {
         type: 'select',
-        from: [{ type: 'table', name: 'photo' }],
+        from: [tbl('photo')],
         columns: columns({
             type: 'call',
             function: { name: 'max' },
@@ -431,22 +424,33 @@ describe('Select statements', () => {
 
     checkSelect(['select all a from test'], {
         type: 'select',
-        from: [{ type: 'table', name: 'test' }],
+        from: [tbl('test')],
         distinct: 'all',
         columns: columns({ type: 'ref', name: 'a' }),
     });
 
 
+    checkStatement(`VALUES (1, 1+1), (3, 4)`, {
+        type: 'values',
+        values: [
+            [int(1), binary(int(1), '+', int(1))],
+            [int(3), int(4)],
+        ]
+    })
+
     checkSelect([`select * from (values (1, 'one'), (2, 'two')) as vals (num, letter)`], {
         type: 'select',
         from: [{
-            type: 'values',
-            alias: { name: 'vals' },
+            type: 'statement',
+            statement: {
+                type: 'values',
+                values: [
+                    [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
+                    [{ type: 'integer', value: 2 }, { type: 'string', value: 'two' }],
+                ],
+            },
+            alias: 'vals',
             columnNames: [{ name: 'num' }, { name: 'letter' }],
-            values: [
-                [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
-                [{ type: 'integer', value: 2 }, { type: 'string', value: 'two' }],
-            ],
         }],
         columns: columns({ type: 'ref', name: '*' })
     });
@@ -454,12 +458,15 @@ describe('Select statements', () => {
     checkSelect([`select * from (values (1, 'one'), (2, 'two')) as vals`], {
         type: 'select',
         from: [{
-            type: 'values',
-            alias: { name: 'vals' },
-            values: [
-                [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
-                [{ type: 'integer', value: 2 }, { type: 'string', value: 'two' }],
-            ],
+            type: 'statement',
+            statement: {
+                type: 'values',
+                values: [
+                    [{ type: 'integer', value: 1 }, { type: 'string', value: 'one' }],
+                    [{ type: 'integer', value: 2 }, { type: 'string', value: 'two' }],
+                ],
+            },
+            alias: 'vals',
         }],
         columns: columns({ type: 'ref', name: '*' })
     });
@@ -473,12 +480,16 @@ describe('Select statements', () => {
         }),
         from: [{
             type: 'table',
-            name: 'ta',
-            alias: 't1',
+            name: {
+                name: 'ta',
+                alias: 't1',
+            },
         }, {
             type: 'table',
-            name: 'tb',
-            alias: 't2',
+            name: {
+                name: 'tb',
+                alias: 't2',
+            },
             join: {
                 type: 'INNER JOIN',
                 on: {
@@ -588,7 +599,7 @@ describe('Select statements', () => {
                 statement: {
                     type: 'select',
                     columns: [{ expr: { type: 'ref', name: 'val' } }],
-                    from: [{ type: 'table', name: 'example' }],
+                    from: [tbl('example')],
                 },
             }],
             in: {
@@ -600,7 +611,7 @@ describe('Select statements', () => {
                         args: [{ type: 'ref', name: 'val' }],
                     }
                 }],
-                from: [{ type: 'table', name: 'x' }],
+                from: [tbl('x')],
             }
         }),
     });

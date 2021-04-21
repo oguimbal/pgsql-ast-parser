@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkStatement } from './spec-utils';
+import { binary, checkStatement, int, name, ref, tbl } from './spec-utils';
 import { parseWithComments } from '../parser';
 import { assert, expect } from 'chai';
 
@@ -213,7 +213,7 @@ describe('Simple statements', () => {
         assert.deepEqual(ast, [{
             type: 'select',
             columns: [{ expr: { type: 'ref', name: '*' } }],
-            from: [{ type: 'table', name: 'tbl' }],
+            from: [tbl('tbl')],
         }]);
         assert.deepEqual(comments.map(c => c.comment), ['/* comment a */ ', '/* comment b */ '])
     });
@@ -234,5 +234,49 @@ describe('Simple statements', () => {
         type: 'begin',
         deferrable: false,
     })
+
+
+    checkStatement(`select * from (select a from mytable) myalias(col_renamed)`, {
+        type: 'select',
+        columns: [{ expr: { type: 'ref', name: '*' } }],
+        from: [{
+            type: 'statement',
+            statement: {
+                type: 'select',
+                columns: [{ expr: ref('a') }],
+                from: [tbl('mytable')],
+            },
+            alias: 'myalias',
+            columnNames: [name('col_renamed')],
+        }]
+    });
+
+    checkStatement(`select * from mytable "myAlias"(a)`, {
+        type: 'select',
+        columns: [{ expr: { type: 'ref', name: '*' } }],
+        from: [{
+            type: 'table',
+            name: {
+                name: 'mytable',
+                alias: 'myAlias',
+                columnNames: [name('a')],
+            },
+        }]
+    });
+
+    checkStatement(`select * from (select a,b from mytable) "myAlias"(x,y)`, {
+        type: 'select',
+        columns: [{ expr: { type: 'ref', name: '*' } }],
+        from: [{
+            type: 'statement',
+            statement: {
+                type: 'select',
+                columns: [{ expr: ref('a') }, { expr: ref('b') }],
+                from: [tbl('mytable')],
+            },
+            alias:'myAlias',
+            columnNames: [name('x'), name('y')],
+        }]
+    });
 
 });

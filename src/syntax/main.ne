@@ -62,6 +62,7 @@ statement_noprep
 
 
 selection -> select_statement {% unwrap %}
+            | select_values {% unwrap %}
             | with_statement {% unwrap %}
             | union_statement {% unwrap %}
 
