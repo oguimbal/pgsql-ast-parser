@@ -2,7 +2,7 @@ import 'mocha';
 import 'chai';
 import { checkDelete, checkStatement } from './spec-utils';
 
-describe('Delete', () => {
+describe.only('Delete', () => {
 
     checkDelete([`delete from test where a = b`], {
         type: 'delete',
@@ -17,6 +17,10 @@ describe('Delete', () => {
 
 
     checkStatement([`truncate test`, `truncate table test`], {
+        type: 'truncate table',
+        tables: [{ name: 'test' }]
+    });
+    checkStatement([`truncate test restart identity`, `truncate table test restart identity`], {
         type: 'truncate table',
         tables: [{ name: 'test' }]
     });
