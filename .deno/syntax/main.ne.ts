@@ -73,6 +73,7 @@ declare var kw_cast: any;
 declare var dot: any;
 declare var kw_array: any;
 declare var qparam: any;
+declare var kw_default: any;
 declare var kw_like: any;
 declare var kw_ilike: any;
 declare var op_like: any;
@@ -148,7 +149,6 @@ declare var kw_into: any;
 declare var kw_user: any;
 declare var kw_on: any;
 declare var kw_returning: any;
-declare var kw_default: any;
 declare var kw_do: any;
 declare var kw_returning: any;
 declare var op_eq: any;
@@ -457,6 +457,7 @@ const grammar: Grammar = {
     {"name": "kw_local", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('local')},
     {"name": "kw_prepare", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('prepare')},
     {"name": "kw_raise", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('raise')},
+    {"name": "kw_continue", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('continue')},
     {"name": "kw_ifnotexists", "symbols": ["kw_if", (lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), "kw_exists"]},
     {"name": "kw_ifexists", "symbols": ["kw_if", "kw_exists"]},
     {"name": "kw_not_null", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), (lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
@@ -594,17 +595,41 @@ const grammar: Grammar = {
     {"name": "select_subject_joins", "symbols": ["select_table_base", "select_subject_joins$ebnf$1"], "postprocess":  ([head, tail]) => {
             return [head, ...(tail || [])];
         } },
-    {"name": "select_table_base", "symbols": ["table_ref_aliased"], "postprocess":  x => {
-            return track(x, { type: 'table', ...x[0]});
+    {"name": "select_table_base", "symbols": ["stb_table"], "postprocess": unwrap},
+    {"name": "select_table_base", "symbols": ["stb_statement"], "postprocess": unwrap},
+    {"name": "select_table_base", "symbols": ["stb_call"], "postprocess": unwrap},
+    {"name": "stb_opts$ebnf$1", "symbols": ["collist_paren"], "postprocess": id},
+    {"name": "stb_opts$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "stb_opts", "symbols": ["ident_aliased", "stb_opts$ebnf$1"], "postprocess":  x => track(x, {
+            alias: toStr(x[0]),
+           ...x[1] && {columnNames: unbox(x[1]).map(asName)},
+        }) },
+    {"name": "stb_table$ebnf$1", "symbols": ["stb_opts"], "postprocess": id},
+    {"name": "stb_table$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "stb_table", "symbols": ["table_ref", "stb_table$ebnf$1"], "postprocess":  x => {
+            return track(x, {
+                type: 'table',
+                name: track(x, {
+                    ...x[0],
+                    ...x[1],
+                }),
+            });
         } },
-    {"name": "select_table_base", "symbols": ["select_subject_select_statement"], "postprocess": unwrap},
-    {"name": "select_table_base", "symbols": ["select_subject_select_values"], "postprocess": unwrap},
-    {"name": "select_table_base$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as)], "postprocess": id},
-    {"name": "select_table_base$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "select_table_base$ebnf$1$subexpression$1", "symbols": ["select_table_base$ebnf$1$subexpression$1$ebnf$1", "ident"], "postprocess": last},
-    {"name": "select_table_base$ebnf$1", "symbols": ["select_table_base$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "select_table_base$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "select_table_base", "symbols": ["expr_call", "select_table_base$ebnf$1"], "postprocess":  x =>
+    {"name": "stb_statement", "symbols": ["selection_paren", "stb_opts"], "postprocess":  x => track(x, {
+            type: 'statement',
+            statement: unwrap(x[0]),
+            ...x[1],
+        }) },
+    {"name": "select_values", "symbols": ["kw_values", "insert_values"], "postprocess":  x => track(x, {
+            type: 'values',
+            values: x[1],
+        }) },
+    {"name": "stb_call$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as)], "postprocess": id},
+    {"name": "stb_call$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "stb_call$ebnf$1$subexpression$1", "symbols": ["stb_call$ebnf$1$subexpression$1$ebnf$1", "ident"], "postprocess": last},
+    {"name": "stb_call$ebnf$1", "symbols": ["stb_call$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "stb_call$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "stb_call", "symbols": ["expr_call", "stb_call$ebnf$1"], "postprocess":  x =>
         !x[1]
            ? x[0]
            : track(x, {
@@ -645,19 +670,6 @@ const grammar: Grammar = {
     {"name": "select_join_op$subexpression$4$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_join_op$subexpression$4", "symbols": [(lexerAny.has("kw_full") ? {type: "kw_full"} : kw_full), "select_join_op$subexpression$4$ebnf$1"], "postprocess": x => box(x, 'FULL JOIN')},
     {"name": "select_join_op", "symbols": ["select_join_op$subexpression$4"]},
-    {"name": "select_subject_select_statement", "symbols": ["selection_paren", "ident_aliased"], "postprocess":  x => track(x, {
-            type: 'statement',
-            statement: unwrap(x[0]),
-            alias: asName(x[1])
-        }) },
-    {"name": "select_subject_select_values$ebnf$1", "symbols": ["collist_paren"], "postprocess": id},
-    {"name": "select_subject_select_values$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "select_subject_select_values", "symbols": ["lparen", "kw_values", "insert_values", "rparen", (lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "ident", "select_subject_select_values$ebnf$1"], "postprocess":  x => track(x, {
-            type: 'values',
-            alias: asName(x[5]),
-            values: x[2],
-            ...x[6] && {columnNames: unbox(x[6]).map(asName)},
-        }) },
     {"name": "select_what$ebnf$1", "symbols": ["select_distinct"], "postprocess": id},
     {"name": "select_what$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_what$ebnf$2", "symbols": ["select_expr_list_aliased"], "postprocess": id},
@@ -1201,6 +1213,7 @@ const grammar: Grammar = {
     {"name": "expr_primary", "symbols": [(lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)], "postprocess": x => track(x, { type: 'null' })},
     {"name": "expr_primary", "symbols": ["value_keyword"], "postprocess": x => track(x, {type: 'keyword', keyword: toStr(x) })},
     {"name": "expr_primary", "symbols": [(lexerAny.has("qparam") ? {type: "qparam"} : qparam)], "postprocess": x => track(x, { type: 'parameter', name: toStr(x[0]) })},
+    {"name": "expr_primary", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default)], "postprocess": x => track(x, { type: 'default'})},
     {"name": "ops_like", "symbols": ["ops_like_keywors"]},
     {"name": "ops_like", "symbols": ["ops_like_operators"]},
     {"name": "ops_like_keywors$ebnf$1", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not)], "postprocess": id},
@@ -1694,33 +1707,28 @@ const grammar: Grammar = {
     {"name": "insert_statement$ebnf$2$subexpression$1", "symbols": ["kw_overriding", "insert_statement$ebnf$2$subexpression$1$subexpression$1", "kw_value"], "postprocess": get(1)},
     {"name": "insert_statement$ebnf$2", "symbols": ["insert_statement$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "insert_statement$ebnf$2", "symbols": [], "postprocess": () => null},
-    {"name": "insert_statement$ebnf$3$subexpression$1", "symbols": ["kw_values", "insert_values"], "postprocess": last},
+    {"name": "insert_statement$ebnf$3$subexpression$1", "symbols": ["selection"]},
+    {"name": "insert_statement$ebnf$3$subexpression$1", "symbols": ["selection_paren"]},
     {"name": "insert_statement$ebnf$3", "symbols": ["insert_statement$ebnf$3$subexpression$1"], "postprocess": id},
     {"name": "insert_statement$ebnf$3", "symbols": [], "postprocess": () => null},
-    {"name": "insert_statement$ebnf$4$subexpression$1", "symbols": ["selection"]},
-    {"name": "insert_statement$ebnf$4$subexpression$1", "symbols": ["selection_paren"]},
+    {"name": "insert_statement$ebnf$4$subexpression$1", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_conflict", "insert_on_conflict"], "postprocess": last},
     {"name": "insert_statement$ebnf$4", "symbols": ["insert_statement$ebnf$4$subexpression$1"], "postprocess": id},
     {"name": "insert_statement$ebnf$4", "symbols": [], "postprocess": () => null},
-    {"name": "insert_statement$ebnf$5$subexpression$1", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_conflict", "insert_on_conflict"], "postprocess": last},
+    {"name": "insert_statement$ebnf$5$subexpression$1", "symbols": [(lexerAny.has("kw_returning") ? {type: "kw_returning"} : kw_returning), "select_expr_list_aliased"], "postprocess": last},
     {"name": "insert_statement$ebnf$5", "symbols": ["insert_statement$ebnf$5$subexpression$1"], "postprocess": id},
     {"name": "insert_statement$ebnf$5", "symbols": [], "postprocess": () => null},
-    {"name": "insert_statement$ebnf$6$subexpression$1", "symbols": [(lexerAny.has("kw_returning") ? {type: "kw_returning"} : kw_returning), "select_expr_list_aliased"], "postprocess": last},
-    {"name": "insert_statement$ebnf$6", "symbols": ["insert_statement$ebnf$6$subexpression$1"], "postprocess": id},
-    {"name": "insert_statement$ebnf$6", "symbols": [], "postprocess": () => null},
-    {"name": "insert_statement", "symbols": ["insert_statement$subexpression$1", "table_ref_aliased", "insert_statement$ebnf$1", "insert_statement$ebnf$2", "insert_statement$ebnf$3", "insert_statement$ebnf$4", "insert_statement$ebnf$5", "insert_statement$ebnf$6"], "postprocess":  x => {
+    {"name": "insert_statement", "symbols": ["insert_statement$subexpression$1", "table_ref_aliased", "insert_statement$ebnf$1", "insert_statement$ebnf$2", "insert_statement$ebnf$3", "insert_statement$ebnf$4", "insert_statement$ebnf$5"], "postprocess":  x => {
             const columns = x[2] && x[2].map(asName);
             const overriding = toStr(x[3]);
-            const values = x[4];
-            const select = unwrap(x[5]);
-            const onConflict = x[6];
-            const returning = x[7];
+            const insert = unwrap(x[4]);
+            const onConflict = x[5];
+            const returning = x[6];
             return track(x, {
                 type: 'insert',
                 into: unwrap(x[1]),
+                insert,
                 ...overriding && { overriding },
                 ...columns && { columns },
-                ...values && { values },
-                ...select && { select },
                 ...returning && { returning },
                 ...onConflict && { onConflict },
             })
@@ -1732,13 +1740,10 @@ const grammar: Grammar = {
             return [head, ...(tail || [])];
         } },
     {"name": "insert_value", "symbols": ["lparen", "insert_expr_list_raw", "rparen"], "postprocess": get(1)},
-    {"name": "insert_single_value$subexpression$1", "symbols": ["expr_or_select"]},
-    {"name": "insert_single_value$subexpression$1", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default)], "postprocess": () => 'default'},
-    {"name": "insert_single_value", "symbols": ["insert_single_value$subexpression$1"], "postprocess": unwrap},
     {"name": "insert_expr_list_raw$ebnf$1", "symbols": []},
-    {"name": "insert_expr_list_raw$ebnf$1$subexpression$1", "symbols": ["comma", "insert_single_value"], "postprocess": last},
+    {"name": "insert_expr_list_raw$ebnf$1$subexpression$1", "symbols": ["comma", "expr_or_select"], "postprocess": last},
     {"name": "insert_expr_list_raw$ebnf$1", "symbols": ["insert_expr_list_raw$ebnf$1", "insert_expr_list_raw$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "insert_expr_list_raw", "symbols": ["insert_single_value", "insert_expr_list_raw$ebnf$1"], "postprocess":  ([head, tail]) => {
+    {"name": "insert_expr_list_raw", "symbols": ["expr_or_select", "insert_expr_list_raw$ebnf$1"], "postprocess":  ([head, tail]) => {
             return [head, ...(tail || [])];
         } },
     {"name": "insert_on_conflict$ebnf$1", "symbols": ["insert_on_conflict_what"], "postprocess": id},
@@ -1934,9 +1939,15 @@ const grammar: Grammar = {
     {"name": "delete_truncate$macrocall$1", "symbols": ["delete_truncate$macrocall$2", "delete_truncate$macrocall$1$ebnf$1"], "postprocess":  ([head, tail]) => {
             return [unwrap(head), ...(tail.map(unwrap) || [])];
         } },
-    {"name": "delete_truncate", "symbols": ["delete_truncate$subexpression$1", "delete_truncate$macrocall$1"], "postprocess":  x => track(x, {
+    {"name": "delete_truncate$ebnf$1$subexpression$1$subexpression$1", "symbols": ["kw_restart"]},
+    {"name": "delete_truncate$ebnf$1$subexpression$1$subexpression$1", "symbols": ["kw_continue"]},
+    {"name": "delete_truncate$ebnf$1$subexpression$1", "symbols": ["delete_truncate$ebnf$1$subexpression$1$subexpression$1", "kw_identity"]},
+    {"name": "delete_truncate$ebnf$1", "symbols": ["delete_truncate$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "delete_truncate$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "delete_truncate", "symbols": ["delete_truncate$subexpression$1", "delete_truncate$macrocall$1", "delete_truncate$ebnf$1"], "postprocess":  x => track(x, {
             type: 'truncate table',
             tables: x[1],
+            ...x[2] && { identity: toStr(x[2][0]) }
         }) },
     {"name": "create_sequence_statement$ebnf$1$subexpression$1", "symbols": ["kw_temp"]},
     {"name": "create_sequence_statement$ebnf$1$subexpression$1", "symbols": ["kw_temporary"]},
@@ -2310,6 +2321,7 @@ const grammar: Grammar = {
     {"name": "statement_noprep", "symbols": ["comment_statement"]},
     {"name": "statement_noprep", "symbols": ["functions_statements"]},
     {"name": "selection", "symbols": ["select_statement"], "postprocess": unwrap},
+    {"name": "selection", "symbols": ["select_values"], "postprocess": unwrap},
     {"name": "selection", "symbols": ["with_statement"], "postprocess": unwrap},
     {"name": "selection", "symbols": ["union_statement"], "postprocess": unwrap},
     {"name": "selection_paren", "symbols": ["lparen", "selection", "rparen"], "postprocess": get(1)}

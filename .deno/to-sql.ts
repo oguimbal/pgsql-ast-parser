@@ -856,6 +856,16 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             first = false;
             m.tableRef(tbl);
         }
+        if (t.identity) {
+            switch (t.identity) {
+                case 'restart':
+                    ret.push(' RESTART IDENTITY ');
+                    break;
+                case 'continue':
+                    ret.push(' CONTINUE IDENTITY ');
+                    break;
+            }
+        }
     },
 
     delete: t => {
@@ -903,31 +913,35 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             m.select(s.statement);
             ret.push(') ');
             if (s.alias) {
-                ret.push(' AS ', name(s.alias), ' ');
+                ret.push(' AS ', ident(s.alias));
+                if (s.columnNames) {
+                    list(s.columnNames, c => ret.push(name(c)), true);
+                }
+                ret.push(' ');
             }
         });
 
         ret.push(' ');
     },
 
-    fromValues: s => {
-        join(m, s.join, () => {
-            ret.push('(VALUES ');
-            list(s.values, vlist => {
-                list(vlist, e => {
-                    m.expr(e);
-                }, true);
-            }, false);
-            ret.push(') AS ', name(s.alias));
-            if (s.columnNames) {
-                list(s.columnNames, s => ret.push(name(s)), true);
-            }
-        });
+    values: s => {
+        ret.push('VALUES ');
+        list(s.values, vlist => {
+            list(vlist, e => {
+                m.expr(e);
+            }, true);
+        }, false);
     },
 
     fromTable: s => {
         join(m, s.join, () => {
-            m.tableRef(s);
+            m.tableRef(s.name);
+            if (s.name.columnNames) {
+                if(!s.name.alias)  {
+                    throw new Error('Cannot specify aliased column names without an alias');
+                }
+                list(s.name.columnNames, c => ret.push(name(c)), true);
+            }
         });
     },
 
@@ -951,25 +965,8 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push('OVERRIDING ', i.overriding.toUpperCase(), ' VALUE ');
         }
 
-        // insert values
-        if (i.values) {
-            ret.push('VALUES ');
-            list(i.values, vlist => {
-                list(vlist, e => {
-                    if (e === 'default') {
-                        ret.push('default');
-                    } else {
-                        m.expr(e);
-                    }
-                }, true);
-            }, false);
-            ret.push(' ');
-        }
-
-        if (i.select) {
-            m.select(i.select);
-            ret.push(' ');
-        }
+        m.select(i.insert);
+        ret.push(' ');
 
         if (i.onConflict) {
             ret.push('ON CONFLICT ');
@@ -1010,6 +1007,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             }, false);
         }
         ret.push(' ');
+    },
+
+    default: () => {
+        ret.push(' DEFAULT ');
     },
 
     member: e => {
