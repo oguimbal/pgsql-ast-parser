@@ -2,7 +2,7 @@ import 'mocha';
 import 'chai';
 import { checkDelete, checkStatement } from './spec-utils';
 
-describe.only('Delete', () => {
+describe('Delete', () => {
 
     checkDelete([`delete from test where a = b`], {
         type: 'delete',
