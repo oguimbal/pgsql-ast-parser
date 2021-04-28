@@ -222,6 +222,7 @@ kw_minute -> %word {% notReservedKw('minute')  %}
 kw_local -> %word {% notReservedKw('local')  %}
 kw_prepare -> %word {% notReservedKw('prepare')  %}
 kw_raise -> %word {% notReservedKw('raise')  %}
+kw_continue -> %word {% notReservedKw('continue')  %}
 
 
 # === Composite keywords
