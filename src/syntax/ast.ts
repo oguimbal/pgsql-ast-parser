@@ -157,6 +157,7 @@ export interface ShowStatement extends PGNode {
 export interface TruncateTableStatement extends PGNode {
     type: 'truncate table';
     tables: QName[];
+    identity?: 'restart' | 'continue';
 }
 export interface DropTableStatement extends PGNode {
     type: 'drop table';
