@@ -20,15 +20,24 @@ describe('Delete', () => {
         type: 'truncate table',
         tables: [{ name: 'test' }]
     });
+
     checkStatement([`truncate test restart identity`, `truncate table test restart identity`], {
         type: 'truncate table',
-        tables: [{ name: 'test' }]
+        tables: [{ name: 'test' }],
+        identity: 'restart'
+    });
+
+    checkStatement([`truncate test continue identity`, `truncate table test continue identity`], {
+        type: 'truncate table',
+        tables: [{ name: 'test' }],
+        identity: 'continue'
     });
 
     checkStatement([`truncate ta, "tb"`, `truncate table "ta","tb"`], {
         type: 'truncate table',
         tables: [{ name: 'ta' }, { name: 'tb' }]
     });
+
     checkDelete([`delete from test`], {
         type: 'delete',
         from: { name: 'test' },
