@@ -859,10 +859,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (t.identity) {
             switch (t.identity) {
                 case 'restart':
-                    ret.push('RESTART IDENTITY');
+                    ret.push(' RESTART IDENTITY ');
                     break;
                 case 'continue':
-                    ret.push('CONTINUE IDENTITY');
+                    ret.push(' CONTINUE IDENTITY ');
                     break;
             }
         }
