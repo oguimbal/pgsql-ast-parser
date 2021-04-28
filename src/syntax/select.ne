@@ -61,7 +61,7 @@ stb_table ->  table_ref stb_opts:? {% x => {
             name: track(x, {
                 ...x[0],
                 ...x[1],
-            },
+            }),
         });
     } %}
 
