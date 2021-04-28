@@ -36,6 +36,7 @@ export type Statement = SelectStatement
     | DropIndexStatement
     | CommentStatement
     | CreateSchemaStatement
+    | WithRecursiveStatement
     | RaiseStatement
     | ValuesStatement
     | CreateFunctionStatement
@@ -499,7 +500,13 @@ export interface ColumnConstraintCheck extends PGNode {
     expr: Expr;
 }
 
-export type WithStatementBinding = SelectStatement | WithStatement | InsertStatement | UpdateStatement | DeleteStatement;
+export type WithStatementBinding = SelectStatement
+    | WithStatement
+    | WithRecursiveStatement
+    | InsertStatement
+    | UpdateStatement
+    | DeleteStatement;
+
 export interface WithStatement extends PGNode {
     type: 'with';
     bind: {
@@ -509,10 +516,19 @@ export interface WithStatement extends PGNode {
     in: WithStatementBinding;
 }
 
+export interface WithRecursiveStatement extends PGNode {
+    type: 'with recursive';
+    alias: Name;
+    columnNames: Name[];
+    bind: SelectFromUnion;
+    in: WithStatementBinding;
+}
+
 export type SelectStatement = SelectFromStatement
     | SelectFromUnion
     | ValuesStatement
-    | WithStatement;
+    | WithStatement
+    | WithRecursiveStatement;
 
 export interface SelectFromStatement extends PGNode {
     type: 'select',

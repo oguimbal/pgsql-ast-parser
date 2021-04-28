@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkSelect, columns, tbl } from './spec-utils';
+import { checkSelect, columns, int, tbl } from './spec-utils';
 import { SelectedColumn } from './ast';
 
 describe('Union statement', () => {
@@ -116,4 +116,10 @@ describe('Union statement', () => {
             }
         }
     })
+
+    checkSelect(`values (1) union values (2)`, {
+        type: 'union',
+        left: {type: 'values', values: [[int(1)]]},
+        right: {type: 'values', values: [[int(2)]]},
+    });
 });

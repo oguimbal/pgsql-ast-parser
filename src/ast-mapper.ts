@@ -44,6 +44,7 @@ export interface IAstPartialMapper {
     createColumn?: (col: a.CreateColumnDef) => a.CreateColumnDef | nil
     likeTable?: (col: a.CreateColumnsLikeTable) => a.CreateColumnDef | a.CreateColumnsLikeTable | nil
     with?: (val: a.WithStatement) => a.SelectStatement | nil
+    withRecursive?: (val: a.WithRecursiveStatement) => a.SelectStatement | nil;
     union?: (val: a.SelectFromUnion) => a.SelectStatement | nil
     select?: (val: a.SelectStatement) => a.SelectStatement | nil
     selection?: (val: a.SelectFromStatement) => a.SelectStatement | nil
@@ -226,6 +227,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.insert(val);
             case 'with':
                 return this.with(val);
+            case 'with recursive':
+                return this.withRecursive(val);
             case 'select':
                 return this.selection(val);
             case 'update':
@@ -807,6 +810,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.with(val);
             case 'values':
                 return this.values(val);
+            case 'with recursive':
+                return this.withRecursive(val);
             default:
                 throw NotSupported.never(val);
         }
@@ -881,6 +886,25 @@ export class AstDefaultMapper implements IAstMapper {
             bind,
             in: _in,
         })
+    }
+
+    withRecursive(val: a.WithRecursiveStatement): a.SelectStatement | nil {
+        const statement = this.union(val.bind);
+        if (!statement) {
+            return null;
+        }
+        // 'with recursive' only accepts unions
+        if (statement.type !== 'union' && statement.type !== 'union all') {
+            return null;
+        }
+        const _in = this.statement(val.in);
+        if (!withAccepts(_in)) {
+            return null;
+        }
+        return assignChanged(val, {
+            bind: statement,
+            in: _in,
+        });
     }
 
 
@@ -1004,6 +1028,7 @@ export class AstDefaultMapper implements IAstMapper {
             case 'union':
             case 'union all':
             case 'with':
+            case 'with recursive':
                 return this.select(val);
             case 'keyword':
                 return this.valueKeyword(val);

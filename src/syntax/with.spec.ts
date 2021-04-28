@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkStatement, checkInvalidExpr, tbl } from './spec-utils';
+import { checkStatement, checkInvalidExpr, tbl, name, int, binary, ref } from './spec-utils';
 import { expect } from 'chai';
 import { SelectedColumn } from './ast';
 
@@ -113,5 +113,43 @@ describe('With clause', () => {
                 },
             }
         }],
+    })
+
+
+    checkStatement(`WITH RECURSIVE t(n) AS (
+        VALUES (1)
+      UNION ALL
+        SELECT n+1 FROM t WHERE n < 100
+    )
+    SELECT sum(n) FROM t`, {
+        type: 'with recursive',
+        alias: name('t'),
+        columnNames: [name('n')],
+        bind: {
+            type: 'union all',
+            left: {
+                type: 'values',
+                values: [[int(1)]],
+            },
+            right: {
+                type: 'select',
+                from: [tbl('t')],
+                columns: [{
+                    expr: binary(ref('n'), '+', int(1))
+                }],
+                where: binary(ref('n'), '<', int(100)),
+            }
+        },
+        in: {
+            type: 'select',
+            from: [tbl('t')],
+            columns: [{
+                expr: {
+                    type: 'call',
+                    function: name('sum'),
+                    args: [ref('n')],
+                }
+            }]
+        }
     })
 });

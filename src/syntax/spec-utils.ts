@@ -79,6 +79,74 @@ function hideLocs(val: any): any {
     return ret;
 }
 
+
+
+function deepEqual<T>(a: T, b: T, strict?: boolean, depth = 10, numberDelta = 0.0001) {
+    if (depth < 0) {
+        throw new Error('Comparing too deep entities');
+    }
+
+    if (a === b) {
+        return true;
+    }
+    if (!strict) {
+        // should not use '==' because it could call .toString() on objects when compared to strings.
+        // ... which is not ok. Especially when working with translatable objects, which .toString() returns a transaltion (a string, thus)
+        if (!a && !b) {
+            return true;
+        }
+    }
+
+    if (Array.isArray(a)) {
+        if (!Array.isArray(b) || a.length !== b.length)
+            return false;
+        for (let i = 0; i < a.length; i++) {
+            if (!deepEqual(a[i], b[i], strict, depth - 1, numberDelta))
+                return false;
+        }
+        return true;
+    }
+
+    // handle dates
+    if (a instanceof Date || b instanceof Date) {
+        return a === b;
+    }
+
+    const fa = Number.isFinite(<any>a);
+    const fb = Number.isFinite(<any>b);
+    if (fa || fb) {
+        return fa && fb && Math.abs(<any>a - <any>b) <= numberDelta;
+    }
+
+    // handle plain objects
+    if (typeof a !== 'object' || typeof a !== typeof b)
+        return false;
+    if (!a || !b) {
+        return false;
+    }
+
+
+    const ak = Object.keys(a);
+    const bk = Object.keys(b);
+    if (strict && ak.length !== bk.length)
+        return false;
+    const set: Iterable<string> = strict
+        ? Object.keys(a)
+        : new Set([...Object.keys(a), ...Object.keys(b)]);
+    for (const k of set) {
+        if (!deepEqual((a as any)[k], (b as any)[k], strict, depth - 1, numberDelta))
+            return false;
+    }
+    return true;
+}
+
+
+declare var __non_webpack_require__: any;
+
+function inspect(elt: any) {
+    return __non_webpack_require__('util').inspect(elt);
+}
+
 function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T, m: IAstMapper | IAstToSql) => any, start?: string, checkLocations?: boolean) {
     if (typeof value === 'string') {
         value = [value];
@@ -96,7 +164,16 @@ function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T,
                 if (!ret.length) {
                     assert.fail('Unexpected end of input');
                 }
-                expect(ret.length).to.equal(1, 'Ambiguous matches');
+                if (ret.length !== 1) {
+                    const noLocs = ret.map(hideLocs);
+                    if (noLocs.slice(1).every(p => deepEqual(p, noLocs[0]))) {
+                        assert.fail(`${noLocs.length} ambiguous syntaxes, but they yielded the same ASTs : ` + inspect(noLocs[0]));
+                    } else {
+                        assert.fail(`${noLocs.length} ambiguous syntaxes, AND THEY HAVE YIELDED DIFFERENT ASTs : \n` + noLocs
+                            .map(inspect)
+                            .join('\n\n           ======================      \n\n'));
+                    }
+                }
                 return trimNullish(ret[0]);
             }
             const parsedWithLocations = tracking(() => doParse(sql));

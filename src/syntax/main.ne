@@ -64,6 +64,7 @@ statement_noprep
 selection -> select_statement {% unwrap %}
             | select_values {% unwrap %}
             | with_statement {% unwrap %}
+            | with_recursive_statement {% unwrap %}
             | union_statement {% unwrap %}
 
 selection_paren -> lparen selection rparen {% get(1) %}
