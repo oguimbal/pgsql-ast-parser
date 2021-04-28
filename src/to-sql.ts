@@ -856,6 +856,16 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             first = false;
             m.tableRef(tbl);
         }
+        if (t.identity) {
+            switch (t.identity) {
+                case 'restart':
+                    ret.push('RESTART IDENTITY');
+                    break;
+                case 'continue':
+                    ret.push('CONTINUE IDENTITY');
+                    break;
+            }
+        }
     },
 
     delete: t => {
