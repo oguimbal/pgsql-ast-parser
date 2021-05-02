@@ -707,6 +707,18 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         m.statement(w.in);
     },
 
+    withRecursive: val => {
+        ret.push('WITH RECURSIVE '
+            , name(val.alias)
+            , '('
+            , ...val.columnNames.map(name).join(', ')
+            , ') AS (');
+        m.union(val.bind);
+        ret.push(') ');
+        m.statement(val.in);
+    },
+
+
     setGlobal: g => {
         ret.push('SET ', name(g.variable), ' = ');
         visitSetVal(g.set);
@@ -937,7 +949,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         join(m, s.join, () => {
             m.tableRef(s.name);
             if (s.name.columnNames) {
-                if(!s.name.alias)  {
+                if (!s.name.alias) {
                     throw new Error('Cannot specify aliased column names without an alias');
                 }
                 list(s.name.columnNames, c => ret.push(name(c)), true);
