@@ -39,6 +39,80 @@ describe('Create table', () => {
         }],
     });
 
+
+    checkInvalid('create temp unlogged table test (id text)');
+    checkInvalid('create global unlogged table test (id text)');
+
+
+
+    checkCreateTable(['create temp table test(value text)', 'create temporary table test(value text)'], {
+        type: 'create table',
+        name: { name: 'test', },
+        temporary: true,
+        columns: [{
+            kind: 'column',
+            name: { name: 'value' },
+            dataType: {
+                name: 'text',
+            },
+        }],
+    });
+
+
+    checkCreateTable(['create unlogged table test(value text)'], {
+        type: 'create table',
+        name: { name: 'test', },
+        unlogged: true,
+        columns: [{
+            kind: 'column',
+            name: { name: 'value' },
+            dataType: {
+                name: 'text',
+            },
+        }],
+    });
+
+
+    checkCreateTable(['create global table test(value text)', 'create GLOBAL table test(value text)'], {
+        type: 'create table',
+        name: { name: 'test', },
+        locality: 'global',
+        columns: [{
+            kind: 'column',
+            name: { name: 'value' },
+            dataType: {
+                name: 'text',
+            },
+        }],
+    });
+
+    checkCreateTable(['create local table test(value text)'], {
+        type: 'create table',
+        name: { name: 'test', },
+        locality: 'local',
+        columns: [{
+            kind: 'column',
+            name: { name: 'value' },
+            dataType: {
+                name: 'text',
+            },
+        }],
+    });
+
+    checkCreateTable(['create local temp table test(value text)'], {
+        type: 'create table',
+        name: { name: 'test', },
+        locality: 'local',
+        temporary: true,
+        columns: [{
+            kind: 'column',
+            name: { name: 'value' },
+            dataType: {
+                name: 'text',
+            },
+        }],
+    });
+
     checkCreateTable(`CREATE TABLE capitals (
         state           char(2)
     ) INHERITS (cities)`, {

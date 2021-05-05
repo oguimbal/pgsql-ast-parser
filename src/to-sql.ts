@@ -814,7 +814,17 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     createTable: t => {
-        ret.push(t.ifNotExists ? 'CREATE TABLE IF NOT EXISTS ' : 'CREATE TABLE ');
+        ret.push('CREATE ');
+        if(t.locality) {
+            ret.push(t.locality.toUpperCase(), ' ');
+        }
+        if (t.temporary) {
+            ret.push('TEMPORARY ');
+        }
+        if(t.unlogged) {
+            ret.push('UNLOGGED ');
+        }
+        ret.push(t.ifNotExists ? 'TABLE IF NOT EXISTS ' : 'TABLE ');
         m.tableRef(t.name);
         ret.push('(');
         list(t.columns, c => {

@@ -199,6 +199,8 @@ kw_replace -> %word {% notReservedKw('replace')  %}
 kw_recursive -> %word {% notReservedKw('recursive')  %}
 kw_view -> %word {% notReservedKw('view')  %}
 kw_cascaded -> %word {% notReservedKw('cascaded')  %}
+kw_unlogged -> %word {% notReservedKw('unlogged')  %}
+kw_global -> %word {% notReservedKw('global')  %}
 kw_option -> %word {% notReservedKw('option')  %}
 kw_materialized -> %word {% notReservedKw('materialized')  %}
 kw_partial -> %word {% notReservedKw('partial')  %}

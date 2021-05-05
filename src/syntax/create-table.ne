@@ -8,6 +8,7 @@ array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
 
 # https://www.postgresql.org/docs/12/sql-createtable.html
 createtable_statement -> %kw_create
+        createtable_modifiers:?
         %kw_table
         kw_ifnotexists:?
         qname
@@ -17,19 +18,29 @@ createtable_statement -> %kw_create
         createtable_opts:?
      {% x => {
 
-        const cols = x[5].filter((v: any) => 'kind' in v);
-        const constraints = x[5].filter((v: any) => !('kind' in v));
+        const cols = x[6].filter((v: any) => 'kind' in v);
+        const constraints = x[6].filter((v: any) => !('kind' in v));
 
         return track(x, {
             type: 'create table',
-            ... !!x[2] ? { ifNotExists: true } : {},
-            name: x[3],
+            ... !!x[3] ? { ifNotExists: true } : {},
+            name: x[4],
             columns: cols,
+            ...unwrap(x[1]),
             ...constraints.length ? { constraints } : {},
             ...last(x),
         });
     } %}
 
+
+createtable_modifiers
+    -> kw_unlogged {% x => x[0] ? { unlogged: true } : {} %}
+    | m_locglob
+    | m_tmp
+    | m_locglob m_tmp {% ([a, b]) => ({...a, ...b}) %}
+
+m_locglob -> (kw_local | kw_global) {% x => ({ locality: toStr(x)}) %}
+m_tmp -> (kw_temp | kw_temporary) {% x => ({ temporary: true}) %}
 
 createtable_declarationlist -> createtable_declaration (comma createtable_declaration {% last %}):* {% ([head, tail]) => {
     return [head, ...(tail || [])];

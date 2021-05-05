@@ -391,6 +391,9 @@ export interface CreateMaterializedViewStatement extends CreateViewStatementBase
 export interface CreateTableStatement extends PGNode {
     type: 'create table';
     name: QName;
+    temporary?: boolean;
+    unlogged?: boolean;
+    locality?: 'global' | 'local';
     ifNotExists?: true;
     columns: (CreateColumnDef | CreateColumnsLikeTable)[];
     /** Constraints not defined inline */
