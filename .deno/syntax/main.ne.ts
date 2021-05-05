@@ -434,6 +434,8 @@ const grammar: Grammar = {
     {"name": "kw_recursive", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('recursive')},
     {"name": "kw_view", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('view')},
     {"name": "kw_cascaded", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('cascaded')},
+    {"name": "kw_unlogged", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('unlogged')},
+    {"name": "kw_global", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('global')},
     {"name": "kw_option", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('option')},
     {"name": "kw_materialized", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('materialized')},
     {"name": "kw_partial", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('partial')},
@@ -1335,24 +1337,37 @@ const grammar: Grammar = {
             ...x[2] && {from: x[2][1]},
             ...x[3] && {for: x[3][1]},
         }) },
-    {"name": "createtable_statement$ebnf$1", "symbols": ["kw_ifnotexists"], "postprocess": id},
+    {"name": "createtable_statement$ebnf$1", "symbols": ["createtable_modifiers"], "postprocess": id},
     {"name": "createtable_statement$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "createtable_statement$ebnf$2", "symbols": ["createtable_opts"], "postprocess": id},
+    {"name": "createtable_statement$ebnf$2", "symbols": ["kw_ifnotexists"], "postprocess": id},
     {"name": "createtable_statement$ebnf$2", "symbols": [], "postprocess": () => null},
-    {"name": "createtable_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), (lexerAny.has("kw_table") ? {type: "kw_table"} : kw_table), "createtable_statement$ebnf$1", "qname", "lparen", "createtable_declarationlist", "rparen", "createtable_statement$ebnf$2"], "postprocess":  x => {
+    {"name": "createtable_statement$ebnf$3", "symbols": ["createtable_opts"], "postprocess": id},
+    {"name": "createtable_statement$ebnf$3", "symbols": [], "postprocess": () => null},
+    {"name": "createtable_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "createtable_statement$ebnf$1", (lexerAny.has("kw_table") ? {type: "kw_table"} : kw_table), "createtable_statement$ebnf$2", "qname", "lparen", "createtable_declarationlist", "rparen", "createtable_statement$ebnf$3"], "postprocess":  x => {
         
-            const cols = x[5].filter((v: any) => 'kind' in v);
-            const constraints = x[5].filter((v: any) => !('kind' in v));
+            const cols = x[6].filter((v: any) => 'kind' in v);
+            const constraints = x[6].filter((v: any) => !('kind' in v));
         
             return track(x, {
                 type: 'create table',
-                ... !!x[2] ? { ifNotExists: true } : {},
-                name: x[3],
+                ... !!x[3] ? { ifNotExists: true } : {},
+                name: x[4],
                 columns: cols,
+                ...unwrap(x[1]),
                 ...constraints.length ? { constraints } : {},
                 ...last(x),
             });
         } },
+    {"name": "createtable_modifiers", "symbols": ["kw_unlogged"], "postprocess": x => x[0] ? { unlogged: true } : {}},
+    {"name": "createtable_modifiers", "symbols": ["m_locglob"]},
+    {"name": "createtable_modifiers", "symbols": ["m_tmp"]},
+    {"name": "createtable_modifiers", "symbols": ["m_locglob", "m_tmp"], "postprocess": ([a, b]) => ({...a, ...b})},
+    {"name": "m_locglob$subexpression$1", "symbols": ["kw_local"]},
+    {"name": "m_locglob$subexpression$1", "symbols": ["kw_global"]},
+    {"name": "m_locglob", "symbols": ["m_locglob$subexpression$1"], "postprocess": x => ({ locality: toStr(x)})},
+    {"name": "m_tmp$subexpression$1", "symbols": ["kw_temp"]},
+    {"name": "m_tmp$subexpression$1", "symbols": ["kw_temporary"]},
+    {"name": "m_tmp", "symbols": ["m_tmp$subexpression$1"], "postprocess": x => ({ temporary: true})},
     {"name": "createtable_declarationlist$ebnf$1", "symbols": []},
     {"name": "createtable_declarationlist$ebnf$1$subexpression$1", "symbols": ["comma", "createtable_declaration"], "postprocess": last},
     {"name": "createtable_declarationlist$ebnf$1", "symbols": ["createtable_declarationlist$ebnf$1", "createtable_declarationlist$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
