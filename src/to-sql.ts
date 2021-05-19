@@ -1183,6 +1183,27 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 m.expr(s.limit.limit);
             }
         }
+
+        if (s.for) {
+            ret.push('FOR ');
+            switch (s.for.type) {
+                case 'update':
+                    ret.push('UPDATE ');
+                    break;
+                case 'no_key_update':
+                    ret.push('NO ');
+                    ret.push('KEY ');
+                    ret.push('UPDATE ');
+                    break;
+                case 'share':
+                    ret.push('SHARE ');
+                    break;
+                case 'key_share':
+                    ret.push('KEY ');
+                    ret.push('SHARE ');
+                    break;
+            }
+        }
     },
 
     show: s => {

@@ -615,4 +615,40 @@ describe('Select statements', () => {
             }
         }),
     });
+
+    checkSelect('select * from test for update', {
+        type: 'select',
+        from: [tbl('test')],
+        columns: columns({ type: 'ref', name: '*' }),
+        for: {
+            type: 'update',
+        }
+    });
+
+    checkSelect('select * from test for no key update', {
+        type: 'select',
+        from: [tbl('test')],
+        columns: columns({ type: 'ref', name: '*' }),
+        for: {
+            type: 'no_key_update',
+        }
+    });
+
+    checkSelect('select * from test for share', {
+        type: 'select',
+        from: [tbl('test')],
+        columns: columns({ type: 'ref', name: '*' }),
+        for: {
+            type: 'share',
+        }
+    });
+
+    checkSelect('select * from test for key share', {
+        type: 'select',
+        from: [tbl('test')],
+        columns: columns({ type: 'ref', name: '*' }),
+        for: {
+            type: 'key_share',
+        }
+    });
 });

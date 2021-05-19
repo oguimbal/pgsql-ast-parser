@@ -10,9 +10,9 @@ array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
 # https://www.postgresql.org/docs/12/sql-select.html
 
 select_statement
-    -> select_what select_from:? select_where:? select_groupby:? select_order_by:? select_limit
+    -> select_what select_from:? select_where:? select_groupby:? select_order_by:? select_limit select_for:?
     {% x => {
-        let [what, from, where, groupBy, orderBy, limit] = x;
+        let [what, from, where, groupBy, orderBy, limit, selectFor] = x;
         from = unwrap(from);
         groupBy = groupBy && (groupBy.length === 1 && groupBy[0].type === 'list' ? groupBy[0].expressions : groupBy);
         return track(x, {
@@ -22,6 +22,7 @@ select_statement
             ...limit ? { limit } : {},
             ...orderBy ? { orderBy } : {},
             ...where ? { where } : {},
+            ...selectFor ? { for: selectFor[1] } : {},
             type: 'select',
         });
     } %}
@@ -165,6 +166,13 @@ select_limit -> (%kw_limit expr_nostar {%last%}):?
                         ...offset ? {offset} : {},
                     });
                 }%}
+
+# FOR { UPDATE | NO KEY UPDATE | SHARE | KEY SHARE }
+select_for -> %kw_for (
+    kw_update {% x => track(x, {type: 'update'}) %}
+    | kw_no kw_key kw_update {% x => track(x, {type: 'no_key_update'}) %}
+    | %kw_share {% x => track(x, {type: 'share'}) %}
+    | kw_key %kw_share {% x => track(x, {type: 'key_share'}) %})
 
 select_order_by -> (%kw_order kw_by) select_order_by_expr (comma select_order_by_expr {%last%}):*  {% ([_, head, tail]) => {
     return [head, ...(tail || [])];
