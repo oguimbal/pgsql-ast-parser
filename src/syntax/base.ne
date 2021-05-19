@@ -225,6 +225,7 @@ kw_local -> %word {% notReservedKw('local')  %}
 kw_prepare -> %word {% notReservedKw('prepare')  %}
 kw_raise -> %word {% notReservedKw('raise')  %}
 kw_continue -> %word {% notReservedKw('continue')  %}
+kw_share -> %word {% notReservedKw('share')  %}
 
 
 # === Composite keywords

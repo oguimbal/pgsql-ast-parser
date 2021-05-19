@@ -5,5 +5,4 @@ export const sqlKeywords = [
 
     // added manually
     , "PRECISION"
-    , "SHARE"
 ];

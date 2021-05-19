@@ -630,7 +630,7 @@ describe('Select statements', () => {
         from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' }),
         for: {
-            type: 'no_key_update',
+            type: 'no key update',
         }
     });
 
@@ -648,7 +648,7 @@ describe('Select statements', () => {
         from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' }),
         for: {
-            type: 'key_share',
+            type: 'key share',
         }
     });
 });

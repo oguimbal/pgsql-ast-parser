@@ -557,7 +557,7 @@ export interface OrderByStatement extends PGNode {
 }
 
 export interface ForStatement extends PGNode {
-    type: 'update' | 'no_key_update' | 'share' | 'key_share';
+    type: 'update' | 'no key update' | 'share' | 'key share';
 }
 
 export interface LimitStatement extends PGNode {
