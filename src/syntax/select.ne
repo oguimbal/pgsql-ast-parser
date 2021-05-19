@@ -170,9 +170,9 @@ select_limit -> (%kw_limit expr_nostar {%last%}):?
 # FOR { UPDATE | NO KEY UPDATE | SHARE | KEY SHARE }
 select_for -> %kw_for (
     kw_update {% x => track(x, {type: 'update'}) %}
-    | kw_no kw_key kw_update {% x => track(x, {type: 'no_key_update'}) %}
-    | %kw_share {% x => track(x, {type: 'share'}) %}
-    | kw_key %kw_share {% x => track(x, {type: 'key_share'}) %})
+    | kw_no kw_key kw_update {% x => track(x, {type: 'no key update'}) %}
+    | kw_share {% x => track(x, {type: 'share'}) %}
+    | kw_key kw_share {% x => track(x, {type: 'key share'}) %})
 
 select_order_by -> (%kw_order kw_by) select_order_by_expr (comma select_order_by_expr {%last%}):*  {% ([_, head, tail]) => {
     return [head, ...(tail || [])];
