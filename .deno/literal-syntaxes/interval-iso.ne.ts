@@ -1,4 +1,4 @@
-// Generated automatically by nearley, version 2.19.7
+// Generated automatically by nearley, version 2.20.1
 // http://github.com/Hardmath123/nearley
 // Bypasses TS6133. Allow declared but unused functions.
 // @ts-ignore
@@ -15,7 +15,8 @@ declare var H: any;
 declare var S: any;
 import {lexerAny} from './interval-iso-lexer.ts';
  
-interface NearleyToken {  value: any;
+interface NearleyToken {
+  value: any;
   [key: string]: any;
 };
 
@@ -23,7 +24,7 @@ interface NearleyLexer {
   reset: (chunk: string, info: any) => void;
   next: () => NearleyToken | undefined;
   save: () => any;
-  formatError: (token: NearleyToken) => string;
+  formatError: (token: never) => string;
   has: (tokenType: string) => boolean;
 };
 

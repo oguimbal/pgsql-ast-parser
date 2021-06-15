@@ -1,4 +1,4 @@
-// Generated automatically by nearley, version 2.19.7
+// Generated automatically by nearley, version 2.20.1
 // http://github.com/Hardmath123/nearley
 // Bypasses TS6133. Allow declared but unused functions.
 // @ts-ignore
@@ -39,10 +39,12 @@ declare var kw_select: any;
 declare var kw_all: any;
 declare var kw_distinct: any;
 declare var kw_where: any;
+declare var kw_having: any;
 declare var kw_group: any;
 declare var kw_limit: any;
 declare var kw_offset: any;
 declare var kw_fetch: any;
+declare var kw_for: any;
 declare var kw_order: any;
 declare var kw_asc: any;
 declare var kw_desc: any;
@@ -102,7 +104,6 @@ declare var kw_user: any;
 declare var kw_current_user: any;
 declare var lparen: any;
 declare var kw_placing: any;
-declare var kw_for: any;
 declare var rparen: any;
 declare var kw_create: any;
 declare var kw_table: any;
@@ -304,7 +305,8 @@ function setSeqOpts(ret: any, opts: any) {
     }
 }
 
-interface NearleyToken {  value: any;
+interface NearleyToken {
+  value: any;
   [key: string]: any;
 };
 
@@ -312,7 +314,7 @@ interface NearleyLexer {
   reset: (chunk: string, info: any) => void;
   next: () => NearleyToken | undefined;
   save: () => any;
-  formatError: (token: NearleyToken) => string;
+  formatError: (token: never) => string;
   has: (tokenType: string) => boolean;
 };
 
@@ -460,6 +462,7 @@ const grammar: Grammar = {
     {"name": "kw_prepare", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('prepare')},
     {"name": "kw_raise", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('raise')},
     {"name": "kw_continue", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('continue')},
+    {"name": "kw_share", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('share')},
     {"name": "kw_ifnotexists", "symbols": ["kw_if", (lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), "kw_exists"]},
     {"name": "kw_ifexists", "symbols": ["kw_if", "kw_exists"]},
     {"name": "kw_not_null", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), (lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
@@ -574,8 +577,12 @@ const grammar: Grammar = {
     {"name": "select_statement$ebnf$3", "symbols": [], "postprocess": () => null},
     {"name": "select_statement$ebnf$4", "symbols": ["select_order_by"], "postprocess": id},
     {"name": "select_statement$ebnf$4", "symbols": [], "postprocess": () => null},
-    {"name": "select_statement", "symbols": ["select_what", "select_statement$ebnf$1", "select_statement$ebnf$2", "select_statement$ebnf$3", "select_statement$ebnf$4", "select_limit"], "postprocess":  x => {
-            let [what, from, where, groupBy, orderBy, limit] = x;
+    {"name": "select_statement$ebnf$5", "symbols": ["select_for"], "postprocess": id},
+    {"name": "select_statement$ebnf$5", "symbols": [], "postprocess": () => null},
+    {"name": "select_statement$ebnf$6", "symbols": ["select_having"], "postprocess": id},
+    {"name": "select_statement$ebnf$6", "symbols": [], "postprocess": () => null},
+    {"name": "select_statement", "symbols": ["select_what", "select_statement$ebnf$1", "select_statement$ebnf$2", "select_statement$ebnf$3", "select_statement$ebnf$4", "select_limit", "select_statement$ebnf$5", "select_statement$ebnf$6"], "postprocess":  x => {
+            let [what, from, where, groupBy, orderBy, limit, selectFor, having] = x;
             from = unwrap(from);
             groupBy = groupBy && (groupBy.length === 1 && groupBy[0].type === 'list' ? groupBy[0].expressions : groupBy);
             return track(x, {
@@ -585,6 +592,8 @@ const grammar: Grammar = {
                 ...limit ? { limit } : {},
                 ...orderBy ? { orderBy } : {},
                 ...where ? { where } : {},
+                ...having ? { having } : {},
+                ...selectFor ? { for: selectFor[1] } : {},
                 type: 'select',
             });
         } },
@@ -698,6 +707,7 @@ const grammar: Grammar = {
     {"name": "select_distinct$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_distinct", "symbols": [(lexerAny.has("kw_distinct") ? {type: "kw_distinct"} : kw_distinct), "select_distinct$ebnf$1"], "postprocess": x => box(x, x[1] || 'distinct')},
     {"name": "select_where", "symbols": [(lexerAny.has("kw_where") ? {type: "kw_where"} : kw_where), "expr"], "postprocess": last},
+    {"name": "select_having", "symbols": [(lexerAny.has("kw_having") ? {type: "kw_having"} : kw_having), "expr"], "postprocess": last},
     {"name": "select_groupby", "symbols": [(lexerAny.has("kw_group") ? {type: "kw_group"} : kw_group), "kw_by", "expr_list_raw"], "postprocess": last},
     {"name": "select_limit$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_limit") ? {type: "kw_limit"} : kw_limit), "expr_nostar"], "postprocess": last},
     {"name": "select_limit$ebnf$1", "symbols": ["select_limit$ebnf$1$subexpression$1"], "postprocess": id},
@@ -736,6 +746,11 @@ const grammar: Grammar = {
                 ...offset ? {offset} : {},
             });
         }},
+    {"name": "select_for$subexpression$1", "symbols": ["kw_update"], "postprocess": x => track(x, {type: 'update'})},
+    {"name": "select_for$subexpression$1", "symbols": ["kw_no", "kw_key", "kw_update"], "postprocess": x => track(x, {type: 'no key update'})},
+    {"name": "select_for$subexpression$1", "symbols": ["kw_share"], "postprocess": x => track(x, {type: 'share'})},
+    {"name": "select_for$subexpression$1", "symbols": ["kw_key", "kw_share"], "postprocess": x => track(x, {type: 'key share'})},
+    {"name": "select_for", "symbols": [(lexerAny.has("kw_for") ? {type: "kw_for"} : kw_for), "select_for$subexpression$1"]},
     {"name": "select_order_by$subexpression$1", "symbols": [(lexerAny.has("kw_order") ? {type: "kw_order"} : kw_order), "kw_by"]},
     {"name": "select_order_by$ebnf$1", "symbols": []},
     {"name": "select_order_by$ebnf$1$subexpression$1", "symbols": ["comma", "select_order_by_expr"], "postprocess": last},
