@@ -10,9 +10,9 @@ array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
 # https://www.postgresql.org/docs/12/sql-select.html
 
 select_statement
-    -> select_what select_from:? select_where:? select_groupby:? select_order_by:? select_limit select_for:?
+    -> select_what select_from:? select_where:? select_having:? select_groupby:? select_order_by:? select_limit select_for:?
     {% x => {
-        let [what, from, where, groupBy, orderBy, limit, selectFor] = x;
+        let [what, from, where, having, groupBy, orderBy, limit, selectFor] = x;
         from = unwrap(from);
         groupBy = groupBy && (groupBy.length === 1 && groupBy[0].type === 'list' ? groupBy[0].expressions : groupBy);
         return track(x, {
@@ -22,6 +22,7 @@ select_statement
             ...limit ? { limit } : {},
             ...orderBy ? { orderBy } : {},
             ...where ? { where } : {},
+            ...having ? { having } : {},
             ...selectFor ? { for: selectFor[1] } : {},
             type: 'select',
         });
@@ -140,6 +141,9 @@ select_distinct
 
 # WHERE [expr]
 select_where -> %kw_where expr {% last %}
+
+# HAVING [expr]
+select_having -> %kw_having expr {% last %}
 
 
 select_groupby -> %kw_group kw_by expr_list_raw {% last %}
