@@ -5,14 +5,18 @@
 # https://www.postgresql.org/docs/12/sql-altertable.html
 
 altertable_statement -> kw_alter %kw_table kw_ifexists:? %kw_only:? table_ref
-                        altertable_action {% x => track(x, {
+                        altertable_actions {% x => track(x, {
                             type: 'alter table',
                             ... x[2] ? {ifExists: true} : {},
                             ... x[3] ? {only: true} : {},
                             table: unwrap(x[4]),
-                            change: unwrap(x[5]),
+                            changes: unbox(x[5]).map(unwrap),
                         }) %}
 
+
+altertable_actions -> altertable_action (comma altertable_action {% last %}):* {% ([head, tail]) => {
+    return [head, ...(tail || [])];
+} %}
 
 altertable_action
     -> altertable_rename_table
@@ -104,3 +108,4 @@ altercol_generated_seq
         setSeqOpts(ret, x[1]);
         return track(x, ret);
     }%}
+

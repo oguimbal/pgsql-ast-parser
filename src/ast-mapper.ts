@@ -642,51 +642,67 @@ export class AstDefaultMapper implements IAstMapper {
         if (!table) {
             return null; // no table
         }
-        let change: a.TableAlteration | nil;
-        switch (st.change.type) {
-            case 'add column': {
-                change = this.addColumn(st.change, st.table);
-                break;
+        let changes: a.TableAlteration[] = [];
+        let hasChanged: boolean = false;
+        for (let i = 0; i < (st.changes?.length || 0); i++) {
+            const currentChange: a.TableAlteration = st.changes[i];
+
+            let change: a.TableAlteration | nil;
+            switch (currentChange.type) {
+                case 'add column': {
+                    change = this.addColumn(currentChange, st.table);
+                    break;
+                }
+                case 'add constraint': {
+                    change = this.addConstraint(currentChange, st.table);
+                    break;
+                }
+                case 'alter column': {
+                    change = this.alterColumn(currentChange, st.table);
+                    break;
+                }
+                case 'rename': {
+                    change = this.renameTable(currentChange, st.table);
+                    break;
+                }
+                case 'rename column': {
+                    change = this.renameColumn(currentChange, st.table);
+                    break;
+                }
+                case 'rename constraint': {
+                    change = this.renameConstraint(currentChange, st.table);
+                    break;
+                }
+                case 'drop column': {
+                    change = this.dropColumn(currentChange, st.table);
+                    break;
+                }
+                case 'owner': {
+                    change = this.setTableOwner(currentChange, st.table);
+                    break;
+                }
+                default:
+                    throw NotSupported.never(currentChange);
             }
-            case 'add constraint': {
-                change = this.addConstraint(st.change, st.table);
-                break;
+
+            hasChanged = hasChanged || (change != currentChange);
+
+            if (!!change) {
+                changes.push(change);
             }
-            case 'alter column': {
-                change = this.alterColumn(st.change, st.table);
-                break;
-            }
-            case 'rename': {
-                change = this.renameTable(st.change, st.table);
-                break;
-            }
-            case 'rename column': {
-                change = this.renameColumn(st.change, st.table);
-                break;
-            }
-            case 'rename constraint': {
-                change = this.renameConstraint(st.change, st.table);
-                break;
-            }
-            case 'drop column': {
-                change = this.dropColumn(st.change, st.table);
-                break;
-            }
-            case 'owner': {
-                change = this.setTableOwner(st.change, st.table);
-                break;
-            }
-            default:
-                throw NotSupported.never(st.change);
         }
 
-        if (!change) {
+        if (!changes.length) {
             return null; // no change left
+        }
+
+        if (!hasChanged) {
+            return st;
         }
 
         return assignChanged(st, {
             table,
-            change,
+            changes,
         });
 
     }
