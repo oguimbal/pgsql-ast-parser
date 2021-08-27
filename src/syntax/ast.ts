@@ -231,7 +231,7 @@ export interface AlterTableStatement extends PGNode {
     table: QNameAliased;
     only?: boolean;
     ifExists?: boolean;
-    change: TableAlteration;
+    changes: TableAlteration[];
 }
 
 export interface TableAlterationRename extends PGNode {
