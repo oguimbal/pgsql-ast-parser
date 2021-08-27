@@ -328,6 +328,29 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         m.super().alterTable(t);
     },
 
+    tableAlteration: (change, table) => {
+        switch (change.type) {
+            case 'add column':
+                return m.addColumn(change, table);
+            case 'add constraint':
+                return m.addConstraint(change, table);
+            case 'alter column':
+                return m.alterColumn(change, table);
+            case 'rename':
+                return m.renameTable(change, table);
+            case 'rename column':
+                return m.renameColumn(change, table);
+            case 'rename constraint':
+                return m.renameConstraint(change, table);
+            case 'drop column':
+                return m.dropColumn(change, table);
+            case 'owner':
+                return m.setTableOwner(change, table);
+            default:
+                throw NotSupported.never(change);
+        }
+    },
+
     array: v => {
         ret.push(v.type === 'array' ? 'ARRAY[' : '(');
         list(v.expressions, e => m.expr(e), false);
