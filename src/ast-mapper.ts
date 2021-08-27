@@ -29,6 +29,7 @@ export interface IAstPartialMapper {
     transaction?: (val: a.CommitStatement | a.RollbackStatement | a.StartTransactionStatement) => a.Statement | nil
     createIndex?: (val: a.CreateIndexStatement) => a.Statement | nil
     alterTable?: (st: a.AlterTableStatement) => a.Statement | nil
+    tableAlteration?: (change: a.TableAlteration, table: a.QNameAliased) => a.TableAlteration | nil
     dropColumn?: (change: a.TableAlterationDropColumn, table: a.QNameAliased) => a.TableAlteration | nil
     renameConstraint?: (change: a.TableAlterationRenameConstraint, table: a.QNameAliased) => a.TableAlteration | nil
     setTableOwner?: (change: a.TableAlterationOwner, table: a.QNameAliased) => a.TableAlteration | nil
@@ -646,44 +647,7 @@ export class AstDefaultMapper implements IAstMapper {
         let hasChanged: boolean = false;
         for (let i = 0; i < (st.changes?.length || 0); i++) {
             const currentChange: a.TableAlteration = st.changes[i];
-
-            let change: a.TableAlteration | nil;
-            switch (currentChange.type) {
-                case 'add column': {
-                    change = this.addColumn(currentChange, st.table);
-                    break;
-                }
-                case 'add constraint': {
-                    change = this.addConstraint(currentChange, st.table);
-                    break;
-                }
-                case 'alter column': {
-                    change = this.alterColumn(currentChange, st.table);
-                    break;
-                }
-                case 'rename': {
-                    change = this.renameTable(currentChange, st.table);
-                    break;
-                }
-                case 'rename column': {
-                    change = this.renameColumn(currentChange, st.table);
-                    break;
-                }
-                case 'rename constraint': {
-                    change = this.renameConstraint(currentChange, st.table);
-                    break;
-                }
-                case 'drop column': {
-                    change = this.dropColumn(currentChange, st.table);
-                    break;
-                }
-                case 'owner': {
-                    change = this.setTableOwner(currentChange, st.table);
-                    break;
-                }
-                default:
-                    throw NotSupported.never(currentChange);
-            }
+            const change: a.TableAlteration | nil = this.tableAlteration(currentChange, st.table);
 
             hasChanged = hasChanged || (change != currentChange);
 
@@ -705,6 +669,29 @@ export class AstDefaultMapper implements IAstMapper {
             changes,
         });
 
+    }
+
+    tableAlteration(change: a.TableAlteration, table: a.QNameAliased): a.TableAlteration | nil {
+        switch (change.type) {
+            case 'add column':
+                return this.addColumn(change, table);
+            case 'add constraint':
+                return this.addConstraint(change, table);
+            case 'alter column':
+                return this.alterColumn(change, table);
+            case 'rename':
+                return this.renameTable(change, table);
+            case 'rename column':
+                return this.renameColumn(change, table);
+            case 'rename constraint':
+                return this.renameConstraint(change, table);
+            case 'drop column':
+                return this.dropColumn(change, table);
+            case 'owner':
+                return this.setTableOwner(change, table);
+            default:
+                throw NotSupported.never(change);
+        }
     }
 
     dropColumn(change: a.TableAlterationDropColumn, table: a.QNameAliased): a.TableAlteration | nil {
