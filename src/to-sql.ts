@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor';
 import { NotSupported, nil, ReplaceReturnType, NoExtraProperties } from './utils';
-import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn, Name, OrderByStatement } from './syntax/ast';
+import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn, Name, OrderByStatement, QNameAliased } from './syntax/ast';
 import { literal } from './pg-escape';
 import { sqlKeywords } from './keywords';
 
@@ -103,7 +103,7 @@ function visitQualifiedName(cs: QName) {
 function visitQualifiedNameAliased(cs: QNameAliased) {
     visitQualifiedName(cs);
     if (cs.alias) {
-        ret.push(' AS ', name(cs.alias), ' ');
+        ret.push(' AS ', ident(cs.alias), ' ');
     }
 }
 
