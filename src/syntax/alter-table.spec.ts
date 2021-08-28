@@ -332,4 +332,51 @@ describe('Alter table', () => {
             },
         }]
     })
+
+    checkAlterTable(`
+        ALTER TABLE public.tbl
+        OWNER to postgres,
+        ALTER COLUMN city_id ADD GENERATED ALWAYS AS IDENTITY (
+          SEQUENCE NAME public.city_city_id_seq
+          START WITH 0
+          INCREMENT BY 1
+          MINVALUE 0
+          NO MAXVALUE
+          CACHE 1
+        ),
+        ADD check (a > 0);
+    `, {
+        type: 'alter table',
+        table: { name: 'tbl', schema: 'public' },
+        changes: [{
+            type: 'owner',
+            to: { name: 'postgres' },
+        }, {
+            type: 'alter column',
+            column: { name: 'city_id' },
+            alter: {
+                type: 'add generated',
+                always: 'always',
+                sequence: {
+                    name: { name: 'city_city_id_seq', schema: 'public' },
+                    startWith: 0,
+                    incrementBy: 1,
+                    minValue: 0,
+                    maxValue: 'no maxvalue',
+                    cache: 1,
+                }
+            }
+        }, {
+            type: 'add constraint',
+            constraint: {
+                type: 'check',
+                expr: {
+                    type: 'binary',
+                    left: { type: 'ref', name: 'a' },
+                    op: '>',
+                    right: { type: 'integer', value: 0 },
+                }
+            },
+        }]
+    })
 });
