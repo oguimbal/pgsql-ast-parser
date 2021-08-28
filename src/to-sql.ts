@@ -100,6 +100,13 @@ function visitQualifiedName(cs: QName) {
     ret.push(ident(cs.name), ' ');
 }
 
+function visitQualifiedNameAliased(cs: QNameAliased) {
+    visitQualifiedName(cs);
+    if (cs.alias) {
+        ret.push(' AS ', name(cs.alias), ' ');
+    }
+}
+
 function visitOrderBy(m: IAstVisitor, orderBy: OrderByStatement[]) {
     ret.push(' ORDER BY ');
     list(orderBy, e => {
@@ -325,7 +332,8 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (t.only) {
             ret.push(' ONLY ');
         }
-        m.super().alterTable(t);
+        visitQualifiedNameAliased(t.table);
+        list(t.changes, change => m.tableAlteration(change, t.table), false);
     },
 
     tableAlteration: (change, table) => {
