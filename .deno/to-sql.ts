@@ -1,7 +1,7 @@
 import { IAstPartialMapper, AstDefaultMapper } from './ast-mapper.ts';
 import { astVisitor, IAstVisitor, IAstFullVisitor } from './ast-visitor.ts';
 import { NotSupported, nil, ReplaceReturnType, NoExtraProperties } from './utils.ts';
-import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn, Name, OrderByStatement } from './syntax/ast.ts';
+import { TableConstraint, JoinClause, ColumnConstraint, AlterSequenceStatement, CreateSequenceStatement, AlterSequenceSetOptions, CreateSequenceOptions, QName, SetGlobalValue, AlterColumnAddGenerated, QColumn, Name, OrderByStatement, QNameAliased } from './syntax/ast.ts';
 import { literal } from './pg-escape.ts';
 import { sqlKeywords } from './keywords.ts';
 
@@ -98,6 +98,13 @@ function visitQualifiedName(cs: QName) {
         ret.push(ident(cs.schema), '.');
     }
     ret.push(ident(cs.name), ' ');
+}
+
+function visitQualifiedNameAliased(cs: QNameAliased) {
+    visitQualifiedName(cs);
+    if (cs.alias) {
+        ret.push(' AS ', ident(cs.alias), ' ');
+    }
 }
 
 function visitOrderBy(m: IAstVisitor, orderBy: OrderByStatement[]) {
@@ -325,7 +332,31 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (t.only) {
             ret.push(' ONLY ');
         }
-        m.super().alterTable(t);
+        visitQualifiedNameAliased(t.table);
+        list(t.changes, change => m.tableAlteration(change, t.table), false);
+    },
+
+    tableAlteration: (change, table) => {
+        switch (change.type) {
+            case 'add column':
+                return m.addColumn(change, table);
+            case 'add constraint':
+                return m.addConstraint(change, table);
+            case 'alter column':
+                return m.alterColumn(change, table);
+            case 'rename':
+                return m.renameTable(change, table);
+            case 'rename column':
+                return m.renameColumn(change, table);
+            case 'rename constraint':
+                return m.renameConstraint(change, table);
+            case 'drop column':
+                return m.dropColumn(change, table);
+            case 'owner':
+                return m.setTableOwner(change, table);
+            default:
+                throw NotSupported.never(change);
+        }
     },
 
     array: v => {
@@ -1182,6 +1213,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 ret.push(`LIMIT `);
                 m.expr(s.limit.limit);
             }
+        }
+
+        if (s.for) {
+            ret.push('FOR ', s.for.type.toUpperCase());
         }
     },
 

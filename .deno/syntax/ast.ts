@@ -231,7 +231,7 @@ export interface AlterTableStatement extends PGNode {
     table: QNameAliased;
     only?: boolean;
     ifExists?: boolean;
-    change: TableAlteration;
+    changes: TableAlteration[];
 }
 
 export interface TableAlterationRename extends PGNode {
@@ -542,6 +542,7 @@ export interface SelectFromStatement extends PGNode {
     limit?: LimitStatement | nil;
     orderBy?: OrderByStatement[] | nil;
     distinct?: 'all' | 'distinct' | Expr[] | nil;
+    for?: ForStatement;
 }
 
 export interface SelectFromUnion extends PGNode {
@@ -553,6 +554,10 @@ export interface SelectFromUnion extends PGNode {
 export interface OrderByStatement extends PGNode {
     by: Expr;
     order?: 'ASC' | 'DESC' | nil;
+}
+
+export interface ForStatement extends PGNode {
+    type: 'update' | 'no key update' | 'share' | 'key share';
 }
 
 export interface LimitStatement extends PGNode {
