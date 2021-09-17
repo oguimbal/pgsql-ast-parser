@@ -55,6 +55,9 @@ describe('SQL builder', () => {
 
         expect(expr(`'2021-04-03 16:16:02'::timestamp with time zone`))
             .to.equal(`(('2021-04-03 16:16:02')::timestamp with time zone )`);
+
+        expect(expr(`('now'::text)::timestamp(4) with time zone`))
+            .to.equal(`(('now'::text)::timestamp(4) with time zone )`);
     });
 
 

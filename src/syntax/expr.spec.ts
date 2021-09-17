@@ -697,6 +697,19 @@ line`,
                 }
             },
         });
+
+        checkTreeExpr(`('now'::text)::timestamp(4) with time zone`, {
+            type: 'cast',
+            to: {
+                name: 'timestamp with time zone',
+                config: [4],
+            },
+            operand: {
+                type: 'cast',
+                to: { name: 'text' },
+                operand: { type: 'string', value: 'now' },
+            },
+        });
     });
 
 
