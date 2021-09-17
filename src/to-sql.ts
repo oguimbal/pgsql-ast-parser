@@ -785,6 +785,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push('unkown');
             return;
         }
+        let appendConfig = true;
         if (d.schema) {
             visitQualifiedName(d);
         } else {
@@ -795,11 +796,6 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 case 'character varying':
                 case 'bit varying':
                     ret.push(d.name, ' ');
-
-                    if (d.config?.length) {
-                        list(d.config, v => ret.push(v.toString(10)), true);
-                    }
-
                     break;
                 case 'time without time zone':
                 case 'timestamp without time zone':
@@ -811,13 +807,19 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                     if (d.config?.length) {
                         list(d.config, v => ret.push(v.toString(10)), true);
                     }
+                    ret.push(' ');
 
                     ret.push(parts.join(' '), ' ');
+                    appendConfig = false;
                     break;
                 default:
                     visitQualifiedName(d);
                     break;
             }
+        }
+
+        if (appendConfig && d.config?.length) {
+            list(d.config, v => ret.push(v.toString(10)), true);
         }
     },
 
