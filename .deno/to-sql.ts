@@ -785,6 +785,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push('unkown');
             return;
         }
+        let appendConfig = true;
         if (d.schema) {
             visitQualifiedName(d);
         } else {
@@ -794,11 +795,22 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 case 'double precision':
                 case 'character varying':
                 case 'bit varying':
+                    ret.push(d.name, ' ');
+                    break;
                 case 'time without time zone':
                 case 'timestamp without time zone':
                 case 'time with time zone':
                 case 'timestamp with time zone':
-                    ret.push(d.name, ' ');
+                    const parts = d.name.split(' ');
+
+                    ret.push(parts.shift()!);
+                    if (d.config?.length) {
+                        list(d.config, v => ret.push(v.toString(10)), true);
+                    }
+                    ret.push(' ');
+
+                    ret.push(parts.join(' '), ' ');
+                    appendConfig = false;
                     break;
                 default:
                     visitQualifiedName(d);
@@ -806,7 +818,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             }
         }
 
-        if (d.config?.length) {
+        if (appendConfig && d.config?.length) {
             list(d.config, v => ret.push(v.toString(10)), true);
         }
     },
