@@ -39,18 +39,16 @@ function name<T extends Name>(nm: NoExtraProperties<Name, T>) {
   return ident(nm.name);
 }
 
-function ident(
-  nm: string,
-  askEncapsulation: boolean = false,
-  delimiter: string = '"'
-) {
-  if (!askEncapsulation) return `${delimiter}${nm}${delimiter}`;
+function ident(nm: string, delimiter: string = "`") {
+  return `${delimiter}${nm}${delimiter}`; //'"' + nm + '"';
+  /*
   // only add quotes if has upper cases, or if it is a keyword.
   const low = nm.toLowerCase();
   if (low === nm && !kwSet.has(low) && /^[a-z][a-z0-9_]*$/.test(low)) {
     return nm;
   }
   return `${delimiter}${nm}${delimiter}`; //'"' + nm + '"';
+  */
 }
 
 function list<T>(elems: T[], act: (e: T) => any, addParen: boolean) {
@@ -111,11 +109,11 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
       throw NotSupported.never(c);
   }
 }
-function visitQualifiedName(cs: QName, askEncapsulation: boolean = false) {
+function visitQualifiedName(cs: QName) {
   if (cs.schema) {
-    ret.push(ident(cs.schema, askEncapsulation), ".");
+    ret.push(ident(cs.schema), ".");
   }
-  ret.push(ident(cs.name, askEncapsulation), " ");
+  ret.push(ident(cs.name), " ");
 }
 
 function visitOrderBy(m: IAstVisitor, orderBy: OrderByStatement[]) {
@@ -809,7 +807,7 @@ const visitor = astVisitor<IAstFullVisitor>((m) => ({
           ret.push(d.name, " ");
           break;
         default:
-          visitQualifiedName(d, true);
+          visitQualifiedName(d);
           break;
       }
     }

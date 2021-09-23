@@ -1,6 +1,6 @@
 {
   "name": "@getlago/pgsql-ast-parser",
-  "version": "8.1.2",
+  "version": "8.1.8",
   "description": "Yet another simple Postgres SQL parser/modifier",
   "main": "index.js",
   "repository": "https://github.com/oguimbal/pgsql-ast-parser",
