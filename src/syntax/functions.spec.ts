@@ -26,13 +26,20 @@ describe('Create function', () => {
         returns: integer,
     });
 
-
     checkStatement(`CREATE FUNCTION fn(in integer) AS 'code' LANGUAGE SQL`, {
         type: 'create function',
         name: { name: 'fn' },
         arguments: [{ type: integer, mode: 'in' }],
         code: 'code',
         language: { name: 'sql' },
+    });
+
+    checkStatement(`CREATE FUNCTION fn(i integer = 2) AS 'code' LANGUAGE SQL`, {
+      type: 'create function',
+      name: { name: 'fn' },
+      arguments: [{ type: integer, name: { name: 'i' }, default: { type: 'integer', value: 2 }}],
+      code: 'code',
+      language: { name: 'sql' },
     });
 
     checkStatement(`CREATE FUNCTION fn(in out integer) AS 'code' LANGUAGE SQL`, {
