@@ -34,10 +34,18 @@ create_func -> %kw_create
 
 
 func_argdef -> func_argopts:?
-                    data_type {% x => track(x, {
+                    data_type
+                    func_argdefault:? 
+                    {% x => track(x, {
+                        default: x[2],
                         type: x[1],
                         ...x[0],
                     }) %}
+
+func_argdefault -> %kw_default expr {%
+                     x => x[1]
+                   %}
+                   | %op_eq expr {% x => x[1] %}
 
 func_argopts -> func_argmod word:? {% x => track(x, {
                         mode: toStr(x[0]),

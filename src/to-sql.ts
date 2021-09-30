@@ -643,6 +643,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 ret.push(name(a.name), ' ');
             }
             m.dataType(a.type);
+            if (a.default){
+              ret.push(" = ");
+              m.expr(a.default);
+            }
         }, true);
 
         // ret type
