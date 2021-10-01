@@ -192,6 +192,8 @@ declare var kw_or: any;
 declare var comma: any;
 declare var kw_as: any;
 declare var codeblock: any;
+declare var kw_default: any;
+declare var op_eq: any;
 declare var kw_in: any;
 declare var kw_not: any;
 declare var kw_null: any;
@@ -2267,10 +2269,17 @@ const grammar: Grammar = {
         } },
     {"name": "func_argdef$ebnf$1", "symbols": ["func_argopts"], "postprocess": id},
     {"name": "func_argdef$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "func_argdef", "symbols": ["func_argdef$ebnf$1", "data_type"], "postprocess":  x => track(x, {
+    {"name": "func_argdef$ebnf$2", "symbols": ["func_argdefault"], "postprocess": id},
+    {"name": "func_argdef$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "func_argdef", "symbols": ["func_argdef$ebnf$1", "data_type", "func_argdef$ebnf$2"], "postprocess":  x => track(x, {
+            default: x[2],
             type: x[1],
             ...x[0],
         }) },
+    {"name": "func_argdefault", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default), "expr"], "postprocess": 
+        x => x[1]
+                           },
+    {"name": "func_argdefault", "symbols": [(lexerAny.has("op_eq") ? {type: "op_eq"} : op_eq), "expr"], "postprocess": x => x[1]},
     {"name": "func_argopts$ebnf$1", "symbols": ["word"], "postprocess": id},
     {"name": "func_argopts$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "func_argopts", "symbols": ["func_argmod", "func_argopts$ebnf$1"], "postprocess":  x => track(x, {
