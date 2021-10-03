@@ -30,6 +30,7 @@ export type Statement = SelectStatement
     | SetGlobalStatement
     | SetTimezone
     | CreateEnumType
+    | CreateCompositeType
     | TruncateTableStatement
     | DropTableStatement
     | DropSequenceStatement
@@ -143,6 +144,18 @@ export interface CreateEnumType extends PGNode {
     type: 'create enum',
     name: QName;
     values: Literal[];
+}
+
+export interface CreateCompositeType extends PGNode {
+    type: 'create composite type';
+    name: QName;
+    attributes: CompositeTypeAttribute[];
+}
+
+export interface CompositeTypeAttribute extends PGNode {
+    name: Name;
+    dataType: DataTypeDef;
+    collate?: Name;
 }
 
 export interface Literal extends PGNode {

@@ -305,6 +305,21 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(' ');
     },
 
+    createCompositeType: c => {
+        ret.push('CREATE TYPE ');
+        visitQualifiedName(c.name);
+        ret.push(' AS ');
+        list(c.attributes, x => {
+            ret.push(name(x.name), ' ');
+            m.dataType(x.dataType);
+            if (x.collate) {
+                ret.push('COLLATE ');
+                visitQualifiedName(x.collate);
+            }
+        }, true);
+        ret.push(' ');
+    },
+
     setTableOwner: o => {
         ret.push(' OWNER TO ', name(o.to));
     },
@@ -674,9 +689,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 ret.push(name(a.name), ' ');
             }
             m.dataType(a.type);
-            if (a.default){
-              ret.push(" = ");
-              m.expr(a.default);
+            if (a.default) {
+                ret.push(" = ");
+                m.expr(a.default);
             }
         }, true);
 
@@ -866,13 +881,13 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     createTable: t => {
         ret.push('CREATE ');
-        if(t.locality) {
+        if (t.locality) {
             ret.push(t.locality.toUpperCase(), ' ');
         }
         if (t.temporary) {
             ret.push('TEMPORARY ');
         }
-        if(t.unlogged) {
+        if (t.unlogged) {
             ret.push('UNLOGGED ');
         }
         ret.push(t.ifNotExists ? 'TABLE IF NOT EXISTS ' : 'TABLE ');
