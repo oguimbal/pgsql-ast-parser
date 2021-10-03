@@ -30,6 +30,7 @@ export type Statement = SelectStatement
     | SetGlobalStatement
     | SetTimezone
     | CreateEnumType
+    | CreateCompositeType
     | TruncateTableStatement
     | DropTableStatement
     | DropSequenceStatement
@@ -143,6 +144,18 @@ export interface CreateEnumType extends PGNode {
     type: 'create enum',
     name: QName;
     values: Literal[];
+}
+
+export interface CreateCompositeType extends PGNode {
+    type: 'create composite type';
+    name: QName;
+    attributes: CompositeTypeAttribute[];
+}
+
+export interface CompositeTypeAttribute extends PGNode {
+    name: Name;
+    dataType: DataTypeDef;
+    collate?: Name;
 }
 
 export interface Literal extends PGNode {
@@ -343,6 +356,7 @@ export interface CreateIndexStatement extends PGNode {
     table: QName;
     using?: Name;
     expressions: IndexExpression[];
+    where?: Expr;
     unique?: true;
     ifNotExists?: true;
     indexName?: Name;
@@ -692,12 +706,14 @@ export type MathOpsBinary = '|' | '&' | '>>' | '^' | '#' | '<<' | '>>';
 export type ComparisonOperator = '>' | '>=' | '<' | '<=' | '@>' | '<@' | '?' | '?|' | '?&' | '#>>' | '~';
 export type AdditiveOperator = '||' | '-' | '#-' | '&&' | '+';
 export type MultiplicativeOperator = '*' | '%' | '/';
+export type ConstructOperator = 'AT TIME ZONE';
 export type BinaryOperator = LogicOperator
     | EqualityOperator
     | ComparisonOperator
     | AdditiveOperator
     | MultiplicativeOperator
-    | MathOpsBinary;
+    | MathOpsBinary
+    | ConstructOperator;
 
 export interface ExprBinary extends PGNode {
     type: 'binary';

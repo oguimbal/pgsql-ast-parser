@@ -126,6 +126,7 @@ declare var kw_using: any;
 declare var kw_collate: any;
 declare var kw_asc: any;
 declare var kw_desc: any;
+declare var kw_where: any;
 declare var kw_create: any;
 declare var kw_with: any;
 declare var kw_from: any;
@@ -454,6 +455,7 @@ const grammar: Grammar = {
     {"name": "kw_system", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('system')},
     {"name": "kw_comment", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('comment')},
     {"name": "kw_time", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('time')},
+    {"name": "kw_at", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('at')},
     {"name": "kw_zone", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('zone')},
     {"name": "kw_interval", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('interval')},
     {"name": "kw_hour", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('hour')},
@@ -1084,7 +1086,7 @@ const grammar: Grammar = {
         })},
     {"name": "expr_unary_add$macrocall$2", "symbols": ["expr_unary_add$macrocall$2$macrocall$1"]},
     {"name": "expr_unary_add$macrocall$3", "symbols": ["expr_unary_add"]},
-    {"name": "expr_unary_add$macrocall$4", "symbols": ["expr_array_index"]},
+    {"name": "expr_unary_add$macrocall$4", "symbols": ["expr_various_constructs"]},
     {"name": "expr_unary_add$macrocall$1$subexpression$1", "symbols": ["expr_unary_add$macrocall$3"]},
     {"name": "expr_unary_add$macrocall$1$subexpression$1", "symbols": ["expr_paren"]},
     {"name": "expr_unary_add$macrocall$1", "symbols": ["expr_unary_add$macrocall$2", "expr_unary_add$macrocall$1$subexpression$1"], "postprocess":  x => track(x, {
@@ -1094,6 +1096,25 @@ const grammar: Grammar = {
         }) },
     {"name": "expr_unary_add$macrocall$1", "symbols": ["expr_unary_add$macrocall$4"], "postprocess": unwrap},
     {"name": "expr_unary_add", "symbols": ["expr_unary_add$macrocall$1"]},
+    {"name": "expr_various_constructs$macrocall$2$macrocall$2", "symbols": ["various_binaries"]},
+    {"name": "expr_various_constructs$macrocall$2$macrocall$1", "symbols": ["expr_various_constructs$macrocall$2$macrocall$2"], "postprocess":  x => track(x, {
+            op: (toStr(x, ' ') || '<error>').toUpperCase()
+        }) },
+    {"name": "expr_various_constructs$macrocall$2", "symbols": ["expr_various_constructs$macrocall$2$macrocall$1"]},
+    {"name": "expr_various_constructs$macrocall$3", "symbols": ["expr_various_constructs"]},
+    {"name": "expr_various_constructs$macrocall$4", "symbols": ["expr_array_index"]},
+    {"name": "expr_various_constructs$macrocall$1$subexpression$1", "symbols": ["expr_various_constructs$macrocall$3"]},
+    {"name": "expr_various_constructs$macrocall$1$subexpression$1", "symbols": ["expr_paren"]},
+    {"name": "expr_various_constructs$macrocall$1$subexpression$2", "symbols": ["expr_various_constructs$macrocall$4"]},
+    {"name": "expr_various_constructs$macrocall$1$subexpression$2", "symbols": ["expr_paren"]},
+    {"name": "expr_various_constructs$macrocall$1", "symbols": ["expr_various_constructs$macrocall$1$subexpression$1", "expr_various_constructs$macrocall$2", "expr_various_constructs$macrocall$1$subexpression$2"], "postprocess":  x => track(x, {
+            type: 'binary',
+            left: unwrap(x[0]),
+            right: unwrap(x[2]),
+            ...unwrap(x[1]),
+        }) },
+    {"name": "expr_various_constructs$macrocall$1", "symbols": ["expr_various_constructs$macrocall$4"], "postprocess": unwrap},
+    {"name": "expr_various_constructs", "symbols": ["expr_various_constructs$macrocall$1"]},
     {"name": "expr_array_index$subexpression$1", "symbols": ["expr_array_index"]},
     {"name": "expr_array_index$subexpression$1", "symbols": ["expr_paren"]},
     {"name": "expr_array_index", "symbols": ["expr_array_index$subexpression$1", (lexerAny.has("lbracket") ? {type: "lbracket"} : lbracket), "expr_nostar", (lexerAny.has("rbracket") ? {type: "rbracket"} : rbracket)], "postprocess":  x => track(x, {
@@ -1355,6 +1376,7 @@ const grammar: Grammar = {
             ...x[2] && {from: x[2][1]},
             ...x[3] && {for: x[3][1]},
         }) },
+    {"name": "various_binaries", "symbols": ["kw_at", "kw_time", "kw_zone"], "postprocess": () => 'AT TIME ZONE'},
     {"name": "createtable_statement$ebnf$1", "symbols": ["createtable_modifiers"], "postprocess": id},
     {"name": "createtable_statement$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "createtable_statement$ebnf$2", "symbols": ["kw_ifnotexists"], "postprocess": id},
@@ -1524,7 +1546,9 @@ const grammar: Grammar = {
     {"name": "createindex_statement$ebnf$4$subexpression$1", "symbols": [(lexerAny.has("kw_using") ? {type: "kw_using"} : kw_using), "ident"], "postprocess": last},
     {"name": "createindex_statement$ebnf$4", "symbols": ["createindex_statement$ebnf$4$subexpression$1"], "postprocess": id},
     {"name": "createindex_statement$ebnf$4", "symbols": [], "postprocess": () => null},
-    {"name": "createindex_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "createindex_statement$ebnf$1", "kw_index", "createindex_statement$ebnf$2", "createindex_statement$ebnf$3", (lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "table_ref", "createindex_statement$ebnf$4", "lparen", "createindex_expressions", "rparen"], "postprocess":  x => track(x, {
+    {"name": "createindex_statement$ebnf$5", "symbols": ["createindex_predicate"], "postprocess": id},
+    {"name": "createindex_statement$ebnf$5", "symbols": [], "postprocess": () => null},
+    {"name": "createindex_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "createindex_statement$ebnf$1", "kw_index", "createindex_statement$ebnf$2", "createindex_statement$ebnf$3", (lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "table_ref", "createindex_statement$ebnf$4", "lparen", "createindex_expressions", "rparen", "createindex_statement$ebnf$5"], "postprocess":  x => track(x, {
             type: 'create index',
             ...x[1] && { unique: true },
             ...x[3] && { ifNotExists: true },
@@ -1532,6 +1556,7 @@ const grammar: Grammar = {
             table: x[6],
             ...x[7] && { using: asName(x[7]) },
             expressions: x[9],
+            ...x[11] && { where: unwrap(x[11]) },
         }) },
     {"name": "createindex_expressions$ebnf$1", "symbols": []},
     {"name": "createindex_expressions$ebnf$1$subexpression$1", "symbols": ["comma", "createindex_expression"], "postprocess": last},
@@ -1562,6 +1587,7 @@ const grammar: Grammar = {
             ...x[3] && { order: unwrap(x[3]).value },
             ...x[4] && { nulls: unwrap(x[4]) },
         }) },
+    {"name": "createindex_predicate", "symbols": [(lexerAny.has("kw_where") ? {type: "kw_where"} : kw_where), "expr"], "postprocess": last},
     {"name": "createextension_statement$ebnf$1", "symbols": ["kw_ifnotexists"], "postprocess": id},
     {"name": "createextension_statement$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "createextension_statement$ebnf$2", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with)], "postprocess": id},
@@ -2107,6 +2133,7 @@ const grammar: Grammar = {
     {"name": "with_statement_statement", "symbols": ["update_statement"]},
     {"name": "with_statement_statement", "symbols": ["delete_statement"]},
     {"name": "createtype_statement$subexpression$1", "symbols": ["createtype_enum"]},
+    {"name": "createtype_statement$subexpression$1", "symbols": ["createtype_composite"]},
     {"name": "createtype_statement", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "kw_type", "qualified_name", "createtype_statement$subexpression$1"], "postprocess":  x => track(x, {
             name: x[2],
             ...unwrap(x[3]),
@@ -2123,6 +2150,26 @@ const grammar: Grammar = {
             values: x[3],
         }) },
     {"name": "enum_value", "symbols": ["string"], "postprocess": x => track(x, {value: toStr(x) })},
+    {"name": "createtype_composite$macrocall$2", "symbols": ["createtype_composite_attr"]},
+    {"name": "createtype_composite$macrocall$1$ebnf$1", "symbols": []},
+    {"name": "createtype_composite$macrocall$1$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("comma") ? {type: "comma"} : comma), "createtype_composite$macrocall$2"], "postprocess": last},
+    {"name": "createtype_composite$macrocall$1$ebnf$1", "symbols": ["createtype_composite$macrocall$1$ebnf$1", "createtype_composite$macrocall$1$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "createtype_composite$macrocall$1", "symbols": ["createtype_composite$macrocall$2", "createtype_composite$macrocall$1$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [unwrap(head), ...(tail.map(unwrap) || [])];
+        } },
+    {"name": "createtype_composite", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "lparen", "createtype_composite$macrocall$1", "rparen"], "postprocess":  x => track(x, {
+            type: 'create composite type',
+            attributes: x[2],
+        }) },
+    {"name": "createtype_composite_attr$ebnf$1", "symbols": ["createtable_collate"], "postprocess": id},
+    {"name": "createtype_composite_attr$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "createtype_composite_attr", "symbols": ["word", "data_type", "createtype_composite_attr$ebnf$1"], "postprocess":  x => {
+            return track(x, {
+                name: asName(x[0]),
+                dataType: x[1],
+                ...x[2] ? { collate: x[2][1] }: {},
+            })
+        } },
     {"name": "union_left", "symbols": ["select_statement"]},
     {"name": "union_left", "symbols": ["select_values"]},
     {"name": "union_left", "symbols": ["selection_paren"]},
