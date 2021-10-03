@@ -343,6 +343,7 @@ export interface CreateIndexStatement extends PGNode {
     table: QName;
     using?: Name;
     expressions: IndexExpression[];
+    where?: Expr;
     unique?: true;
     ifNotExists?: true;
     indexName?: Name;

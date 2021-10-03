@@ -857,6 +857,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 ret.push('nulls ', e.nulls, ' ');
             }
         }, true);
+        if (c.where) {
+            ret.push(' WHERE ');
+            m.expr(c.where);
+        }
         ret.push(' ');
     },
 

@@ -163,4 +163,26 @@ describe('Create index', () => {
             order: 'desc',
         }],
     });
+
+    checkCreateIndex(['CREATE UNIQUE INDEX my_idx ON my_table (col1, (col2 IS NULL)) WHERE col2 IS NULL'], {
+        type: 'create index',
+        unique: true,
+        table: { name: 'my_table' },
+        indexName: { name: 'my_idx' },
+        expressions: [
+            { expression: { type: 'ref', name: 'col1' } },
+            {
+                expression: {
+                    type: 'unary',
+                    op: 'IS NULL',
+                    operand: { type: 'ref', name: 'col2' },
+                }
+            },
+        ],
+        where: {
+            type: 'unary',
+            op: 'IS NULL',
+            operand: { type: 'ref', name: 'col2' },
+        },
+    })
 });

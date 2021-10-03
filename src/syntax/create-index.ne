@@ -14,7 +14,9 @@ createindex_statement
         (%kw_using ident {% last %}):?
         lparen
         createindex_expressions
-        rparen {% x => track(x, {
+        rparen
+        createindex_predicate:?
+         {% x => track(x, {
             type: 'create index',
             ...x[1] && { unique: true },
             ...x[3] && { ifNotExists: true },
@@ -22,6 +24,7 @@ createindex_statement
             table: x[6],
             ...x[7] && { using: asName(x[7]) },
             expressions: x[9],
+            ...x[11] && { where: unwrap(x[11]) },
         }) %}
 
 createindex_expressions -> createindex_expression (comma createindex_expression {% last %}):* {% ([head, tail]) => {
@@ -39,3 +42,6 @@ createindex_expression -> (expr_basic | expr_paren)
     ...x[3] && { order: unwrap(x[3]).value },
     ...x[4] && { nulls: unwrap(x[4]) },
 }) %}
+
+
+createindex_predicate -> %kw_where expr {% last %}
