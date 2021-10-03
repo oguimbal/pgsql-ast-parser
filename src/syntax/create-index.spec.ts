@@ -164,6 +164,7 @@ describe('Create index', () => {
         }],
     });
 
+    // fixes https://github.com/oguimbal/pg-mem/issues/89
     checkCreateIndex(['CREATE UNIQUE INDEX my_idx ON my_table (col1, (col2 IS NULL)) WHERE col2 IS NULL'], {
         type: 'create index',
         unique: true,

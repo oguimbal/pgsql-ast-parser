@@ -682,4 +682,51 @@ describe('Create table', () => {
             name: { name: '_id' },
         }],
     })
+
+
+    // fixes https://github.com/oguimbal/pgsql-ast-parser/issues/53
+    checkCreateTable(`CREATE TABLE "tb_user" (
+        "user_no"	serial8		NOT NULL,
+        "reg_date"	timestamptz	DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Seoul')	NOT NULL,
+        "complete_yn"	boolean	DEFAULT false	NOT NULL
+    )`, {
+        type: 'create table',
+        name: { name: 'tb_user' },
+        columns: [
+            {
+                kind: 'column',
+                name: { name: 'user_no' },
+                dataType: { name: 'serial8' },
+                constraints: [{ type: 'not null' }],
+            },
+            {
+                kind: 'column',
+                dataType: { name: 'timestamptz' },
+                name: { name: 'reg_date' },
+                constraints: [
+                    {
+                        type: 'default',
+                        default: {
+                            type: 'binary',
+                            op: 'AT TIME ZONE',
+                            left: { type: 'keyword', keyword: 'current_timestamp' },
+                            right: { type: 'string', value: 'Asia/Seoul' }
+                        }
+                    },
+                    {
+                        type: 'not null',
+                    }
+                ]
+            },
+            {
+                kind: 'column',
+                name: { name: 'complete_yn' },
+                dataType: { name: 'boolean' },
+                constraints: [
+                    { type: 'default', default: { type: 'boolean', value: false } },
+                    { type: 'not null' },
+                ],
+            },
+        ]
+    });
 });

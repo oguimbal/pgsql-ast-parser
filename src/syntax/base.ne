@@ -217,6 +217,7 @@ kw_over -> %word {% notReservedKw('over')  %}
 kw_system -> %word {% notReservedKw('system')  %}
 kw_comment -> %word {% notReservedKw('comment')  %}
 kw_time -> %word {% notReservedKw('time')  %}
+kw_at -> %word {% notReservedKw('at')  %}
 kw_zone -> %word {% notReservedKw('zone')  %}
 kw_interval -> %word {% notReservedKw('interval')  %}
 kw_hour -> %word {% notReservedKw('hour')  %}

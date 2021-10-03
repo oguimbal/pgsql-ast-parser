@@ -693,12 +693,14 @@ export type MathOpsBinary = '|' | '&' | '>>' | '^' | '#' | '<<' | '>>';
 export type ComparisonOperator = '>' | '>=' | '<' | '<=' | '@>' | '<@' | '?' | '?|' | '?&' | '#>>' | '~';
 export type AdditiveOperator = '||' | '-' | '#-' | '&&' | '+';
 export type MultiplicativeOperator = '*' | '%' | '/';
+export type ConstructOperator = 'AT TIME ZONE';
 export type BinaryOperator = LogicOperator
     | EqualityOperator
     | ComparisonOperator
     | AdditiveOperator
     | MultiplicativeOperator
-    | MathOpsBinary;
+    | MathOpsBinary
+    | ConstructOperator;
 
 export interface ExprBinary extends PGNode {
     type: 'binary';
