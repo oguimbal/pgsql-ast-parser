@@ -35,7 +35,7 @@ update_set_list -> update_set (comma update_set {% last %}):* {% ([head, tail]) 
 
 update_set -> update_set_one | update_set_multiple
 
-update_set_one -> ident %op_eq (expr | %kw_default {% value %}) {% x => box(x, {
+update_set_one -> ident %op_eq expr {% x => box(x, {
     column: asName(x[0]),
     value: unwrap(x[2]),
 }) %}

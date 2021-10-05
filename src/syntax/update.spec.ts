@@ -45,4 +45,13 @@ describe('Update', () => {
             right: { type: 'integer', value: 1 },
         }
     });
+
+    checkUpdate([`update test set value=default`], {
+        type: 'update',
+        table: { name: 'test' },
+        sets: [{
+            column: { name: 'value' },
+            value: { type: 'default' },
+        }],
+    })
 });
