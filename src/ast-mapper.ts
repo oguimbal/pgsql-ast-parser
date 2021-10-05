@@ -577,9 +577,7 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     set(st: a.SetStatement): a.SetStatement | nil {
-        const value = st.value === 'default'
-            ? st.value
-            : this.expr(st.value);
+        const value = this.expr(st.value);
         if (!value) {
             return null;
         }

@@ -590,7 +590,7 @@ export interface UpdateStatement extends PGNode {
 
 export interface SetStatement extends PGNode {
     column: Name;
-    value: Expr | 'default';
+    value: Expr;
 }
 
 export interface SelectedColumn extends PGNode {

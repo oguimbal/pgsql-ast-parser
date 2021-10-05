@@ -1297,11 +1297,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     set: s => {
         ret.push(name(s.column), ' = ');
-        if (s.value === 'default') {
-            ret.push('default');
-        } else {
-            m.expr(s.value);
-        }
+        m.expr(s.value);
         ret.push(' ');
     },
 
