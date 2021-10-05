@@ -153,7 +153,6 @@ declare var kw_returning: any;
 declare var kw_do: any;
 declare var kw_returning: any;
 declare var op_eq: any;
-declare var kw_default: any;
 declare var kw_table: any;
 declare var kw_only: any;
 declare var kw_to: any;
@@ -1848,9 +1847,7 @@ const grammar: Grammar = {
         } },
     {"name": "update_set", "symbols": ["update_set_one"]},
     {"name": "update_set", "symbols": ["update_set_multiple"]},
-    {"name": "update_set_one$subexpression$1", "symbols": ["expr"]},
-    {"name": "update_set_one$subexpression$1", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default)], "postprocess": value},
-    {"name": "update_set_one", "symbols": ["ident", (lexerAny.has("op_eq") ? {type: "op_eq"} : op_eq), "update_set_one$subexpression$1"], "postprocess":  x => box(x, {
+    {"name": "update_set_one", "symbols": ["ident", (lexerAny.has("op_eq") ? {type: "op_eq"} : op_eq), "expr"], "postprocess":  x => box(x, {
             column: asName(x[0]),
             value: unwrap(x[2]),
         }) },
