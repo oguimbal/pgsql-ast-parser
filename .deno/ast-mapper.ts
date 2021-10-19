@@ -11,6 +11,7 @@ export interface IAstPartialMapper {
     comment?: (val: a.CommentStatement) => a.Statement | nil
     do?: (val: a.DoStatement) => a.Statement | nil
     createFunction?: (val: a.CreateFunctionStatement) => a.Statement | nil
+    dropFunction?: (val: a.DropFunctionStatement) => a.Statement | nil
     raise?: (val: a.RaiseStatement) => a.Statement | nil
     createSchema?: (val: a.CreateSchemaStatement) => a.Statement | nil
     dropTable?: (val: a.DropTableStatement) => a.Statement | nil
@@ -280,6 +281,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.do(val);
             case 'create function':
                 return this.createFunction(val);
+            case 'drop function':
+                return this.dropFunction(val);
             case 'values':
                 return this.values(val);
             default:
@@ -357,6 +360,17 @@ export class AstDefaultMapper implements IAstMapper {
         }
         return assignChanged(val, {
             returns,
+            arguments: args,
+        });
+    }
+
+    dropFunction(val: a.DropFunctionStatement): a.Statement | nil {
+        const args = arrayNilMap(val.arguments, a => {
+            const type = this.dataType(a.type);
+            return assignChanged(a, { type });
+        });
+
+        return assignChanged(val, {
             arguments: args,
         });
     }

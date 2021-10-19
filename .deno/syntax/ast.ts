@@ -41,6 +41,7 @@ export type Statement = SelectStatement
     | RaiseStatement
     | ValuesStatement
     | CreateFunctionStatement
+    | DropFunctionStatement
     | DoStatement
     | BeginStatement
     | StartTransactionStatement;
@@ -77,6 +78,13 @@ export interface CreateFunctionStatement extends PGNode {
     purity?: 'immutable' | 'stable' | 'volatile';
     leakproof?: boolean;
     onNullInput?: 'call' | 'null' | 'strict';
+}
+
+export interface DropFunctionStatement extends PGNode {
+    type: 'drop function';
+    ifExists?: boolean;
+    name: QName;
+    arguments?: { name?: Name; type: DataTypeDef }[];
 }
 
 export interface ReturnsTable extends PGNode {
