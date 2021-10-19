@@ -35,11 +35,11 @@ describe('Create function', () => {
     });
 
     checkStatement(`CREATE FUNCTION fn(i integer = 2) AS 'code' LANGUAGE SQL`, {
-      type: 'create function',
-      name: { name: 'fn' },
-      arguments: [{ type: integer, name: { name: 'i' }, default: { type: 'integer', value: 2 }}],
-      code: 'code',
-      language: { name: 'sql' },
+        type: 'create function',
+        name: { name: 'fn' },
+        arguments: [{ type: integer, name: { name: 'i' }, default: { type: 'integer', value: 2 } }],
+        code: 'code',
+        language: { name: 'sql' },
     });
 
     checkStatement(`CREATE FUNCTION fn(in out integer) AS 'code' LANGUAGE SQL`, {
@@ -162,9 +162,49 @@ $$ VOLATILE LANGUAGE plpgsql`, {
     });
 
 
-    it ('is not greedy', () => {
+    it('is not greedy', () => {
         const parsed = parse(`create function foo() returns text as $$ select 'hi'; $$ language sql;
                 create function bar() returns text as $$ select 'there'; $$ language sql;`);
         expect(parsed.length).to.equal(2);
+    });
+
+    checkStatement('drop function my_function', {
+        type: 'drop function',
+        name: { name: 'my_function' },
+    });
+
+    checkStatement('drop function if exists my_function', {
+        type: 'drop function',
+        ifExists: true,
+        name: { name: 'my_function' },
+    });
+
+    checkStatement('drop function my_function(text)', {
+        type: 'drop function',
+        name: { name: 'my_function' },
+        arguments: [{ type: { name: 'text' } }]
+    });
+
+    checkStatement('drop function my_function(text, float)', {
+        type: 'drop function',
+        name: { name: 'my_function' },
+        arguments: [{
+            type: { name: 'text' },
+        }, {
+            type: { name: 'float' },
+        }]
+    });
+
+
+    checkStatement('drop function my_function(txt text, fl float)', {
+        type: 'drop function',
+        name: { name: 'my_function' },
+        arguments: [{
+            type: { name: 'text' },
+            name: { name: 'txt' },
+        }, {
+            type: { name: 'float' },
+            name: { name: 'fl' },
+        }]
     });
 });

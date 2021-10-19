@@ -1,7 +1,7 @@
 @lexer lexerAny
 @include "base.ne"
 
-functions_statements -> create_func | do_stm
+functions_statements -> create_func | do_stm | drop_func
 
 array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
     return [unwrap(head), ...(tail.map(unwrap) || [])];
@@ -35,7 +35,7 @@ create_func -> %kw_create
 
 func_argdef -> func_argopts:?
                     data_type
-                    func_argdefault:? 
+                    func_argdefault:?
                     {% x => track(x, {
                         default: x[2],
                         type: x[1],
@@ -90,4 +90,25 @@ do_stm -> %kw_do (kw_language word {% last %}):? %codeblock {% x => track(x, {
     type: 'do',
     ...x[1] && { language: asName(x[1])},
     code: x[2].value,
+}) %}
+
+
+
+drop_func -> kw_drop
+     kw_function
+    (kw_if kw_exists):?
+    qname
+    drop_func_overload:? {% x => track(x, {
+        type: 'drop function',
+        ...x[2] && {ifExists: true},
+        name: x[3],
+        ...x[4] && {arguments: x[4]},
+    }) %}
+
+
+drop_func_overload -> lparen array_of[drop_func_overload_col] rparen {% get(1) %}
+
+drop_func_overload_col -> word:? qname {% x => track(x, {
+    type: x[1],
+    ... x[0] && {name: asName(x[0])},
 }) %}

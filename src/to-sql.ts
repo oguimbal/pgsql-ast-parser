@@ -746,6 +746,26 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+
+    dropFunction: d => {
+        ret.push('DROP FUNCTION ');
+        if (d.ifExists) {
+            ret.push('IF EXISTS ');
+        }
+        visitQualifiedName(d.name);
+
+        if (d.arguments) {
+            list(d.arguments, a => {
+                if (a.name) {
+                    visitQualifiedName(a.name);
+                    ret.push(' ');
+                }
+                m.dataType(a.type);
+            }, true);
+        }
+        ret.push(' ');
+    },
+
     with: w => {
         ret.push('WITH ');
         list(w.bind, b => {
