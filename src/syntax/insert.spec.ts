@@ -100,6 +100,29 @@ describe('Insert', () => {
         },
     });
 
+
+    checkInsert([`insert into test(a) values (1) on conflict do update set a=3 WHERE v`], {
+        type: 'insert',
+        into: { name: 'test' },
+        columns: [{ name: 'a' }],
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            },]]
+        },
+        onConflict: {
+            do: {
+                sets: [{
+                    column: { name: 'a' },
+                    value: { type: 'integer', value: 3 },
+                }]
+            },
+            where: { type: 'ref', name: 'v' },
+        },
+    });
+
     checkInsert([`insert into test values (1) returning "id";`], {
         type: 'insert',
         into: { name: 'test' },

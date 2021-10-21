@@ -42,12 +42,15 @@ insert_expr_list_raw -> expr_or_select (comma expr_or_select {% last %}):* {% ([
 insert_on_conflict
     -> insert_on_conflict_what:? insert_on_conflict_do {% x => track(x, {
         ...x[0] ? { on: x[0][0] } : {},
-        do: unbox(x[1]),
+        ...x[1],
     }) %}
 
 insert_on_conflict_what
     -> (lparen expr_list_raw rparen {% get(1) %})
 
 insert_on_conflict_do
-    -> %kw_do kw_nothing {% x => box(x, 'do nothing') %}
-    | %kw_do kw_update kw_set update_set_list {% x => box(x, { sets: last(x) }) %}
+    -> %kw_do kw_nothing {% x => ({ do: 'do nothing' }) %}
+    | (%kw_do kw_update kw_set) update_set_list (%kw_where expr {% last %}):? {% x => ({
+        do: { sets: x[1] },
+        ...x[2] && { where: x[2] },
+     }) %}

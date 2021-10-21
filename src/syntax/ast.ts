@@ -245,6 +245,7 @@ export interface OnConflictAction extends PGNode {
     do: 'do nothing' | {
         sets: SetStatement[];
     };
+    where?: Expr;
 }
 
 export interface AlterTableStatement extends PGNode {

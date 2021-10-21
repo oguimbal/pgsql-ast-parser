@@ -1089,6 +1089,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             } else {
                 ret.push(' DO UPDATE SET ');
                 list(i.onConflict.do.sets, s => m.set(s), false);
+                if (i.onConflict.where) {
+                    ret.push(' WHERE ');
+                    m.expr(i.onConflict.where);
+                }
             }
             ret.push(' ');
         }
