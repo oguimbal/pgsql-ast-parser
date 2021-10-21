@@ -112,7 +112,10 @@ function visitOrderBy(m: IAstVisitor, orderBy: OrderByStatement[]) {
     list(orderBy, e => {
         m.expr(e.by);
         if (e.order) {
-            ret.push(' ', e.order);
+            ret.push(' ', e.order, ' ');
+        }
+        if (e.nulls) {
+            ret.push(' NULLS ', e.nulls, ' ')
         }
     }, false);
 }
@@ -1086,6 +1089,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             } else {
                 ret.push(' DO UPDATE SET ');
                 list(i.onConflict.do.sets, s => m.set(s), false);
+                if (i.onConflict.where) {
+                    ret.push(' WHERE ');
+                    m.expr(i.onConflict.where);
+                }
             }
             ret.push(' ');
         }

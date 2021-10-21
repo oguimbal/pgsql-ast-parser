@@ -245,6 +245,7 @@ export interface OnConflictAction extends PGNode {
     do: 'do nothing' | {
         sets: SetStatement[];
     };
+    where?: Expr;
 }
 
 export interface AlterTableStatement extends PGNode {
@@ -576,6 +577,7 @@ export interface SelectFromUnion extends PGNode {
 export interface OrderByStatement extends PGNode {
     by: Expr;
     order?: 'ASC' | 'DESC' | nil;
+    nulls?: 'FIRST' | 'LAST' | nil;
 }
 
 export interface ForStatement extends PGNode {

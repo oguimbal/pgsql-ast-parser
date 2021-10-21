@@ -151,6 +151,7 @@ declare var kw_user: any;
 declare var kw_on: any;
 declare var kw_returning: any;
 declare var kw_do: any;
+declare var kw_where: any;
 declare var kw_returning: any;
 declare var op_eq: any;
 declare var kw_table: any;
@@ -766,9 +767,15 @@ const grammar: Grammar = {
     {"name": "select_order_by_expr$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_desc") ? {type: "kw_desc"} : kw_desc)]},
     {"name": "select_order_by_expr$ebnf$1", "symbols": ["select_order_by_expr$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "select_order_by_expr$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "select_order_by_expr", "symbols": ["expr", "select_order_by_expr$ebnf$1"], "postprocess":  x => track(x, {
+    {"name": "select_order_by_expr$ebnf$2$subexpression$1$subexpression$1", "symbols": ["kw_first"]},
+    {"name": "select_order_by_expr$ebnf$2$subexpression$1$subexpression$1", "symbols": ["kw_last"]},
+    {"name": "select_order_by_expr$ebnf$2$subexpression$1", "symbols": ["kw_nulls", "select_order_by_expr$ebnf$2$subexpression$1$subexpression$1"], "postprocess": last},
+    {"name": "select_order_by_expr$ebnf$2", "symbols": ["select_order_by_expr$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "select_order_by_expr$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "select_order_by_expr", "symbols": ["expr", "select_order_by_expr$ebnf$1", "select_order_by_expr$ebnf$2"], "postprocess":  x => track(x, {
             by: x[0],
             ...x[1] && {order: toStr(x[1]).toUpperCase()},
+            ...x[2] && {nulls: toStr(x[2]).toUpperCase()},
         }) },
     {"name": "expr", "symbols": ["expr_nostar"], "postprocess": unwrap},
     {"name": "expr", "symbols": ["expr_star"], "postprocess": unwrap},
@@ -1808,12 +1815,19 @@ const grammar: Grammar = {
     {"name": "insert_on_conflict$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "insert_on_conflict", "symbols": ["insert_on_conflict$ebnf$1", "insert_on_conflict_do"], "postprocess":  x => track(x, {
             ...x[0] ? { on: x[0][0] } : {},
-            do: unbox(x[1]),
+            ...x[1],
         }) },
     {"name": "insert_on_conflict_what$subexpression$1", "symbols": ["lparen", "expr_list_raw", "rparen"], "postprocess": get(1)},
     {"name": "insert_on_conflict_what", "symbols": ["insert_on_conflict_what$subexpression$1"]},
-    {"name": "insert_on_conflict_do", "symbols": [(lexerAny.has("kw_do") ? {type: "kw_do"} : kw_do), "kw_nothing"], "postprocess": x => box(x, 'do nothing')},
-    {"name": "insert_on_conflict_do", "symbols": [(lexerAny.has("kw_do") ? {type: "kw_do"} : kw_do), "kw_update", "kw_set", "update_set_list"], "postprocess": x => box(x, { sets: last(x) })},
+    {"name": "insert_on_conflict_do", "symbols": [(lexerAny.has("kw_do") ? {type: "kw_do"} : kw_do), "kw_nothing"], "postprocess": x => ({ do: 'do nothing' })},
+    {"name": "insert_on_conflict_do$subexpression$1", "symbols": [(lexerAny.has("kw_do") ? {type: "kw_do"} : kw_do), "kw_update", "kw_set"]},
+    {"name": "insert_on_conflict_do$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_where") ? {type: "kw_where"} : kw_where), "expr"], "postprocess": last},
+    {"name": "insert_on_conflict_do$ebnf$1", "symbols": ["insert_on_conflict_do$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "insert_on_conflict_do$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "insert_on_conflict_do", "symbols": ["insert_on_conflict_do$subexpression$1", "update_set_list", "insert_on_conflict_do$ebnf$1"], "postprocess":  x => ({
+           do: { sets: x[1] },
+           ...x[2] && { where: x[2] },
+        }) },
     {"name": "update_statement$ebnf$1", "symbols": ["select_where"], "postprocess": id},
     {"name": "update_statement$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "update_statement$ebnf$2$subexpression$1", "symbols": [(lexerAny.has("kw_returning") ? {type: "kw_returning"} : kw_returning), "select_expr_list_aliased"], "postprocess": last},
