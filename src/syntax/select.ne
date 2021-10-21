@@ -178,7 +178,10 @@ select_order_by -> (%kw_order kw_by) select_order_by_expr (comma select_order_by
     return [head, ...(tail || [])];
 } %}
 
-select_order_by_expr -> expr (%kw_asc | %kw_desc):? {% x => track(x, {
+select_order_by_expr -> expr
+    (%kw_asc | %kw_desc):?
+    (kw_nulls (kw_first | kw_last) {% last %}):?  {% x => track(x, {
     by: x[0],
     ...x[1] && {order: toStr(x[1]).toUpperCase()},
+    ...x[2] && {nulls: toStr(x[2]).toUpperCase()},
 }) %}

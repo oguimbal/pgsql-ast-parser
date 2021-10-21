@@ -576,6 +576,7 @@ export interface SelectFromUnion extends PGNode {
 export interface OrderByStatement extends PGNode {
     by: Expr;
     order?: 'ASC' | 'DESC' | nil;
+    nulls?: 'FIRST' | 'LAST' | nil;
 }
 
 export interface ForStatement extends PGNode {

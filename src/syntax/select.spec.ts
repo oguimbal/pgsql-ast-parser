@@ -176,6 +176,28 @@ describe('Select statements', () => {
         }]
     });
 
+    checkSelect(['select * from test order by a asc nulls first'], {
+        type: 'select',
+        from: [tbl('test')],
+        columns: columns({ type: 'ref', name: '*' }),
+        orderBy: [{
+            by: { type: 'ref', name: 'a' },
+            order: 'ASC',
+            nulls: 'FIRST',
+        }]
+    });
+
+    checkSelect(['select * from test order by a asc nulls last'], {
+        type: 'select',
+        from: [tbl('test')],
+        columns: columns({ type: 'ref', name: '*' }),
+        orderBy: [{
+            by: { type: 'ref', name: 'a' },
+            order: 'ASC',
+            nulls: 'LAST',
+        }]
+    });
+
     checkSelect(['select a.*, b.*'], {
         type: 'select',
         columns: columns({

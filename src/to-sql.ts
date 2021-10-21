@@ -112,7 +112,10 @@ function visitOrderBy(m: IAstVisitor, orderBy: OrderByStatement[]) {
     list(orderBy, e => {
         m.expr(e.by);
         if (e.order) {
-            ret.push(' ', e.order);
+            ret.push(' ', e.order, ' ');
+        }
+        if (e.nulls) {
+            ret.push(' NULLS ', e.nulls, ' ')
         }
     }, false);
 }
