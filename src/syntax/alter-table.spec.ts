@@ -102,6 +102,41 @@ describe('Alter table', () => {
         }]
     });
 
+
+    checkAlterTable(['alter table test drop constraint if exists a'], {
+        type: 'alter table',
+        table: { name: 'test' },
+        changes: [{
+            type: 'drop constraint',
+            constraint: { name: 'a' },
+            ifExists: true,
+        }]
+    });
+
+
+
+    checkAlterTable(['alter table test drop constraint a cascade'], {
+        type: 'alter table',
+        table: { name: 'test' },
+        changes: [{
+            type: 'drop constraint',
+            constraint: { name: 'a' },
+            behaviour: 'cascade',
+        }]
+    });
+
+    checkAlterTable(['alter table test drop constraint a restrict'], {
+        type: 'alter table',
+        table: { name: 'test' },
+        changes: [{
+            type: 'drop constraint',
+            constraint: { name: 'a' },
+            behaviour: 'restrict',
+        }]
+    });
+
+
+
     checkAlterTable(['alter table test drop column a', 'alter table test drop a'], {
         type: 'alter table',
         table: { name: 'test' },

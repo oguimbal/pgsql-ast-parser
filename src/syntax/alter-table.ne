@@ -26,6 +26,7 @@ altertable_action
     | altertable_drop_column
     | altertable_alter_column
     | altertable_add_constraint
+    | altertable_drop_constraint
     | altertable_owner
 
 
@@ -80,6 +81,12 @@ altertable_add_constraint
         constraint: unwrap(last(x)),
     }) %}
 
+altertable_drop_constraint -> kw_drop %kw_constraint kw_ifexists:? ident (kw_restrict | kw_cascade):? {% x => track(x, {
+    type: 'drop constraint',
+    ... x[2] ? {ifExists: true} : {},
+    constraint: asName(x[3]),
+    ... x[4] ? {behaviour: toStr(x[4], ' ')} : {},
+}) %}
 
 altertable_owner
      -> kw_owner %kw_to ident {% x => track(x, {
@@ -108,4 +115,3 @@ altercol_generated_seq
         setSeqOpts(ret, x[1]);
         return track(x, ret);
     }%}
-

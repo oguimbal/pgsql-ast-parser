@@ -283,6 +283,13 @@ export interface TableAlterationDropColumn extends PGNode {
     column: Name;
 }
 
+export interface TableAlterationDropConstraint extends PGNode {
+    type: 'drop constraint';
+    ifExists?: boolean;
+    constraint: Name;
+    behaviour?: 'cascade' | 'restrict';
+}
+
 export interface TableAlterationAlterColumn extends PGNode {
     type: 'alter column',
     column: Name;
@@ -302,6 +309,7 @@ export type TableAlteration = TableAlterationRename
     | TableAlterationAlterColumn
     | TableAlterationAddConstraint
     | TableAlterationOwner
+    | TableAlterationDropConstraint
 
 
 export interface TableAlterationOwner extends PGNode {
