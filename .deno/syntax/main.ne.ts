@@ -1901,6 +1901,7 @@ const grammar: Grammar = {
     {"name": "altertable_action", "symbols": ["altertable_drop_column"]},
     {"name": "altertable_action", "symbols": ["altertable_alter_column"]},
     {"name": "altertable_action", "symbols": ["altertable_add_constraint"]},
+    {"name": "altertable_action", "symbols": ["altertable_drop_constraint"]},
     {"name": "altertable_action", "symbols": ["altertable_owner"]},
     {"name": "altertable_rename_table", "symbols": ["kw_rename", (lexerAny.has("kw_to") ? {type: "kw_to"} : kw_to), "word"], "postprocess":  x => track(x, {
             type: 'rename',
@@ -1956,6 +1957,18 @@ const grammar: Grammar = {
     {"name": "altertable_add_constraint", "symbols": ["kw_add", "createtable_constraint"], "postprocess":  x => track(x, {
             type: 'add constraint',
             constraint: unwrap(last(x)),
+        }) },
+    {"name": "altertable_drop_constraint$ebnf$1", "symbols": ["kw_ifexists"], "postprocess": id},
+    {"name": "altertable_drop_constraint$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "altertable_drop_constraint$ebnf$2$subexpression$1", "symbols": ["kw_restrict"]},
+    {"name": "altertable_drop_constraint$ebnf$2$subexpression$1", "symbols": ["kw_cascade"]},
+    {"name": "altertable_drop_constraint$ebnf$2", "symbols": ["altertable_drop_constraint$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "altertable_drop_constraint$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "altertable_drop_constraint", "symbols": ["kw_drop", (lexerAny.has("kw_constraint") ? {type: "kw_constraint"} : kw_constraint), "altertable_drop_constraint$ebnf$1", "ident", "altertable_drop_constraint$ebnf$2"], "postprocess":  x => track(x, {
+            type: 'drop constraint',
+            ... x[2] ? {ifExists: true} : {},
+            constraint: asName(x[3]),
+            ... x[4] ? {behaviour: toStr(x[4], ' ')} : {},
         }) },
     {"name": "altertable_owner", "symbols": ["kw_owner", (lexerAny.has("kw_to") ? {type: "kw_to"} : kw_to), "ident"], "postprocess":  x => track(x, {
             type:'owner',

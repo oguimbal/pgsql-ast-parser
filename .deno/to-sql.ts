@@ -370,6 +370,8 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 return m.renameConstraint(change, table);
             case 'drop column':
                 return m.dropColumn(change, table);
+            case 'drop constraint':
+                return m.dropConstraint(change, table);
             case 'owner':
                 return m.setTableOwner(change, table);
             default:
@@ -1000,6 +1002,17 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push(' IF EXISTS ');
         }
         ret.push(name(t.column));
+    },
+
+    dropConstraint: t => {
+        ret.push(' DROP CONSTRAINT ');
+        if (t.ifExists) {
+            ret.push(' IF EXISTS ');
+        }
+        ret.push(name(t.constraint));
+        if (t.behaviour) {
+            ret.push(' ', t.behaviour.toUpperCase(), ' ');
+        }
     },
 
     from: t => m.super().from(t),
