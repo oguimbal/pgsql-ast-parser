@@ -70,7 +70,7 @@ export interface DoStatement extends PGNode {
 export interface CreateFunctionStatement extends PGNode {
     type: 'create function';
     name: QName;
-    code: string;
+    code?: string;
     orReplace?: boolean;
     language?: Name;
     arguments: FunctionArgument[];

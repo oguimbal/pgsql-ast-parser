@@ -13,21 +13,22 @@ create_func -> %kw_create
                 kw_function
                 qname
                 (lparen array_of[func_argdef]:? rparen {% get(1) %})
-                func_returns:?
-                %kw_as
-                (%codeblock {% x => unwrap(x).value %} | string)
-                func_spec:* {% x => {
+                func_spec:+ {% (x, rej) => {
                     const specs: any = {};
-                    for (const s of x[8]) {
+                    for (const s of x[5]) {
+                        for (const k in s) {
+                            if (k[0] !== '_' && k in specs) {
+                                throw new Error('conflicting or redundant options ' + k);
+                            }
+                        }
                         Object.assign(specs, s);
                     }
+
                     return track(x, {
                         type: 'create function',
                         ...x[1] && {orReplace: true},
                         name: x[3],
-                        ...x[5] && {returns: unwrap(x[5])},
                         arguments: x[4] ?? [],
-                        code: unwrap(x[7]),
                         ...specs,
                     });
                 } %}
@@ -63,13 +64,12 @@ func_argmod -> %kw_in | kw_out | kw_inout | kw_variadic
 
 func_spec -> kw_language word {% x => track(x, { language: asName(last(x)) }) %}
          | func_purity {% x => track(x, {purity: toStr(x)}) %}
+         | %kw_as (%codeblock | string) {% x =>({code: toStr(last(x))}) %}
          | %kw_not:? (word {% kw('leakproof') %}) {% x => track(x, { leakproof: !x[0] })%}
-         | func_spec_nil {% unwrap %}
-
-
-func_spec_nil -> (word {%kw('called')%}) oninp {% () => ({ onNullInput: 'call' }) %}
-                | (word {%kw('returns')%}) %kw_null oninp {% () => ({ onNullInput: 'null' }) %}
-                | (word {%kw('strict')%})  {% () => ({ onNullInput: 'strict' }) %}
+         | func_returns {% x => track(x, { returns: unwrap(x) }) %}
+         | (word {%kw('called')%}) oninp {% () => ({ onNullInput: 'call' }) %}
+         | (word {%kw('returns')%}) %kw_null oninp {% () => ({ onNullInput: 'null' }) %}
+         | (word {%kw('strict')%})  {% () => ({ onNullInput: 'strict' }) %}
 
 func_purity -> word {%kw('immutable')%}
             |  word {%kw('stable')%}
