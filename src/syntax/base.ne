@@ -155,6 +155,7 @@ kw_insert -> %word {% notReservedKw('insert')  %}
 kw_value -> %word {% notReservedKw('value')  %}
 kw_values -> %word {% notReservedKw('values')  %}
 kw_update -> %word {% notReservedKw('update')  %}
+kw_column -> %word {% notReservedKw('column')  %}
 kw_set -> %word {% notReservedKw('set')  %}
 kw_version -> %word {% notReservedKw('version')  %}
 kw_alter -> %word {% notReservedKw('alter')  %}

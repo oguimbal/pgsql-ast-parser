@@ -274,9 +274,16 @@ describe('Simple statements', () => {
                 columns: [{ expr: ref('a') }, { expr: ref('b') }],
                 from: [tbl('mytable')],
             },
-            alias:'myAlias',
+            alias: 'myAlias',
             columnNames: [name('x'), name('y')],
         }]
     });
 
+
+    // bugfix (Cannot select column named column) https://github.com/oguimbal/pgsql-ast-parser/issues/67
+    checkStatement(`SELECT something AS column FROM whatever`, {
+        type: 'select',
+        columns: [{ expr: ref('something'), alias: { name: 'column' } }],
+        from: [tbl('whatever')],
+    });
 });

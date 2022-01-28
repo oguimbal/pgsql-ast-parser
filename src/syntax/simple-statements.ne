@@ -121,7 +121,7 @@ comment_what_nm -> (%kw_table
                     name: x[1],
                 }) %}
 
-comment_what_col -> %kw_column qcolumn {% x => track(x, {
+comment_what_col -> kw_column qcolumn {% x => track(x, {
                 type: 'column',
                 column: last(x),
             }) %}
