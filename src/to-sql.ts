@@ -1289,11 +1289,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             if (s.limit.offset) {
                 ret.push(`OFFSET `);
                 m.expr(s.limit.offset);
-                if (s.limit.limit) {
-                    ret.push(`FETCH `);
-                    m.expr(s.limit.limit);
-                }
-            } else if (s.limit.limit) {
+
+            }
+            if (s.limit.limit) {
                 ret.push(`LIMIT `);
                 m.expr(s.limit.limit);
             }

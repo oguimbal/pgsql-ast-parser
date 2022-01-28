@@ -11,7 +11,6 @@ describe('Ast visitor', () => {
         const mapper = astVisitor(() => ({
             ref: r => visited = r.name,
         }))
-        debugger;
         mapper.expr({
             type: 'unary',
             op: 'NOT',

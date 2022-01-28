@@ -10,7 +10,7 @@ array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
 # https://www.postgresql.org/docs/12/sql-select.html
 
 select_statement
-    -> select_what select_from:? select_where:? select_groupby:? select_order_by:? select_limit select_for:?
+    -> select_what select_from:? select_where:? select_groupby:? select_order_by:? select_limit_offset:? select_for:?
     {% x => {
         let [what, from, where, groupBy, orderBy, limit, selectFor] = x;
         from = unwrap(from);
@@ -19,7 +19,7 @@ select_statement
             ...what,
             ...from ? { from: Array.isArray(from) ? from : [from] } : {},
             ...groupBy ? { groupBy } : {},
-            ...limit ? { limit } : {},
+            ...limit ? { limit: unwrap(limit) } : {},
             ...orderBy ? { orderBy } : {},
             ...where ? { where } : {},
             ...selectFor ? { for: selectFor[1] } : {},
@@ -147,25 +147,32 @@ select_groupby -> %kw_group kw_by expr_list_raw {% last %}
 # [ LIMIT { count | ALL } ]
 # [ OFFSET start [ ROW | ROWS ] ]
 # [ FETCH { FIRST | NEXT } [ count ] { ROW | ROWS } ONLY ]
-select_limit -> (%kw_limit expr_nostar {%last%}):?
-                (%kw_offset expr_nostar (kw_row | kw_rows):? {% get(1) %}):?
-                (%kw_fetch (kw_first | kw_next):? expr_nostar (kw_row | kw_rows):? {% get(2) %}):?
-                {% (x, _, rej) => {
-                    const limit1 = unbox(x[0]);
-                    const offset = unbox(x[1]);
-                    const limit2 = unbox(x[2]);
-                    if (limit1 && limit2) {
-                        return rej;
-                    }
-                    if (!limit1 && !limit2  && !offset) {
-                        return null;
-                    }
-                    const limit = limit1 || limit2;
-                    return track(x, {
-                        ...limit ? {limit}: {},
-                        ...offset ? {offset} : {},
-                    });
-                }%}
+select_limit_offset -> (select_offset | select_limit):+ {% (x, rej) => {
+    const value = unwrap(x);
+    if (!Array.isArray(value)) {
+        return track(x, value);
+    }
+    if (value.length != 2) {
+        return rej;
+    }
+    const a = unwrap(value[0]);
+    const b = unwrap(value[1]);
+    if (a.offset && b.offset || a.limit && b.limit) {
+        return rej;
+    }
+    return track(x, {
+        ...a,
+        ...b,
+    });
+} %}
+
+select_offset -> %kw_offset expr_nostar (kw_row | kw_rows):? {% x => track(x, { offset: unwrap(x[1]) }) %}
+
+select_limit -> (select_limit_1 | select_limit_2) {% x => track(x, { limit: unwrap(x) }) %}
+
+select_limit_1 -> %kw_limit expr_nostar {%last%}
+
+select_limit_2 -> %kw_fetch (kw_first | kw_next):? expr_nostar (kw_row | kw_rows) %kw_only {% get(2) %}
 
 # FOR { UPDATE | NO KEY UPDATE | SHARE | KEY SHARE }
 select_for -> %kw_for (

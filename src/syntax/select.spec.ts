@@ -88,7 +88,7 @@ describe('Select statements', () => {
     });
 
 
-    checkSelect(['select * from test limit 5', 'select * from test fetch first 5', 'select * from test fetch next 5 rows'], {
+    checkSelect(['select * from test limit 5', 'select * from test fetch first 5 row only', 'select * from test fetch next 5 rows only'], {
         type: 'select',
         from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' }),
@@ -106,7 +106,7 @@ describe('Select statements', () => {
         },
     });
 
-    checkSelect(['select * from test limit 5 offset 3', 'select * from test offset 3 rows fetch first 5'], {
+    checkSelect(['select * from test limit 5 offset 3', 'select * from test offset 3 limit 5', 'select * from test offset 3 rows fetch first 5 rows only'], {
         type: 'select',
         from: [tbl('test')],
         columns: columns({ type: 'ref', name: '*' }),
