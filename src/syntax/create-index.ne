@@ -1,6 +1,9 @@
 @lexer lexerAny
 @include "base.ne"
 
+array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
+    return [unwrap(head), ...(tail.map(unwrap) || [])];
+} %}
 
 # https://www.postgresql.org/docs/12/sql-createindex.html
 createindex_statement
@@ -15,6 +18,8 @@ createindex_statement
         lparen
         createindex_expressions
         rparen
+        createindex_with:?
+        createindex_tblspace:?
         createindex_predicate:?
          {% x => track(x, {
             type: 'create index',
@@ -24,7 +29,9 @@ createindex_statement
             table: x[6],
             ...x[7] && { using: asName(x[7]) },
             expressions: x[9],
-            ...x[11] && { where: unwrap(x[11]) },
+            ...x[11] && { with: x[11] },
+            ...x[12] && { tablespace: unwrap(x[12]) },
+            ...x[13] && { where: unwrap(x[13]) },
         }) %}
 
 createindex_expressions -> createindex_expression (comma createindex_expression {% last %}):* {% ([head, tail]) => {
@@ -45,3 +52,9 @@ createindex_expression -> (expr_basic | expr_paren)
 
 
 createindex_predicate -> %kw_where expr {% last %}
+
+createindex_with -> %kw_with lparen array_of[createindex_with_item] rparen {% get(2) %}
+
+createindex_with_item -> ident %op_eq (string | int) {% x => track(x, { parameter: toStr(x[0]), value: unwrap(x[2]).toString() }) %}
+
+createindex_tblspace -> kw_tablespace ident {% last %}

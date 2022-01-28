@@ -721,7 +721,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             }
         }
 
-        ret.push(' AS $$', c.code, '$$');
+        ret.push(' AS $$', c.code ?? '', '$$');
 
         // function settings
         if (c.language) {
@@ -897,6 +897,15 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                 ret.push('nulls ', e.nulls, ' ');
             }
         }, true);
+        if (c.with) {
+            ret.push('WITH ');
+            list(c.with, w => {
+                ret.push(w.parameter, ' = ', literal(w.value));
+            }, true);
+        }
+        if (c.tablespace) {
+            ret.push('TABLESPACE ', ident(c.tablespace));
+        }
         if (c.where) {
             ret.push(' WHERE ');
             m.expr(c.where);

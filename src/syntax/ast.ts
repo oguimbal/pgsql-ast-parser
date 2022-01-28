@@ -377,6 +377,13 @@ export interface CreateIndexStatement extends PGNode {
     unique?: true;
     ifNotExists?: true;
     indexName?: Name;
+    tablespace?: string;
+    with?: CreateIndexWith[];
+}
+
+export interface CreateIndexWith extends PGNode {
+    parameter: string;
+    value: string;
 }
 
 export interface CreateExtensionStatement extends PGNode {

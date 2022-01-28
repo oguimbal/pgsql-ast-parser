@@ -186,4 +186,33 @@ describe('Create index', () => {
             operand: { type: 'ref', name: 'col2' },
         },
     })
+
+
+    // Fix of https://github.com/oguimbal/pgsql-ast-parser/issues/66
+    checkCreateIndex([`CREATE INDEX foo ON bar USING btree (bar) WITH (fillfactor='70')`, `CREATE INDEX foo ON bar USING btree (bar) WITH (fillfactor=70)`], {
+        type: 'create index',
+        indexName: { name: 'foo' },
+        table: { name: 'bar', },
+        using: { name: 'btree' },
+        expressions: [{
+            expression: {
+                type: 'ref',
+                name: 'bar',
+            }
+        }],
+        with: [{
+            parameter: 'fillfactor',
+            value: '70',
+        }],
+    })
+
+    checkCreateIndex(['create index blah on test(col) tablespace abc'], {
+        type: 'create index',
+        indexName: { name: 'blah' },
+        table: { name: 'test' },
+        expressions: [{
+            expression: { type: 'ref', name: 'col' },
+        }],
+        tablespace: 'abc',
+    });
 });
