@@ -198,6 +198,23 @@ describe('Ast mapper', () => {
 
     })
 
+    it('maps insert with super() call', () => {
+
+        // create a mapper
+        const mapper = astMapper(map => ({
+            insert: i => map.super().insert({
+                ...i,
+                columns: i.columns?.filter(c => c.name !== 'a'),
+            })
+        }))
+
+        const source = parseFirst(`insert into test (a, b) values ('a', 'b')`);
+        const target = parseFirst(`insert into test (b) values ('a', 'b')`);
+        const mapped = mapper.statement(source);
+
+        expect(mapped).to.deep.equal(target);
+    })
+
 
     it('runs deno test - match', () => {
         const mapper = astMapper(map => ({
