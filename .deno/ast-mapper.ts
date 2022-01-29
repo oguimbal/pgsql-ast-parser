@@ -206,6 +206,7 @@ function withAccepts(val: a.Statement | nil): val is a.WithStatementBinding {
 export class AstDefaultMapper implements IAstMapper {
 
     wrapped?: IAstPartialMapper;
+    skipNext?: boolean;
 
     super() {
         return new SkipModifier(this);
@@ -1264,6 +1265,10 @@ for (const k of Object.getOwnPropertyNames(proto)) {
         configurable: false,
         get() {
             return function (this: AstDefaultMapper, ...args: []) {
+                if (this.skipNext) {
+                    this.skipNext = false;
+                    return orig.apply(this, args);
+                }
                 const impl = (this.wrapped as any)?.[k];
                 if (!impl) {
                     return orig.apply(this, args);
@@ -1291,7 +1296,8 @@ for (const k of Object.getOwnPropertyNames(proto)) {
         configurable: false,
         get() {
             return function (this: SkipModifier, ...args: []) {
-                return orig.apply(this.parent.wrapped, args);
+                this.parent.skipNext = true;
+                return orig.apply(this.parent, args);
             }
         }
     });
