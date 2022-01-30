@@ -24,6 +24,97 @@ declare var kw_precision: any;
 declare var kw_with: any;
 declare var kw_as: any;
 declare var kw_current_schema: any;
+declare var kw_all: any;
+declare var kw_analyse: any;
+declare var kw_analyze: any;
+declare var kw_and: any;
+declare var kw_any: any;
+declare var kw_asc: any;
+declare var kw_asymmetric: any;
+declare var kw_authorization: any;
+declare var kw_binary: any;
+declare var kw_both: any;
+declare var kw_case: any;
+declare var kw_cast: any;
+declare var kw_check: any;
+declare var kw_collate: any;
+declare var kw_collation: any;
+declare var kw_concurrently: any;
+declare var kw_constraint: any;
+declare var kw_create: any;
+declare var kw_cross: any;
+declare var kw_current_catalog: any;
+declare var kw_current_date: any;
+declare var kw_current_role: any;
+declare var kw_current_time: any;
+declare var kw_current_timestamp: any;
+declare var kw_current_user: any;
+declare var kw_default: any;
+declare var kw_deferrable: any;
+declare var kw_desc: any;
+declare var kw_distinct: any;
+declare var kw_do: any;
+declare var kw_else: any;
+declare var kw_end: any;
+declare var kw_except: any;
+declare var kw_false: any;
+declare var kw_fetch: any;
+declare var kw_for: any;
+declare var kw_foreign: any;
+declare var kw_freeze: any;
+declare var kw_from: any;
+declare var kw_full: any;
+declare var kw_grant: any;
+declare var kw_group: any;
+declare var kw_having: any;
+declare var kw_ilike: any;
+declare var kw_in: any;
+declare var kw_initially: any;
+declare var kw_inner: any;
+declare var kw_intersect: any;
+declare var kw_into: any;
+declare var kw_is: any;
+declare var kw_isnull: any;
+declare var kw_join: any;
+declare var kw_lateral: any;
+declare var kw_leading: any;
+declare var kw_left: any;
+declare var kw_like: any;
+declare var kw_limit: any;
+declare var kw_localtime: any;
+declare var kw_localtimestamp: any;
+declare var kw_natural: any;
+declare var kw_notnull: any;
+declare var kw_offset: any;
+declare var kw_on: any;
+declare var kw_only: any;
+declare var kw_or: any;
+declare var kw_order: any;
+declare var kw_outer: any;
+declare var kw_overlaps: any;
+declare var kw_placing: any;
+declare var kw_references: any;
+declare var kw_returning: any;
+declare var kw_right: any;
+declare var kw_select: any;
+declare var kw_session_user: any;
+declare var kw_similar: any;
+declare var kw_some: any;
+declare var kw_symmetric: any;
+declare var kw_table: any;
+declare var kw_tablesample: any;
+declare var kw_then: any;
+declare var kw_to: any;
+declare var kw_trailing: any;
+declare var kw_true: any;
+declare var kw_union: any;
+declare var kw_user: any;
+declare var kw_using: any;
+declare var kw_variadic: any;
+declare var kw_verbose: any;
+declare var kw_when: any;
+declare var kw_where: any;
+declare var kw_window: any;
 declare var kw_from: any;
 declare var kw_as: any;
 declare var kw_join: any;
@@ -568,19 +659,117 @@ const grammar: Grammar = {
                 ...alias ? { alias } : {},
             })
         } },
-    {"name": "qualified_name$ebnf$1$subexpression$1", "symbols": ["ident", "dot"], "postprocess": get(0)},
-    {"name": "qualified_name$ebnf$1", "symbols": ["qualified_name$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "qualified_name$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "qualified_name", "symbols": ["qualified_name$ebnf$1", "ident"], "postprocess":  x => {
-            const schema = unbox(x[0]);
-            const name = unbox(x[1]);
-            if (schema) {
-                return track(x, { name, schema });
-            }
-            return track(x, {name});
-        }},
+    {"name": "qualified_name", "symbols": ["qname_ident"], "postprocess": x => track(x, {name: toStr(x)})},
+    {"name": "qualified_name", "symbols": ["ident", "dot", "ident_extended"], "postprocess":  x => {
+            const schema = toStr(x[0]);
+            const name = toStr(x[2]);
+            return track(x, {schema, name});
+        } },
     {"name": "qualified_name", "symbols": [(lexerAny.has("kw_current_schema") ? {type: "kw_current_schema"} : kw_current_schema)], "postprocess": x => track(x, { name: 'current_schema' })},
+    {"name": "qname_ident", "symbols": ["ident"]},
+    {"name": "qname_ident", "symbols": [(lexerAny.has("kw_precision") ? {type: "kw_precision"} : kw_precision)]},
     {"name": "qname", "symbols": ["qualified_name"], "postprocess": unwrap},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_all") ? {type: "kw_all"} : kw_all)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_analyse") ? {type: "kw_analyse"} : kw_analyse)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_analyze") ? {type: "kw_analyze"} : kw_analyze)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_and") ? {type: "kw_and"} : kw_and)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_any") ? {type: "kw_any"} : kw_any)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_array") ? {type: "kw_array"} : kw_array)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_asc") ? {type: "kw_asc"} : kw_asc)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_asymmetric") ? {type: "kw_asymmetric"} : kw_asymmetric)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_authorization") ? {type: "kw_authorization"} : kw_authorization)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_binary") ? {type: "kw_binary"} : kw_binary)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_both") ? {type: "kw_both"} : kw_both)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_case") ? {type: "kw_case"} : kw_case)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_cast") ? {type: "kw_cast"} : kw_cast)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_check") ? {type: "kw_check"} : kw_check)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_collate") ? {type: "kw_collate"} : kw_collate)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_collation") ? {type: "kw_collation"} : kw_collation)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_concurrently") ? {type: "kw_concurrently"} : kw_concurrently)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_constraint") ? {type: "kw_constraint"} : kw_constraint)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_cross") ? {type: "kw_cross"} : kw_cross)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_current_catalog") ? {type: "kw_current_catalog"} : kw_current_catalog)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_current_date") ? {type: "kw_current_date"} : kw_current_date)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_current_role") ? {type: "kw_current_role"} : kw_current_role)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_current_schema") ? {type: "kw_current_schema"} : kw_current_schema)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_current_time") ? {type: "kw_current_time"} : kw_current_time)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_current_timestamp") ? {type: "kw_current_timestamp"} : kw_current_timestamp)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_current_user") ? {type: "kw_current_user"} : kw_current_user)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_deferrable") ? {type: "kw_deferrable"} : kw_deferrable)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_desc") ? {type: "kw_desc"} : kw_desc)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_distinct") ? {type: "kw_distinct"} : kw_distinct)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_do") ? {type: "kw_do"} : kw_do)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_else") ? {type: "kw_else"} : kw_else)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_end") ? {type: "kw_end"} : kw_end)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_except") ? {type: "kw_except"} : kw_except)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_false") ? {type: "kw_false"} : kw_false)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_fetch") ? {type: "kw_fetch"} : kw_fetch)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_for") ? {type: "kw_for"} : kw_for)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_foreign") ? {type: "kw_foreign"} : kw_foreign)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_freeze") ? {type: "kw_freeze"} : kw_freeze)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_full") ? {type: "kw_full"} : kw_full)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_grant") ? {type: "kw_grant"} : kw_grant)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_group") ? {type: "kw_group"} : kw_group)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_having") ? {type: "kw_having"} : kw_having)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_ilike") ? {type: "kw_ilike"} : kw_ilike)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_in") ? {type: "kw_in"} : kw_in)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_initially") ? {type: "kw_initially"} : kw_initially)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_inner") ? {type: "kw_inner"} : kw_inner)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_intersect") ? {type: "kw_intersect"} : kw_intersect)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_into") ? {type: "kw_into"} : kw_into)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_is") ? {type: "kw_is"} : kw_is)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_isnull") ? {type: "kw_isnull"} : kw_isnull)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_join") ? {type: "kw_join"} : kw_join)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_lateral") ? {type: "kw_lateral"} : kw_lateral)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_leading") ? {type: "kw_leading"} : kw_leading)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_left") ? {type: "kw_left"} : kw_left)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_like") ? {type: "kw_like"} : kw_like)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_limit") ? {type: "kw_limit"} : kw_limit)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_localtime") ? {type: "kw_localtime"} : kw_localtime)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_localtimestamp") ? {type: "kw_localtimestamp"} : kw_localtimestamp)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_natural") ? {type: "kw_natural"} : kw_natural)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_notnull") ? {type: "kw_notnull"} : kw_notnull)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_offset") ? {type: "kw_offset"} : kw_offset)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_only") ? {type: "kw_only"} : kw_only)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_or") ? {type: "kw_or"} : kw_or)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_order") ? {type: "kw_order"} : kw_order)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_outer") ? {type: "kw_outer"} : kw_outer)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_overlaps") ? {type: "kw_overlaps"} : kw_overlaps)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_placing") ? {type: "kw_placing"} : kw_placing)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_primary") ? {type: "kw_primary"} : kw_primary)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_references") ? {type: "kw_references"} : kw_references)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_returning") ? {type: "kw_returning"} : kw_returning)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_right") ? {type: "kw_right"} : kw_right)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_select") ? {type: "kw_select"} : kw_select)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_session_user") ? {type: "kw_session_user"} : kw_session_user)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_similar") ? {type: "kw_similar"} : kw_similar)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_some") ? {type: "kw_some"} : kw_some)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_symmetric") ? {type: "kw_symmetric"} : kw_symmetric)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_table") ? {type: "kw_table"} : kw_table)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_tablesample") ? {type: "kw_tablesample"} : kw_tablesample)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_then") ? {type: "kw_then"} : kw_then)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_to") ? {type: "kw_to"} : kw_to)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_trailing") ? {type: "kw_trailing"} : kw_trailing)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_true") ? {type: "kw_true"} : kw_true)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_union") ? {type: "kw_union"} : kw_union)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_unique") ? {type: "kw_unique"} : kw_unique)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_user") ? {type: "kw_user"} : kw_user)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_using") ? {type: "kw_using"} : kw_using)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_variadic") ? {type: "kw_variadic"} : kw_variadic)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_verbose") ? {type: "kw_verbose"} : kw_verbose)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_when") ? {type: "kw_when"} : kw_when)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_where") ? {type: "kw_where"} : kw_where)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_window") ? {type: "kw_window"} : kw_window)]},
+    {"name": "any_keyword", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with)]},
+    {"name": "ident_extended", "symbols": ["ident"]},
+    {"name": "ident_extended", "symbols": ["any_keyword"]},
     {"name": "select_statement$ebnf$1", "symbols": ["select_from"], "postprocess": id},
     {"name": "select_statement$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_statement$ebnf$2", "symbols": ["select_where"], "postprocess": id},
