@@ -204,11 +204,11 @@ function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T,
                 newSql = mapper(parsed, toSql);
                 assert.isString(newSql);
             } catch (e) {
-                e.message = `⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
+                (e as any).message = `⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
         Failed to generate SQL from the parsed AST
             => There should be something wrong in to-sql.ts
 ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
-            ${e.message}`;
+            ${(e as any).message}`;
                 throw e;
             }
 
@@ -220,11 +220,11 @@ function checkTree<T>(value: string | string[], expected: T, mapper: (parsed: T,
                     ? tracking(() => doParse(newSql))
                     : doParse(newSql);
             } catch (e) {
-                e.message = `⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
+                (e as any).message = `⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
         The parsed AST converted-back to SQL generated invalid SQL.
             => There should be something wrong in to-sql.ts
 ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔ ⛔
-            ${e.message}`;
+            ${(e as any).message}`;
                 throw e;
             }
 
@@ -250,6 +250,20 @@ export function checkInvalid(sql: string, start?: string) {
         });
     });
 }
+
+
+export function checkValid(sql: string, start?: string) {
+    it('parses ' + sql, () => {
+        const gram = Grammar.fromCompiled(grammar);
+        if (start) {
+            gram.start = start
+        }
+        const parser = new Parser(gram);
+        parser.feed(sql);
+        expect(parser.results).not.to.deep.equal([]);
+    });
+}
+
 
 export function checkInvalidExpr(sql: string) {
     return checkInvalid(sql, 'expr');
