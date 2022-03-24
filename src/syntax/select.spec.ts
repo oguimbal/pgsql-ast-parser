@@ -310,6 +310,8 @@ describe('Select statements', () => {
     checkInvalid('select * from ta full inner join tb on ta.id=tb.id');
     checkInvalid('select * from ta left inner join tb on ta.id=tb.id');
     checkInvalid('select * from ta right inner join tb on ta.id=tb.id');
+    checkInvalid('select * from ta cross inner join tb on ta.id=tb.id');
+    checkInvalid('select * from ta cross outer join tb on ta.id=tb.id');
 
     checkSelect(['select * from ta join tb on ta.id=tb.id'
         , 'select * from ta inner join tb on ta.id=tb.id']
@@ -328,6 +330,74 @@ describe('Select statements', () => {
         , 'select * from ta full outer join tb on ta.id=tb.id']
         , buildJoin('FULL JOIN'));
 
+    checkSelect('select * from ta cross join tb on ta.id=tb.id'
+        , buildJoin('CROSS JOIN'));
+        
+    // implicit cross join
+    checkSelect('select * from ta, tb where ta.id=tb.id',
+        {
+            type: 'select',
+            columns: [{ expr: star }],
+            from: [
+                tbl('ta'),
+                tbl('tb'),
+            ],
+            where: {
+                type: 'binary',
+                op: '=',
+                left: {
+                    type: 'ref',
+                    table: { name: 'ta' },
+                    name: 'id',
+                },
+                right: {
+                    type: 'ref',
+                    table: { name: 'tb' },
+                    name: 'id',
+                }
+            }
+        }
+    );
+
+    // implicit cross join multiple tables
+    checkSelect('select * from ta, tb, tc, td',
+        {
+            type: 'select',
+            columns: [{ expr: star }],
+            from: [
+                tbl('ta'),
+                tbl('tb'),
+                tbl('tc'),
+                tbl('td'),
+            ]
+        }
+    );
+
+    // mixed join
+    checkSelect('select * from ta, tb left join tc, (select * from td) as te', {
+        type: 'select',
+        columns: [{ expr: star }],
+        from: [
+            tbl('ta'),
+            tbl('tb'),
+            {
+                type: 'table',
+                name: name('tc'),
+                join: {
+                    type: 'LEFT JOIN',
+                },
+            },
+            {
+                type: 'statement',
+                alias: 'te',
+                statement: {
+                    type: 'select',
+                    columns: [{ expr: star }],
+                    from: [ tbl('td') ],
+                },
+            },
+        ],
+    });
 
     checkSelect(`SELECT *
                 FROM STUD_ASS_PROGRESS

@@ -31,15 +31,20 @@ select_statement
 # FROM [subject] [alias?]
 select_from -> %kw_from select_subject {% last %}
 
-# Table name or another select statement wrapped in parens
+# Table name(s) or another select statement wrapped in parens
 select_subject
-    -> select_table_base {% get(0) %}
-    | select_subject_joins  {% get(0) %}
-    | lparen select_subject_joins rparen  {% get(1) %}
+    -> select_subject_list  {% get(0) %}
+    | lparen select_subject_list rparen  {% get(1) %}
 
-select_subject_joins -> select_table_base select_table_join:+ {% ([head, tail]) => {
+# base subject, optionally followed by additional subjects
+select_subject_list -> select_table_base select_subject_additional:* {% ([head, tail]) => {
     return [head, ...(tail || [])];
 } %}
+
+# [, othertable] or [join expression]
+select_subject_additional
+    -> comma select_table_base {% last %}
+    | select_table_join {% unwrap %}
 
 # [tableName] or [select x, y from z]
 select_table_base
@@ -89,13 +94,6 @@ stb_call -> expr_call (%kw_as:? ident {% last %}):?  {% x =>
                         alias: asName(x[1]),
                     }) %}
 
-
-# [, othertable] or [join expression]
-# select_table_joined
-#     -> comma select_table_base {% last %}
-#     | select_table_join
-
-
 select_table_join
     -> select_join_op %kw_join select_table_base select_table_join_clause:? {% x => track(x, {
         ...unwrap(x[2]),
@@ -113,6 +111,7 @@ select_table_join_clause
 # Join expression keywords (ex: INNER JOIN)
 select_join_op
     -> (%kw_inner:? {% x => box(x, 'INNER JOIN') %})
+    | (%kw_cross {% x => box(x, 'CROSS JOIN') %})
     | (%kw_left %kw_outer:? {% x => box(x, 'LEFT JOIN') %})
     | (%kw_right %kw_outer:? {% x => box(x, 'RIGHT JOIN') %})
     | (%kw_full %kw_outer:? {% x => box(x, 'FULL JOIN') %})

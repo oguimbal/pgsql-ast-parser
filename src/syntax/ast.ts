@@ -674,7 +674,8 @@ export interface JoinClause extends PGNode {
 export type JoinType = 'INNER JOIN'
     | 'LEFT JOIN'
     | 'RIGHT JOIN'
-    | 'FULL JOIN';
+    | 'FULL JOIN'
+    | 'CROSS JOIN';
 
 export type Expr = ExprRef
     | ExprParameter

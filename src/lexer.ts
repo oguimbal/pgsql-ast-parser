@@ -1,11 +1,12 @@
 import { compile, keywords } from 'moo';
-import { PGComment, NodeLocation } from './syntax/ast';
+
 import { sqlKeywords } from './keywords';
+import { NodeLocation, PGComment } from './syntax/ast';
 
 // build keywords
-const keywodsMap: any = {};
+const keywordsMap: any = {};
 for (const k of sqlKeywords) {
-    keywodsMap['kw_' + k.toLowerCase()] = k;
+    keywordsMap['kw_' + k.toLowerCase()] = k;
 }
 const caseInsensitiveKeywords = (map: any) => {
     const transform = keywords(map)
@@ -17,7 +18,7 @@ const caseInsensitiveKeywords = (map: any) => {
 export const lexer = compile({
     word: {
         match: /[eE](?!')[A-Za-z0-9_]*|[a-df-zA-DF-Z_][A-Za-z0-9_]*/,
-        type: caseInsensitiveKeywords(keywodsMap),
+        type: caseInsensitiveKeywords(keywordsMap),
         value: x => x.toLowerCase(),
     },
     wordQuoted: {
