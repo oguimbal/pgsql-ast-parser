@@ -28,26 +28,26 @@ select_statement
     } %}
 
 
-# FROM [subject] [alias?]
-select_from -> %kw_from select_subject {% last %}
+# FROM from_item [...from_item]
+select_from -> %kw_from select_from_items {% last %}
 
-# Table name(s) or another select statement wrapped in parens
-select_subject
-    -> select_subject_list  {% get(0) %}
-    | lparen select_subject_list rparen  {% get(1) %}
-
-# base subject, optionally followed by additional subjects
-select_subject_list -> select_table_base select_subject_additional:* {% ([head, tail]) => {
-    return [head, ...(tail || [])];
+# one or more from_item (table/statement/function/join)
+select_from_items -> select_from_item (comma select_from_item {% last %}):* {% ([head, tail]) => {
+    return [...head, ...(flatten(tail) || [])];
 } %}
 
-# [, othertable] or [join expression]
-select_subject_additional
-    -> comma select_table_base {% last %}
-    | select_table_join {% unwrap %}
+# from_subject (table/statement/function) or join
+select_from_item
+    -> select_from_subject
+    | select_from_item_joins {% get(0) %}
 
-# [tableName] or [select x, y from z]
-select_table_base
+# recursion to select_from_item, joining in other items, optionally wrapped in (multiple) parens
+select_from_item_joins
+    -> (select_from_item {% get(0) %}) select_table_join {% flatten %}
+    | lparen select_from_item_joins rparen {% get(1) %}
+
+# [tableName], [select x, y from z] or function call
+select_from_subject
     -> stb_table {% unwrap %}
     | stb_statement {% unwrap %}
     | stb_call {% unwrap %}
@@ -95,7 +95,7 @@ stb_call -> expr_call (%kw_as:? ident {% last %}):?  {% x =>
                     }) %}
 
 select_table_join
-    -> select_join_op %kw_join select_table_base select_table_join_clause:? {% x => track(x, {
+    -> select_join_op %kw_join select_from_subject select_table_join_clause:? {% x => track(x, {
         ...unwrap(x[2]),
         join: {
             type: toStr(x[0], ' '),
