@@ -245,6 +245,7 @@ describe('Select statements', () => {
     checkInvalid('select "*" from test');
     checkInvalid('select (*) from test');
     checkInvalid('select ("*") from test');
+    checkInvalid('select * from (test)');
     checkInvalid('select * from (select id from test)'); // <== missing alias
 
     checkSelect('select * from (select id from test) d', {
@@ -314,7 +315,9 @@ describe('Select statements', () => {
     checkInvalid('select * from ta cross outer join tb on ta.id=tb.id');
 
     checkSelect(['select * from ta join tb on ta.id=tb.id'
-        , 'select * from ta inner join tb on ta.id=tb.id']
+        , 'select * from ta inner join tb on ta.id=tb.id'
+        , 'select * from (ta join tb on ta.id=tb.id)'
+        , 'select * from (((ta join tb on ta.id=tb.id)))']
         , buildJoin('INNER JOIN'));
 
     checkSelect(['select * from ta left join tb on ta.id=tb.id'
@@ -374,7 +377,7 @@ describe('Select statements', () => {
     );
 
     // mixed join
-    checkSelect('select * from ta, tb left join tc, (select * from td) as te', {
+    checkSelect('select * from ta, tb cross join tc, (select * from td) as te', {
         type: 'select',
         columns: [{ expr: star }],
         from: [
@@ -384,7 +387,7 @@ describe('Select statements', () => {
                 type: 'table',
                 name: name('tc'),
                 join: {
-                    type: 'LEFT JOIN',
+                    type: 'CROSS JOIN',
                 },
             },
             {
@@ -398,6 +401,51 @@ describe('Select statements', () => {
             },
         ],
     });
+
+    // double join with and without parens
+    checkSelect([`select * from ta cross join tb cross join tc`
+        , `select * from (ta cross join tb) cross join tc`]
+        , {
+            type: 'select',
+            columns: [{ expr: star }],
+            from: [
+                tbl('ta'),
+                {
+                    type: 'table',
+                    name: name('tb'),
+                    join: {
+                        type: 'CROSS JOIN',
+                    },
+                },
+                {
+                    type: 'table',
+                    name: name('tc'),
+                    join: {
+                        type: 'CROSS JOIN',
+                    },
+                }
+            ],
+        }
+    );
+
+    // join, then implicit cross join
+    checkSelect(`select * from (ta cross join tb), tc`
+        , {
+            type: 'select',
+            columns: [{ expr: star }],
+            from: [
+                tbl('ta'),
+                {
+                    type: 'table',
+                    name: name('tb'),
+                    join: {
+                        type: 'CROSS JOIN',
+                    },
+                },
+                tbl('tc'),
+            ],
+        }
+    );
 
     checkSelect(`SELECT *
                 FROM STUD_ASS_PROGRESS
