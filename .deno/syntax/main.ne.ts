@@ -122,6 +122,7 @@ declare var kw_on: any;
 declare var kw_using: any;
 declare var comma: any;
 declare var kw_inner: any;
+declare var kw_cross: any;
 declare var kw_left: any;
 declare var kw_outer: any;
 declare var kw_right: any;
@@ -797,18 +798,21 @@ const grammar: Grammar = {
                 type: 'select',
             });
         } },
-    {"name": "select_from", "symbols": [(lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "select_subject"], "postprocess": last},
-    {"name": "select_subject", "symbols": ["select_table_base"], "postprocess": get(0)},
-    {"name": "select_subject", "symbols": ["select_subject_joins"], "postprocess": get(0)},
-    {"name": "select_subject", "symbols": ["lparen", "select_subject_joins", "rparen"], "postprocess": get(1)},
-    {"name": "select_subject_joins$ebnf$1", "symbols": ["select_table_join"]},
-    {"name": "select_subject_joins$ebnf$1", "symbols": ["select_subject_joins$ebnf$1", "select_table_join"], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "select_subject_joins", "symbols": ["select_table_base", "select_subject_joins$ebnf$1"], "postprocess":  ([head, tail]) => {
-            return [head, ...(tail || [])];
+    {"name": "select_from", "symbols": [(lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "select_from_items"], "postprocess": last},
+    {"name": "select_from_items$ebnf$1", "symbols": []},
+    {"name": "select_from_items$ebnf$1$subexpression$1", "symbols": ["comma", "select_from_item"], "postprocess": last},
+    {"name": "select_from_items$ebnf$1", "symbols": ["select_from_items$ebnf$1", "select_from_items$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "select_from_items", "symbols": ["select_from_item", "select_from_items$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [...head, ...(flatten(tail) || [])];
         } },
-    {"name": "select_table_base", "symbols": ["stb_table"], "postprocess": unwrap},
-    {"name": "select_table_base", "symbols": ["stb_statement"], "postprocess": unwrap},
-    {"name": "select_table_base", "symbols": ["stb_call"], "postprocess": unwrap},
+    {"name": "select_from_item", "symbols": ["select_from_subject"]},
+    {"name": "select_from_item", "symbols": ["select_from_item_joins"], "postprocess": get(0)},
+    {"name": "select_from_item_joins$subexpression$1", "symbols": ["select_from_item"], "postprocess": get(0)},
+    {"name": "select_from_item_joins", "symbols": ["select_from_item_joins$subexpression$1", "select_table_join"], "postprocess": flatten},
+    {"name": "select_from_item_joins", "symbols": ["lparen", "select_from_item_joins", "rparen"], "postprocess": get(1)},
+    {"name": "select_from_subject", "symbols": ["stb_table"], "postprocess": unwrap},
+    {"name": "select_from_subject", "symbols": ["stb_statement"], "postprocess": unwrap},
+    {"name": "select_from_subject", "symbols": ["stb_call"], "postprocess": unwrap},
     {"name": "stb_opts$ebnf$1", "symbols": ["collist_paren"], "postprocess": id},
     {"name": "stb_opts$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "stb_opts", "symbols": ["ident_aliased", "stb_opts$ebnf$1"], "postprocess":  x => track(x, {
@@ -849,7 +853,7 @@ const grammar: Grammar = {
            }) },
     {"name": "select_table_join$ebnf$1", "symbols": ["select_table_join_clause"], "postprocess": id},
     {"name": "select_table_join$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "select_table_join", "symbols": ["select_join_op", (lexerAny.has("kw_join") ? {type: "kw_join"} : kw_join), "select_table_base", "select_table_join$ebnf$1"], "postprocess":  x => track(x, {
+    {"name": "select_table_join", "symbols": ["select_join_op", (lexerAny.has("kw_join") ? {type: "kw_join"} : kw_join), "select_from_subject", "select_table_join$ebnf$1"], "postprocess":  x => track(x, {
             ...unwrap(x[2]),
             join: {
                 type: toStr(x[0], ' '),
@@ -869,18 +873,20 @@ const grammar: Grammar = {
     {"name": "select_join_op$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_join_op$subexpression$1", "symbols": ["select_join_op$subexpression$1$ebnf$1"], "postprocess": x => box(x, 'INNER JOIN')},
     {"name": "select_join_op", "symbols": ["select_join_op$subexpression$1"]},
-    {"name": "select_join_op$subexpression$2$ebnf$1", "symbols": [(lexerAny.has("kw_outer") ? {type: "kw_outer"} : kw_outer)], "postprocess": id},
-    {"name": "select_join_op$subexpression$2$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "select_join_op$subexpression$2", "symbols": [(lexerAny.has("kw_left") ? {type: "kw_left"} : kw_left), "select_join_op$subexpression$2$ebnf$1"], "postprocess": x => box(x, 'LEFT JOIN')},
+    {"name": "select_join_op$subexpression$2", "symbols": [(lexerAny.has("kw_cross") ? {type: "kw_cross"} : kw_cross)], "postprocess": x => box(x, 'CROSS JOIN')},
     {"name": "select_join_op", "symbols": ["select_join_op$subexpression$2"]},
     {"name": "select_join_op$subexpression$3$ebnf$1", "symbols": [(lexerAny.has("kw_outer") ? {type: "kw_outer"} : kw_outer)], "postprocess": id},
     {"name": "select_join_op$subexpression$3$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "select_join_op$subexpression$3", "symbols": [(lexerAny.has("kw_right") ? {type: "kw_right"} : kw_right), "select_join_op$subexpression$3$ebnf$1"], "postprocess": x => box(x, 'RIGHT JOIN')},
+    {"name": "select_join_op$subexpression$3", "symbols": [(lexerAny.has("kw_left") ? {type: "kw_left"} : kw_left), "select_join_op$subexpression$3$ebnf$1"], "postprocess": x => box(x, 'LEFT JOIN')},
     {"name": "select_join_op", "symbols": ["select_join_op$subexpression$3"]},
     {"name": "select_join_op$subexpression$4$ebnf$1", "symbols": [(lexerAny.has("kw_outer") ? {type: "kw_outer"} : kw_outer)], "postprocess": id},
     {"name": "select_join_op$subexpression$4$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "select_join_op$subexpression$4", "symbols": [(lexerAny.has("kw_full") ? {type: "kw_full"} : kw_full), "select_join_op$subexpression$4$ebnf$1"], "postprocess": x => box(x, 'FULL JOIN')},
+    {"name": "select_join_op$subexpression$4", "symbols": [(lexerAny.has("kw_right") ? {type: "kw_right"} : kw_right), "select_join_op$subexpression$4$ebnf$1"], "postprocess": x => box(x, 'RIGHT JOIN')},
     {"name": "select_join_op", "symbols": ["select_join_op$subexpression$4"]},
+    {"name": "select_join_op$subexpression$5$ebnf$1", "symbols": [(lexerAny.has("kw_outer") ? {type: "kw_outer"} : kw_outer)], "postprocess": id},
+    {"name": "select_join_op$subexpression$5$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "select_join_op$subexpression$5", "symbols": [(lexerAny.has("kw_full") ? {type: "kw_full"} : kw_full), "select_join_op$subexpression$5$ebnf$1"], "postprocess": x => box(x, 'FULL JOIN')},
+    {"name": "select_join_op", "symbols": ["select_join_op$subexpression$5"]},
     {"name": "select_what$ebnf$1", "symbols": ["select_distinct"], "postprocess": id},
     {"name": "select_what$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_what$ebnf$2", "symbols": ["select_expr_list_aliased"], "postprocess": id},

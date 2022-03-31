@@ -1,11 +1,11 @@
 import { compile, keywords } from 'https://deno.land/x/moo@0.5.1-deno.2/mod.ts';
-import { PGComment, NodeLocation } from './syntax/ast.ts';
 import { sqlKeywords } from './keywords.ts';
+import { NodeLocation, PGComment } from './syntax/ast.ts';
 
 // build keywords
-const keywodsMap: any = {};
+const keywordsMap: any = {};
 for (const k of sqlKeywords) {
-    keywodsMap['kw_' + k.toLowerCase()] = k;
+    keywordsMap['kw_' + k.toLowerCase()] = k;
 }
 const caseInsensitiveKeywords = (map: any) => {
     const transform = keywords(map)
@@ -17,7 +17,7 @@ const caseInsensitiveKeywords = (map: any) => {
 export const lexer = compile({
     word: {
         match: /[eE](?!')[A-Za-z0-9_]*|[a-df-zA-DF-Z_][A-Za-z0-9_]*/,
-        type: caseInsensitiveKeywords(keywodsMap),
+        type: caseInsensitiveKeywords(keywordsMap),
         value: x => x.toLowerCase(),
     },
     wordQuoted: {

@@ -1262,7 +1262,13 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(' ');
         if (s.from) {
             ret.push('FROM ');
-            for (const f of s.from) {
+            const tblCnt = s.from.length
+            for (let i = 0; i < tblCnt; i++) {
+                const f = s.from[i];
+                if (i > 0 && !f.join) {
+                    // implicit cross join (https://www.postgresql.org/docs/9.5/sql-select.html#SQL-FROM)
+                    ret.push(',')
+                }
                 m.from(f);
             }
             ret.push(' ');
