@@ -184,4 +184,9 @@ describe('Lexer', () => {
         lexer.reset('/**/ select');
         next({ type: 'kw_select' });
     })
+
+    it ('can parse nested full comments', () => {
+        lexer.reset('/* /* */ /* /* */ */ */ select');
+        next({ type: 'kw_select' });
+    })
 });
