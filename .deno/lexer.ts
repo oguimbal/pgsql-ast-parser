@@ -1,4 +1,4 @@
-import { compile, keywords } from 'https://deno.land/x/moo@0.5.1-deno.2/mod.ts';
+import { compile, keywords, Token } from 'https://deno.land/x/moo@0.5.1-deno.2/mod.ts';
 import { sqlKeywords } from './keywords.ts';
 import { NodeLocation, PGComment } from './syntax/ast.ts';
 
@@ -44,14 +44,15 @@ export const lexer = compile({
     qparam: {
         match: /\$\d+/,
     },
+    commentLine: /\-\-.*?$[\s\r\n]*/,
+    commentFullOpen: /(?<!\/)\/\*/,
+    commentFullClose: /\*\/[\s\r\n]*/,
     star: '*',
     comma: ',',
     space: { match: /[\s\t\n\v\f\r]+/, lineBreaks: true, },
     int: /\-?\d+(?![\.\d])/,
     float: /\-?(?:(?:\d*\.\d+)|(?:\d+\.\d*))/,
     // word: /[a-zA-Z][A-Za-z0-9_\-]*/,
-    commentLine: /\-\-.*?$[\s\r\n]*/,
-    commentFull: /(?<!\/)\/\*(?:.|[\r\n])*?\*\/[\s\r\n]*/,
     lparen: '(',
     rparen: ')',
     lbracket: '[',
@@ -97,16 +98,45 @@ export const lexer = compile({
 });
 
 lexer.next = (next => () => {
-    let tok;
+    let tok: Token | undefined;
+    let commentFull: {
+        nested: number;
+        offset: number;
+        text: string;
+    } | null = null;
+    
     while (tok = next.call(lexer)) {
+        // js regex can't be recursive, so we'll keep track of nested opens (/*) and closes (*/).
+        if (tok.type === 'commentFullOpen') {
+            if (commentFull === null) { // initial open - start collecting content
+                commentFull = {
+                    nested: 0,
+                    offset: tok.offset,
+                    text: tok.text
+                }
+                continue;
+            }
+            commentFull.nested++;
+        }
+        if (commentFull != null) {
+            // collect comment content
+            commentFull.text += tok.text;
+
+            if (tok.type === 'commentFullClose') {
+                if (commentFull.nested === 0) { // finish comment, if not nested
+                    comments?.push(makeComment(commentFull))
+                    commentFull = null;
+                    continue;
+                }
+                commentFull.nested--;
+            }
+            continue;
+        }
         if (tok.type === 'space') {
             continue;
         }
-        if (tok.type === 'commentLine' || tok.type === 'commentFull') {
-            comments?.push({
-                _location: { start: tok.offset, end: tok.offset + tok.text.length },
-                comment: tok.text,
-            })
+        if (tok.type === 'commentLine') {
+            comments?.push(makeComment(tok))
             continue;
         }
         break;
@@ -126,6 +156,11 @@ lexer.next = (next => () => {
 export const lexerAny: any = lexer;
 
 let comments: PGComment[] | null = null;
+
+const makeComment = ({ offset, text }: { offset: number; text: string }): PGComment => ({
+	_location: { start: offset, end: offset + text.length },
+	comment: text,
+});
 
 export function trackingComments<T>(act: () => T): { ast: T; comments: PGComment[] } {
     if (comments) {
