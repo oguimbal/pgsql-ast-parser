@@ -183,6 +183,7 @@ declare var kw_when: any;
 declare var kw_then: any;
 declare var kw_else: any;
 declare var kw_any: any;
+declare var kw_some: any;
 declare var kw_current_catalog: any;
 declare var kw_current_date: any;
 declare var kw_current_role: any;
@@ -1538,8 +1539,11 @@ const grammar: Grammar = {
             ...x[0] && { schema: toStr(x[0][0]) },
         })  },
     {"name": "expr_fn_name", "symbols": ["expr_fn_name$subexpression$1"]},
-    {"name": "expr_fn_name$subexpression$2", "symbols": [(lexerAny.has("kw_any") ? {type: "kw_any"} : kw_any)], "postprocess":  x => track(x, {
-            name: 'any',
+    {"name": "expr_fn_name$subexpression$2$subexpression$1", "symbols": [(lexerAny.has("kw_any") ? {type: "kw_any"} : kw_any)]},
+    {"name": "expr_fn_name$subexpression$2$subexpression$1", "symbols": [(lexerAny.has("kw_some") ? {type: "kw_some"} : kw_some)]},
+    {"name": "expr_fn_name$subexpression$2$subexpression$1", "symbols": [(lexerAny.has("kw_all") ? {type: "kw_all"} : kw_all)]},
+    {"name": "expr_fn_name$subexpression$2", "symbols": ["expr_fn_name$subexpression$2$subexpression$1"], "postprocess":  x => track(x, {
+            name: toStr(unwrap(x)),
         })},
     {"name": "expr_fn_name", "symbols": ["expr_fn_name$subexpression$2"]},
     {"name": "word_or_keyword", "symbols": ["word"]},
