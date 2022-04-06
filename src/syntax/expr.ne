@@ -276,8 +276,8 @@ expr_fn_name -> ((word %dot):?  word_or_keyword {% x => track(x, {
             name: unbox(unwrap(x[1])),
             ...x[0] && { schema: toStr(x[0][0]) },
         })  %})
-    | (%kw_any {% x => track(x, {
-            name: 'any',
+    | ((%kw_any | %kw_some | %kw_all) {% x => track(x, {
+            name: toStr(unwrap(x)),
         })%})
 
 word_or_keyword

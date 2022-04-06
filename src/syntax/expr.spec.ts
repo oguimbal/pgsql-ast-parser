@@ -1164,6 +1164,33 @@ line`,
             }],
         });
 
+        checkTreeExprLoc([`some(c)`], { // alias for any
+            _location: { start: 0, end: 7 },
+            type: 'call',
+            function: {
+                _location: { start: 0, end: 4 },
+                name: 'some'
+            },
+            args: [{
+                _location: { start: 5, end: 6 },
+                type: 'ref',
+                name: 'c'
+            }],
+        });
+
+        checkTreeExprLoc([`all(c)`], {
+            _location: { start: 0, end: 6 },
+            type: 'call',
+            function: {
+                _location: { start: 0, end: 3 },
+                name: 'all'
+            },
+            args: [{
+                _location: { start: 4, end: 5 },
+                type: 'ref',
+                name: 'c'
+            }],
+        });
 
         checkTreeExprLoc([`now()`], {
             _location: { start: 0, end: 5 },
