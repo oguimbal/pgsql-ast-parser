@@ -21,6 +21,7 @@ import {lexerAny} from '../lexer';
 @include "create-type.ne"
 @include "union.ne"
 @include "prepare.ne"
+@include "deallocate.ne"
 @include "create-view.ne"
 @include "functions.ne"
 
@@ -38,7 +39,7 @@ main -> statement_separator:* statement (statement_separator:+ statement):* stat
 statement_separator -> %semicolon
 
 
-statement -> statement_noprep | prepare
+statement -> statement_noprep | prepare | deallocate
 
 statement_noprep
     -> selection

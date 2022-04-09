@@ -225,6 +225,7 @@ kw_hour -> %word {% notReservedKw('hour')  %}
 kw_minute -> %word {% notReservedKw('minute')  %}
 kw_local -> %word {% notReservedKw('local')  %}
 kw_prepare -> %word {% notReservedKw('prepare')  %}
+kw_deallocate -> %word {% notReservedKw('deallocate')  %}
 kw_raise -> %word {% notReservedKw('raise')  %}
 kw_continue -> %word {% notReservedKw('continue')  %}
 kw_share -> %word {% notReservedKw('share')  %}
