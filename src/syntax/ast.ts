@@ -19,6 +19,7 @@ export type Statement = SelectStatement
     | UpdateStatement
     | ShowStatement
     | PrepareStatement
+    | DeallocateStatement
     | DeleteStatement
     | WithStatement
     | RollbackStatement
@@ -146,6 +147,11 @@ export interface PrepareStatement extends PGNode {
     name: Name;
     args?: DataTypeDef[] | nil;
     statement: Statement;
+}
+
+export interface DeallocateStatement extends PGNode {
+    type: 'deallocate';
+    target: Name | { option: 'all' };
 }
 
 export interface CreateEnumType extends PGNode {
