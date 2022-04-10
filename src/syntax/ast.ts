@@ -151,7 +151,11 @@ export interface PrepareStatement extends PGNode {
 
 export interface DeallocateStatement extends PGNode {
     type: 'deallocate';
-    target: Name | { option: 'all' };
+    target: Name | DeallocateStatementOpt;
+}
+
+export interface DeallocateStatementOpt extends PGNode {
+    option: 'all';
 }
 
 export interface CreateEnumType extends PGNode {
