@@ -1321,6 +1321,15 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         m.statement(s.statement);
     },
 
+    deallocate: s => {
+        ret.push('DEALLOCATE ');
+        if ('name' in s.target) {
+            ret.push(s.target.name);
+            return;
+        }
+        ret.push('ALL')
+    },
+
     arraySelect: s => {
         ret.push('array(');
         m.select(s.select);

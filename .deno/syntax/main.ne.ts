@@ -276,6 +276,7 @@ declare var comma: any;
 declare var kw_union: any;
 declare var kw_all: any;
 declare var kw_as: any;
+declare var kw_all: any;
 declare var kw_create: any;
 declare var kw_or: any;
 declare var comma: any;
@@ -558,6 +559,7 @@ const grammar: Grammar = {
     {"name": "kw_minute", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('minute')},
     {"name": "kw_local", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('local')},
     {"name": "kw_prepare", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('prepare')},
+    {"name": "kw_deallocate", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('deallocate')},
     {"name": "kw_raise", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('raise')},
     {"name": "kw_continue", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('continue')},
     {"name": "kw_share", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('share')},
@@ -2443,6 +2445,16 @@ const grammar: Grammar = {
             ...x[2] && { args: x[2] },
             statement: unwrap(last(x)),
         }) },
+    {"name": "deallocate$ebnf$1", "symbols": ["kw_prepare"], "postprocess": id},
+    {"name": "deallocate$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "deallocate", "symbols": ["kw_deallocate", "deallocate$ebnf$1", "deallocate_target"], "postprocess":  x => track(x, {
+            type: 'deallocate',
+            target: x[2],
+        }) },
+    {"name": "deallocate_target", "symbols": ["deallocate_all"], "postprocess": unwrap},
+    {"name": "deallocate_target", "symbols": ["deallocate_name"], "postprocess": unwrap},
+    {"name": "deallocate_name", "symbols": ["ident"], "postprocess": x => track(x, asName(x[0]) )},
+    {"name": "deallocate_all", "symbols": [(lexerAny.has("kw_all") ? {type: "kw_all"} : kw_all)], "postprocess": x => track(x, { option: 'all' })},
     {"name": "create_view_statements", "symbols": ["create_view"]},
     {"name": "create_view_statements", "symbols": ["create_materialized_view"]},
     {"name": "create_view$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_or") ? {type: "kw_or"} : kw_or), "kw_replace"]},
@@ -2682,6 +2694,7 @@ const grammar: Grammar = {
     {"name": "statement_separator", "symbols": [(lexerAny.has("semicolon") ? {type: "semicolon"} : semicolon)]},
     {"name": "statement", "symbols": ["statement_noprep"]},
     {"name": "statement", "symbols": ["prepare"]},
+    {"name": "statement", "symbols": ["deallocate"]},
     {"name": "statement_noprep", "symbols": ["selection"]},
     {"name": "statement_noprep", "symbols": ["createtable_statement"]},
     {"name": "statement_noprep", "symbols": ["createextension_statement"]},
