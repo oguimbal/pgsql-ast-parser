@@ -2340,7 +2340,9 @@ const grammar: Grammar = {
     {"name": "alter_sequence_option", "symbols": ["kw_restart", "alter_sequence_option$ebnf$1"], "postprocess": x => box(x, ['restart', typeof unbox(x[1]) === 'number' ? unbox(x[1]) : true])},
     {"name": "drop_statement$ebnf$1", "symbols": ["kw_ifexists"], "postprocess": id},
     {"name": "drop_statement$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "drop_statement$ebnf$2", "symbols": ["kw_cascade"], "postprocess": id},
+    {"name": "drop_statement$ebnf$2$subexpression$1", "symbols": ["kw_cascade"]},
+    {"name": "drop_statement$ebnf$2$subexpression$1", "symbols": ["kw_restrict"]},
+    {"name": "drop_statement$ebnf$2", "symbols": ["drop_statement$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "drop_statement$ebnf$2", "symbols": [], "postprocess": () => null},
     {"name": "drop_statement", "symbols": ["kw_drop", "drop_what", "drop_statement$ebnf$1", "qualified_name", "drop_statement$ebnf$2"], "postprocess":  (x: any, rej: any) => {
             const v = unwrap(x[1]);
@@ -2348,7 +2350,7 @@ const grammar: Grammar = {
                 ...v,
                 ... x[2] && {ifExists: true},
                 name: unwrap(x[3]),
-                ... x[4] && {cascade: true},
+                ... x[4] && {cascade: toStr(x[4]) },
             });
         }},
     {"name": "drop_what", "symbols": [(lexerAny.has("kw_table") ? {type: "kw_table"} : kw_table)], "postprocess": x => track(x, { type: 'drop table' })},
