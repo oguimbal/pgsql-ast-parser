@@ -626,7 +626,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
         m.tableRef(val.name);
         if (val.cascade) {
-            ret.push(' CASCADE ');
+            ret.push(' ', val.cascade, ' ');
         }
     },
     dropIndex: val => {

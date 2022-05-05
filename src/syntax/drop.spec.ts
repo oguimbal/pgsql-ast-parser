@@ -19,7 +19,14 @@ describe('Drop', () => {
         type: 'drop table',
         name: { name: 'Users' },
         ifExists: true,
-        cascade: true,
+        cascade: 'cascade',
+    });
+
+    checkStatement([`DROP TABLE IF EXISTS "Users" RESTRICT`], {
+        type: 'drop table',
+        name: { name: 'Users' },
+        ifExists: true,
+        cascade: 'restrict',
     });
 
 
