@@ -195,6 +195,7 @@ export interface DropTableStatement extends PGNode {
     type: 'drop table';
     name: QName;
     ifExists?: boolean;
+    cascade?: boolean;
 }
 
 export interface DropSequenceStatement extends PGNode {

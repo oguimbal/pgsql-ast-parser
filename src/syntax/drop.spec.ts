@@ -15,6 +15,13 @@ describe('Drop', () => {
         ifExists: true,
     });
 
+    checkStatement([`DROP TABLE IF EXISTS "Users" CASCADE`], {
+        type: 'drop table',
+        name: { name: 'Users' },
+        ifExists: true,
+        cascade: true,
+    });
+
 
     checkStatement([`drop index test`, `DROP INDEX"test"`], {
         type: 'drop index',

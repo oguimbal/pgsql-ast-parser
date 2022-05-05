@@ -625,6 +625,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push('IF EXISTS ');
         }
         m.tableRef(val.name);
+        if (val.cascade) {
+            ret.push(' CASCADE ');
+        }
     },
     dropIndex: val => {
         ret.push('DROP INDEX ');

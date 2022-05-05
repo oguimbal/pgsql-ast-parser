@@ -3,12 +3,13 @@
 
 # https://www.postgresql.org/docs/9.3/sql-dropindex.html
 
-drop_statement -> kw_drop drop_what kw_ifexists:? qualified_name {% (x: any, rej: any) => {
+drop_statement -> kw_drop drop_what kw_ifexists:? qualified_name kw_cascade:? {% (x: any, rej: any) => {
     const v = unwrap(x[1]);
     return track(x, {
         ...v,
         ... x[2] && {ifExists: true},
         name: unwrap(x[3]),
+        ... x[4] && {cascade: true},
     });
 }%}
 
