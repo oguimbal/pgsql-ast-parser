@@ -62,6 +62,18 @@ export interface BeginStatement extends PGNode {
     deferrable?: boolean;
 }
 
+export interface SetTransactionSnapshot extends PGNode {
+    type: 'set transaction snapshot';
+    snapshotId: Name;
+}
+
+export interface SetTransactionMode extends PGNode {
+    type: 'set transaction' | 'set session characteristics as transaction';
+    isolationLevel: 'serializable' | 'repeatable read' | 'read committed' | 'read uncommitted';
+    writeable?: 'read write' | 'read only';
+    deferrable?: boolean;
+}
+
 export interface DoStatement extends PGNode {
     type: 'do';
     language?: Name;

@@ -87,6 +87,9 @@ export interface IAstPartialMapper {
     createSequence?(seq: a.CreateSequenceStatement): a.Statement | nil
     alterSequence?(seq: a.AlterSequenceStatement): a.Statement | nil
     begin?(begin: a.BeginStatement): a.Statement | nil
+    setTransactionSnapshot?(snapshot: a.SetTransactionSnapshot): a.Statement | nil
+    setTransaction?(transaction: a.SetTransactionMode): a.Statement | nil
+    setSession?(session: a.SetTransactionMode): a.Statement | nil
 }
 
 export type IAstFullMapper = {
@@ -247,6 +250,12 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.setGlobal(val);
             case 'set timezone':
                 return this.setTimezone(val);
+            case 'set transaction snapshot':
+                return this.setTransactionSnapshot(val);
+            case 'set transaction':
+                return this.setTransaction(val);
+            case 'set session characteristics as transaction':
+                return this.setSession(val);
             case 'create sequence':
                 return this.createSequence(val);
             case 'alter sequence':
@@ -437,6 +446,17 @@ export class AstDefaultMapper implements IAstMapper {
         return val;
     }
 
+    setTransactionSnapshot?(snapshot: a.SetTransactionSnapshot): a.Statement | nil {
+        return snapshot;
+    }
+
+    setTransaction?(transaction: a.SetTransactionMode): a.Statement | nil {
+        return transaction;
+    }
+
+    setSession?(session: a.SetTransactionMode): a.Statement | nil {
+        return session;
+    }
 
     update(val: a.UpdateStatement): a.Statement | nil {
         if (!val) {
