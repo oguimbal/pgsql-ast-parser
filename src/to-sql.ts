@@ -619,32 +619,18 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
 
-    dropTable: val => {
-        ret.push('DROP TABLE ');
-        if (val.ifExists) {
-            ret.push('IF EXISTS ');
-        }
-        m.tableRef(val.name);
-        if (val.cascade) {
-            ret.push(' ', val.cascade, ' ');
-        }
-    },
-    dropIndex: val => {
-        ret.push('DROP INDEX ');
+    drop: val => {
+        ret.push(val.type.toUpperCase(), ' ');
         if (val.concurrently) {
             ret.push('CONCURRENTLY ');
         }
         if (val.ifExists) {
             ret.push('IF EXISTS ');
         }
-        m.tableRef(val.name);
-    },
-    dropSequence: val => {
-        ret.push('DROP SEQUENCE ');
-        if (val.ifExists) {
-            ret.push('IF EXISTS ');
+        list(val.names, x => m.tableRef(x), false);
+        if (val.cascade) {
+            ret.push(val.cascade.toUpperCase(), ' ');
         }
-        m.tableRef(val.name);
     },
 
     constraint: cst => {

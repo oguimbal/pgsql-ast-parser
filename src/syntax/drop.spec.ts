@@ -6,25 +6,41 @@ describe('Drop', () => {
 
     checkStatement([`drop table test`], {
         type: 'drop table',
-        name: { name: 'test' },
+        names: [{ name: 'test' }],
     });
 
     checkStatement([`drop table if exists test`], {
         type: 'drop table',
-        name: { name: 'test' },
+        names: [{ name: 'test' }],
         ifExists: true,
     });
 
     checkStatement([`DROP TABLE IF EXISTS "Users" CASCADE`], {
         type: 'drop table',
-        name: { name: 'Users' },
+        names: [{ name: 'Users' }],
+        ifExists: true,
+        cascade: 'cascade',
+    });
+
+
+    checkStatement([`DROP TABLE IF EXISTS a, b CASCADE`], {
+        type: 'drop table',
+        names: [{ name: 'a' }, { name: 'b' }],
+        ifExists: true,
+        cascade: 'cascade',
+    });
+
+
+    checkStatement([`DROP TYPE IF EXISTS a, b CASCADE`], {
+        type: 'drop type',
+        names: [{ name: 'a' }, { name: 'b' }],
         ifExists: true,
         cascade: 'cascade',
     });
 
     checkStatement([`DROP TABLE IF EXISTS "Users" RESTRICT`], {
         type: 'drop table',
-        name: { name: 'Users' },
+        names: [{ name: 'Users' }],
         ifExists: true,
         cascade: 'restrict',
     });
@@ -32,23 +48,23 @@ describe('Drop', () => {
 
     checkStatement([`drop index test`, `DROP INDEX"test"`], {
         type: 'drop index',
-        name: { name: 'test' },
+        names: [{ name: 'test' }],
     });
 
     checkStatement([`DROP INDEX"pub"."test"`], {
         type: 'drop index',
-        name: { name: 'test', schema: 'pub' },
+        names: [{ name: 'test', schema: 'pub' }],
     });
 
 
     checkStatement([`DROP SEQUENCE test`], {
         type: 'drop sequence',
-        name: { name: 'test' },
+        names: [{ name: 'test' }],
     });
 
     checkStatement([`drop index concurrently if exists test`], {
         type: 'drop index',
-        name: { name: 'test' },
+        names: [{ name: 'test' }],
         concurrently: true,
         ifExists: true,
     });

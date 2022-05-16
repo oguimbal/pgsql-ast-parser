@@ -14,12 +14,10 @@ export interface IAstPartialMapper {
     dropFunction?: (val: a.DropFunctionStatement) => a.Statement | nil
     raise?: (val: a.RaiseStatement) => a.Statement | nil
     createSchema?: (val: a.CreateSchemaStatement) => a.Statement | nil
-    dropTable?: (val: a.DropTableStatement) => a.Statement | nil
     createEnum?(val: a.CreateEnumType): a.Statement | nil
     createCompositeType?(val: a.CreateCompositeType): a.Statement | nil
-    dropIndex?: (val: a.DropIndexStatement) => a.Statement | nil
+    drop?: (val: a.DropStatement) => a.Statement | nil
     show?: (val: a.ShowStatement) => a.Statement | nil
-    dropSequence?: (val: a.DropSequenceStatement) => a.Statement | nil
     createTable?: (val: a.CreateTableStatement) => a.Statement | nil
     truncateTable?: (val: a.TruncateTableStatement) => a.Statement | nil
     createExtension?: (val: a.CreateExtensionStatement) => a.Statement | nil
@@ -253,12 +251,11 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.alterSequence(val);
             case 'begin':
                 return this.begin(val);
-            case 'drop index':
-                return this.dropIndex(val);
-            case 'drop sequence':
-                return this.dropSequence(val);
             case 'drop table':
-                return this.dropTable(val);
+            case 'drop index':
+            case 'drop sequence':
+            case 'drop type':
+                return this.drop(val);
             case 'create enum':
                 return this.createEnum(val);
             case 'create composite type':
@@ -395,13 +392,8 @@ export class AstDefaultMapper implements IAstMapper {
         return assignChanged(val, { attributes });
     }
 
-    dropTable(val: a.DropTableStatement): a.Statement | nil {
-        return val;
-    }
-    dropIndex(val: a.DropIndexStatement): a.Statement | nil {
-        return val;
-    }
-    dropSequence(val: a.DropSequenceStatement): a.Statement | nil {
+
+    drop(val: a.DropStatement): a.Statement | nil {
         return val;
     }
 
