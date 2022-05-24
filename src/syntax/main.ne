@@ -23,6 +23,7 @@ import {lexerAny} from '../lexer';
 @include "prepare.ne"
 @include "deallocate.ne"
 @include "create-view.ne"
+@include "refresh-materialized-view.ne"
 @include "functions.ne"
 
 # list of statements, separated by ";"
@@ -56,6 +57,7 @@ statement_noprep
     | drop_statement
     | createtype_statement
     | create_view_statements
+    | refresh_view_statements
     | create_schema
     | raise_statement
     | comment_statement

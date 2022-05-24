@@ -229,6 +229,7 @@ kw_deallocate -> %word {% notReservedKw('deallocate')  %}
 kw_raise -> %word {% notReservedKw('raise')  %}
 kw_continue -> %word {% notReservedKw('continue')  %}
 kw_share -> %word {% notReservedKw('share')  %}
+kw_refresh -> %word {% notReservedKw('refresh')  %}
 
 
 # === Composite keywords
