@@ -1230,6 +1230,17 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    refreshMaterializedView: val => {
+        ret.push('REFRESH MATERIALIZED VIEW ');
+        if (val.concurrently) {
+            ret.push('CONCURRENTLY ');
+        }
+        m.tableRef(val.name);
+        if (typeof val.withData === 'boolean') {
+            ret.push(val.withData ? ' WITH DATA' : ' WITH NO DATA');
+        }
+    },
+
     select: s => m.super().select(s),
 
     selection: s => {
