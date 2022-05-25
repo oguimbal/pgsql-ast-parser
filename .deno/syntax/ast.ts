@@ -26,6 +26,7 @@ export type Statement = SelectStatement
     | TablespaceStatement
     | CreateViewStatement
     | CreateMaterializedViewStatement
+    | RefreshMaterializedViewStatement
     | AlterTableStatement
     | AlterSequenceStatement
     | SetGlobalStatement
@@ -421,6 +422,13 @@ export interface CreateMaterializedViewStatement extends CreateViewStatementBase
     tablespace?: Name;
     withData?: boolean;
     ifNotExists?: boolean;
+}
+
+export interface RefreshMaterializedViewStatement extends PGNode {
+    type: 'refresh materialized view';
+    name: QName;
+    concurrently?: boolean;
+    withData?: boolean;
 }
 
 

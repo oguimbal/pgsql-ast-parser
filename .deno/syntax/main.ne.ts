@@ -285,6 +285,8 @@ declare var kw_as: any;
 declare var kw_with: any;
 declare var kw_check: any;
 declare var op_eq: any;
+declare var kw_concurrently: any;
+declare var kw_with: any;
 declare var kw_create: any;
 declare var kw_or: any;
 declare var comma: any;
@@ -564,6 +566,7 @@ const grammar: Grammar = {
     {"name": "kw_raise", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('raise')},
     {"name": "kw_continue", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('continue')},
     {"name": "kw_share", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('share')},
+    {"name": "kw_refresh", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('refresh')},
     {"name": "kw_ifnotexists", "symbols": ["kw_if", (lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), "kw_exists"]},
     {"name": "kw_ifexists", "symbols": ["kw_if", "kw_exists"]},
     {"name": "kw_not_null", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), (lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
@@ -2553,6 +2556,19 @@ const grammar: Grammar = {
                 ... x[10] && { withData: toStr(x[10][1]) !== 'no' },
             })
         } },
+    {"name": "refresh_view_statements$ebnf$1", "symbols": [(lexerAny.has("kw_concurrently") ? {type: "kw_concurrently"} : kw_concurrently)], "postprocess": id},
+    {"name": "refresh_view_statements$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "refresh_view_statements$ebnf$2$subexpression$1$ebnf$1", "symbols": ["kw_no"], "postprocess": id},
+    {"name": "refresh_view_statements$ebnf$2$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "refresh_view_statements$ebnf$2$subexpression$1", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with), "refresh_view_statements$ebnf$2$subexpression$1$ebnf$1", "kw_data"]},
+    {"name": "refresh_view_statements$ebnf$2", "symbols": ["refresh_view_statements$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "refresh_view_statements$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "refresh_view_statements", "symbols": ["kw_refresh", "kw_materialized", "kw_view", "refresh_view_statements$ebnf$1", "qname", "refresh_view_statements$ebnf$2"], "postprocess":  x => track(x, {
+            type: 'refresh materialized view',
+            ... !!x[3] ? { concurrently: true } : {},
+            name: x[4],
+            ... !!x[5] ? { withData: toStr(x[5][1]) !== 'no' } : {},
+        }) },
     {"name": "functions_statements", "symbols": ["create_func"]},
     {"name": "functions_statements", "symbols": ["do_stm"]},
     {"name": "functions_statements", "symbols": ["drop_func"]},
@@ -2723,6 +2739,7 @@ const grammar: Grammar = {
     {"name": "statement_noprep", "symbols": ["drop_statement"]},
     {"name": "statement_noprep", "symbols": ["createtype_statement"]},
     {"name": "statement_noprep", "symbols": ["create_view_statements"]},
+    {"name": "statement_noprep", "symbols": ["refresh_view_statements"]},
     {"name": "statement_noprep", "symbols": ["create_schema"]},
     {"name": "statement_noprep", "symbols": ["raise_statement"]},
     {"name": "statement_noprep", "symbols": ["comment_statement"]},

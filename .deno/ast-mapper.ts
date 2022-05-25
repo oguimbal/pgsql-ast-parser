@@ -53,6 +53,7 @@ export interface IAstPartialMapper {
     selection?: (val: a.SelectFromStatement) => a.SelectStatement | nil
     createView?: (val: a.CreateViewStatement) => a.Statement | nil
     createMaterializedView?: (val: a.CreateMaterializedViewStatement) => a.Statement | nil
+    refreshMaterializedView?: (val: a.RefreshMaterializedViewStatement) => a.Statement | nil
     from?: (from: a.From) => a.From | nil
     fromCall?: (from: a.FromCall) => a.From | nil
     fromStatement?: (from: a.FromStatement) => a.From | nil
@@ -273,6 +274,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.createView(val);
             case 'create materialized view':
                 return this.createMaterializedView(val);
+            case 'refresh materialized view':
+                return this.refreshMaterializedView(val);
             case 'create schema':
                 return this.createSchema(val);
             case 'raise':
@@ -325,6 +328,10 @@ export class AstDefaultMapper implements IAstMapper {
             query,
             name: ref,
         });
+    }
+
+    refreshMaterializedView(val: a.RefreshMaterializedViewStatement): a.Statement | nil {
+        return val;
     }
 
 
