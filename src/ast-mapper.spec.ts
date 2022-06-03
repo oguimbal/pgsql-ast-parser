@@ -27,6 +27,15 @@ describe('Ast mapper', () => {
         })
     }
 
+    function testExprs(statement: string, map: MapperBuilder, exprs: Expr[]) {
+        const toMap = parse(statement);
+        const mapped = astMapper(map).statement(toMap);
+        assert.deepEqual(mapped, {
+            type: 'select',
+            columns: exprs.map(expr => ({ expr })),
+        })
+    }
+
     it('maps a select constant', () => {
         testExpr('select 42', b => ({
             constant: c => assignChanged(c, {
@@ -123,6 +132,22 @@ describe('Ast mapper', () => {
         });
     })
 
+    it('maps multiple calls', () => {
+        testExprs('select fn(a), fn(b), fn(c)', () => ({
+            call: c => c.args[0],
+        }), [
+            {
+                type: 'ref',
+                name: 'a',
+            }, {
+                type: 'ref',
+                name: 'b',
+            }, {
+                type: 'ref',
+                name: 'c',
+            }
+        ]);
+    })
 
     it('maps array literal', () => {
         testExpr('select (a,b)', b => ({
