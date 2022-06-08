@@ -822,32 +822,36 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (d.schema) {
             visitQualifiedName(d);
         } else {
-            // see https://www.postgresql.org/docs/13/datatype.html
-            // & issue https://github.com/oguimbal/pgsql-ast-parser/issues/38
-            switch (d.name) {
-                case 'double precision':
-                case 'character varying':
-                case 'bit varying':
-                    ret.push(d.name, ' ');
-                    break;
-                case 'time without time zone':
-                case 'timestamp without time zone':
-                case 'time with time zone':
-                case 'timestamp with time zone':
-                    const parts = d.name.split(' ');
+            if (!d.special) {
+                visitQualifiedName(d);
+            } else {
+                // see https://www.postgresql.org/docs/13/datatype.html
+                // & issue https://github.com/oguimbal/pgsql-ast-parser/issues/38
+                switch (d.name) {
+                    case 'double precision':
+                    case 'character varying':
+                    case 'bit varying':
+                        ret.push(d.name, ' ');
+                        break;
+                    case 'time without time zone':
+                    case 'timestamp without time zone':
+                    case 'time with time zone':
+                    case 'timestamp with time zone':
+                        const parts = d.name.split(' ');
 
-                    ret.push(parts.shift()!);
-                    if (d.config?.length) {
-                        list(d.config, v => ret.push(v.toString(10)), true);
-                    }
-                    ret.push(' ');
+                        ret.push(parts.shift()!);
+                        if (d.config?.length) {
+                            list(d.config, v => ret.push(v.toString(10)), true);
+                        }
+                        ret.push(' ');
 
-                    ret.push(parts.join(' '), ' ');
-                    appendConfig = false;
-                    break;
-                default:
-                    visitQualifiedName(d);
-                    break;
+                        ret.push(parts.join(' '), ' ');
+                        appendConfig = false;
+                        break;
+                    default:
+                        visitQualifiedName(d);
+                        break;
+                }
             }
         }
 

@@ -601,7 +601,7 @@ line`,
         checkTreeExpr(`'1'::double precision`, {
             type: 'cast',
             operand: { type: 'string', value: '1' },
-            to: { name: 'double precision' },
+            to: { name: 'double precision', special: true },
         });
 
         checkTreeExpr(`CAST('1' AS INTEGER)`, {
@@ -613,7 +613,7 @@ line`,
         checkTreeExpr(`CAST('1' AS DOUBLE PRECISION)`, {
             type: 'cast',
             operand: { type: 'string', value: '1' },
-            to: { name: 'double precision' },
+            to: { name: 'double precision', special: true },
         });
 
         checkTreeExprLoc(`ARRAY[]::text[]`, {
@@ -703,6 +703,7 @@ line`,
             to: {
                 name: 'timestamp with time zone',
                 config: [4],
+                special: true,
             },
             operand: {
                 type: 'cast',

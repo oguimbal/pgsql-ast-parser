@@ -280,6 +280,16 @@ describe('Create table', () => {
         columns: [{
             kind: 'column',
             name: { name: 'value' },
+            dataType: { name: 'timestamp with time zone', special: true },
+        }],
+    });
+
+    checkCreateTable(['create table"test"(value "timestamp with time zone")'], {
+        type: 'create table',
+        name: { name: 'test', },
+        columns: [{
+            kind: 'column',
+            name: { name: 'value' },
             dataType: { name: 'timestamp with time zone' },
         }],
     });
@@ -421,7 +431,7 @@ describe('Create table', () => {
         columns: [{
             kind: 'column',
             name: { name: 'id' },
-            dataType: { name: 'character varying' },
+            dataType: { name: 'character varying', special: true },
             constraints: [{ type: 'not null' }],
         }, {
             kind: 'column',
@@ -431,7 +441,7 @@ describe('Create table', () => {
         }, {
             kind: 'column',
             name: { name: 'c' },
-            dataType: { name: 'character varying' },
+            dataType: { name: 'character varying', special: true },
             constraints: [{ type: 'not null' }],
         }, {
             kind: 'column',
@@ -471,7 +481,7 @@ describe('Create table', () => {
         columns: [{
             kind: 'column',
             name: { name: 'a' },
-            dataType: { name: 'character varying' },
+            dataType: { name: 'character varying', special: true },
             constraints: [{ type: 'not null' }],
             collate: {
                 schema: 'pg_catalog',
@@ -480,7 +490,7 @@ describe('Create table', () => {
         }, {
             kind: 'column',
             name: { name: 'b' },
-            dataType: { name: 'character varying' },
+            dataType: { name: 'character varying', special: true },
             constraints: [{ type: 'not null' }],
             collate: {
                 schema: 'pg_catalog',
@@ -532,11 +542,11 @@ describe('Create table', () => {
         columns: [{
             kind: 'column',
             name: { name: 'update_date' },
-            dataType: { name: 'timestamp without time zone' },
+            dataType: { name: 'timestamp without time zone', special: true },
         }, {
             kind: 'column',
             name: { name: 'creation_date' },
-            dataType: { name: 'timestamp without time zone' },
+            dataType: { name: 'timestamp without time zone', special: true },
             constraints: [{
                 type: 'default',
                 default: {

@@ -24,7 +24,7 @@ describe('Create types', () => {
             },
             {
                 name: { name: 'value' },
-                dataType: { name: 'double precision' },
+                dataType: { name: 'double precision', special: true },
                 collate: { name: 'abc' },
             },
         ],
