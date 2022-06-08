@@ -14,6 +14,7 @@ declare var string: any;
 declare var eString: any;
 declare var kw_primary: any;
 declare var kw_unique: any;
+declare var quoted_word: any;
 declare var word: any;
 declare var kw_not: any;
 declare var kw_null: any;
@@ -234,6 +235,7 @@ declare var word: any;
 declare var kw_on: any;
 declare var kw_true: any;
 declare var kw_false: any;
+declare var quoted_word: any;
 declare var kw_create: any;
 declare var kw_using: any;
 declare var comma: any;
@@ -302,7 +304,7 @@ declare var kw_table: any;
 declare var kw_do: any;
 declare var semicolon: any;
 import {lexerAny} from '../lexer.ts';
-import {track, box, unbox} from '../lexer.ts';
+import {track, box, unbox, doubleQuoted} from '../lexer.ts';
 
     // usage ex:  replace track(whatever) with debug(track)(whatever)
     function debug<T>(fn: any): any {
@@ -451,10 +453,8 @@ const grammar: Grammar = {
     {"name": "ident", "symbols": ["word"], "postprocess": get(0)},
     {"name": "word", "symbols": [(lexerAny.has("kw_primary") ? {type: "kw_primary"} : kw_primary)], "postprocess": x => box(x, 'primary')},
     {"name": "word", "symbols": [(lexerAny.has("kw_unique") ? {type: "kw_unique"} : kw_unique)], "postprocess": x => box(x, 'unique')},
-    {"name": "word", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess":  x => {
-            const val = x[0].value;
-            return box(x, val[0] === '"' ? val.substr(1, val.length - 2) : val);
-        } },
+    {"name": "word", "symbols": [(lexerAny.has("quoted_word") ? {type: "quoted_word"} : quoted_word)], "postprocess": x => box(x, x[0].value, true)},
+    {"name": "word", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": x => box(x, x[0].value)},
     {"name": "collist_paren", "symbols": ["lparen", "collist", "rparen"], "postprocess": get(1)},
     {"name": "collist$ebnf$1", "symbols": []},
     {"name": "collist$ebnf$1$subexpression$1", "symbols": ["comma", "ident"], "postprocess": last},
@@ -616,10 +616,10 @@ const grammar: Grammar = {
     {"name": "data_type_list", "symbols": ["data_type", "data_type_list$ebnf$1"], "postprocess":  ([head, tail]) => {
             return [head, ...(tail || [])];
         } },
-    {"name": "data_type_simple", "symbols": ["data_type_text"], "postprocess": x => track(x, { name: toStr(x, ' '), special: true })},
-    {"name": "data_type_simple", "symbols": ["data_type_numeric"], "postprocess": x => track(x, { name: toStr(x, ' '), special: true })},
+    {"name": "data_type_simple", "symbols": ["data_type_text"], "postprocess": x => track(x, { name: toStr(x, ' ') })},
+    {"name": "data_type_simple", "symbols": ["data_type_numeric"], "postprocess": x => track(x, { name: toStr(x, ' ') })},
     {"name": "data_type_simple", "symbols": ["data_type_date"]},
-    {"name": "data_type_simple", "symbols": ["qualified_name"]},
+    {"name": "data_type_simple", "symbols": ["qualified_name_mark_quotes"]},
     {"name": "data_type_numeric$subexpression$1", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('double')},
     {"name": "data_type_numeric", "symbols": ["data_type_numeric$subexpression$1", (lexerAny.has("kw_precision") ? {type: "kw_precision"} : kw_precision)]},
     {"name": "data_type_text$subexpression$1", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": anyKw('character', 'bit')},
@@ -630,14 +630,14 @@ const grammar: Grammar = {
     {"name": "data_type_date$subexpression$2", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('without')},
     {"name": "data_type_date$subexpression$3", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('time')},
     {"name": "data_type_date$subexpression$4", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('zone')},
-    {"name": "data_type_date", "symbols": ["data_type_date$subexpression$1", "data_type_date$subexpression$2", "data_type_date$subexpression$3", "data_type_date$subexpression$4"], "postprocess": x => track(x, { name: toStr(x, ' '), special: true })},
+    {"name": "data_type_date", "symbols": ["data_type_date$subexpression$1", "data_type_date$subexpression$2", "data_type_date$subexpression$3", "data_type_date$subexpression$4"], "postprocess": x => track(x, { name: toStr(x, ' ') })},
     {"name": "data_type_date$subexpression$5", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": anyKw('timestamp', 'time')},
     {"name": "data_type_date$subexpression$6", "symbols": ["lparen", "int", "rparen"], "postprocess": get(1)},
     {"name": "data_type_date$subexpression$7", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with)]},
     {"name": "data_type_date$subexpression$7", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('without')},
     {"name": "data_type_date$subexpression$8", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('time')},
     {"name": "data_type_date$subexpression$9", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": kw('zone')},
-    {"name": "data_type_date", "symbols": ["data_type_date$subexpression$5", "data_type_date$subexpression$6", "data_type_date$subexpression$7", "data_type_date$subexpression$8", "data_type_date$subexpression$9"], "postprocess": x => track(x, { name: `timestamp ${toStr(x[2])} time zone`, special: true, config: [unbox(x[1])] })},
+    {"name": "data_type_date", "symbols": ["data_type_date$subexpression$5", "data_type_date$subexpression$6", "data_type_date$subexpression$7", "data_type_date$subexpression$8", "data_type_date$subexpression$9"], "postprocess": x => track(x, { name: `timestamp ${toStr(x[2])} time zone`, config: [unbox(x[1])] })},
     {"name": "ident_aliased$subexpression$1", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as), "ident"], "postprocess": last},
     {"name": "ident_aliased", "symbols": ["ident_aliased$subexpression$1"]},
     {"name": "ident_aliased", "symbols": ["ident"], "postprocess": unwrap},
@@ -667,13 +667,20 @@ const grammar: Grammar = {
                 ...alias ? { alias } : {},
             })
         } },
-    {"name": "qualified_name", "symbols": ["qname_ident"], "postprocess": x => track(x, {name: toStr(x)})},
+    {"name": "qualified_name", "symbols": ["qname_ident"], "postprocess": x => track(x, {name: toStr(x) })},
     {"name": "qualified_name", "symbols": ["ident", "dot", "ident_extended"], "postprocess":  x => {
             const schema = toStr(x[0]);
             const name = toStr(x[2]);
             return track(x, {schema, name});
         } },
     {"name": "qualified_name", "symbols": [(lexerAny.has("kw_current_schema") ? {type: "kw_current_schema"} : kw_current_schema)], "postprocess": x => track(x, { name: 'current_schema' })},
+    {"name": "qualified_name_mark_quotes", "symbols": ["qname_ident"], "postprocess": x => track(x, {name: toStr(x), ...doubleQuoted(x) })},
+    {"name": "qualified_name_mark_quotes", "symbols": ["ident", "dot", "ident_extended"], "postprocess":  x => {
+            const schema = toStr(x[0]);
+            const name = toStr(x[2]);
+            return track(x, {schema, name, ...doubleQuoted(x[2])});
+        } },
+    {"name": "qualified_name_mark_quotes", "symbols": [(lexerAny.has("kw_current_schema") ? {type: "kw_current_schema"} : kw_current_schema)], "postprocess": x => track(x, { name: 'current_schema' })},
     {"name": "qname_ident", "symbols": ["ident"]},
     {"name": "qname_ident", "symbols": [(lexerAny.has("kw_precision") ? {type: "kw_precision"} : kw_precision)]},
     {"name": "qname", "symbols": ["qualified_name"], "postprocess": unwrap},
@@ -1667,7 +1674,7 @@ const grammar: Grammar = {
         }) },
     {"name": "createtable_constraint_foreignkey$ebnf$1", "symbols": []},
     {"name": "createtable_constraint_foreignkey$ebnf$1", "symbols": ["createtable_constraint_foreignkey$ebnf$1", "createtable_constraint_foreignkey_onsometing"], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "createtable_constraint_foreignkey", "symbols": [(lexerAny.has("kw_foreign") ? {type: "kw_foreign"} : kw_foreign), "kw_key", "collist_paren", (lexerAny.has("kw_references") ? {type: "kw_references"} : kw_references), "qualified_name", "collist_paren", "createtable_constraint_foreignkey$ebnf$1"], "postprocess":  (x: any[]) => {
+    {"name": "createtable_constraint_foreignkey", "symbols": [(lexerAny.has("kw_foreign") ? {type: "kw_foreign"} : kw_foreign), "kw_key", "collist_paren", (lexerAny.has("kw_references") ? {type: "kw_references"} : kw_references), "table_ref", "collist_paren", "createtable_constraint_foreignkey$ebnf$1"], "postprocess":  (x: any[]) => {
             return track(x, {
                 type: 'foreign key',
                 localColumns: x[2].map(asName),
@@ -1896,6 +1903,7 @@ const grammar: Grammar = {
     {"name": "simplestatements_set_val_raw$subexpression$2", "symbols": [(lexerAny.has("kw_true") ? {type: "kw_true"} : kw_true)]},
     {"name": "simplestatements_set_val_raw$subexpression$2", "symbols": [(lexerAny.has("kw_false") ? {type: "kw_false"} : kw_false)]},
     {"name": "simplestatements_set_val_raw", "symbols": ["simplestatements_set_val_raw$subexpression$2"], "postprocess": x => track(x, { type: 'identifier', name: unwrap(x).value })},
+    {"name": "simplestatements_set_val_raw", "symbols": [(lexerAny.has("quoted_word") ? {type: "quoted_word"} : quoted_word)], "postprocess": x => track(x, { type: 'identifier', doubleQuoted: true, name: unwrap(x).value })},
     {"name": "simplestatements_show", "symbols": ["kw_show", "ident"], "postprocess": x => track(x, { type: 'show', variable: asName(x[1]) })},
     {"name": "create_schema$subexpression$1", "symbols": [(lexerAny.has("kw_create") ? {type: "kw_create"} : kw_create), "kw_schema"]},
     {"name": "create_schema$ebnf$1", "symbols": ["kw_ifnotexists"], "postprocess": id},

@@ -488,9 +488,8 @@ export interface ArrayDataTypeDef extends PGNode {
 
 export interface BasicDataTypeDef extends QName, PGNode {
     kind?: undefined;
-    /** tells if this is a well known type like [timestamp with timezone].
-     * This property enables you to differentialte those from their double-quoted counterparts   */
-    special?: boolean;
+    /** Allows to differenciate types like 'double precision' from their double-quoted counterparts */
+    doubleQuoted?: true;
     /** varchar(length), numeric(precision, scale), ... */
     config?: number[];
 }
@@ -942,6 +941,7 @@ type SetGlobalValueRaw = {
     value: number | string;
 } | {
     type: 'identifier',
+    doubleQuoted?: true;
     name: string;
 };
 export type SetGlobalValue

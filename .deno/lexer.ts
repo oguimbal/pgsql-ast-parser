@@ -22,20 +22,20 @@ export const lexer = compile({
     },
     wordQuoted: {
         match: /"(?:[^"\*]|"")+"/,
-        type: () => 'word',
-        // value: x => x.substr(1, x.length - 2),
+        type: () => 'quoted_word',
+        value: x => x.substring(1, x.length - 1),
     },
     string: {
         match: /'(?:[^']|\'\')*'/,
         value: x => {
-            return x.substr(1, x.length - 2)
+            return x.substring(1, x.length - 1)
                 .replace(/''/g, '\'');
         },
     },
     eString: {
         match: /\b(?:e|E)'(?:[^'\\]|[\r\n\s]|(?:\\\s)|(?:\\\n)|(?:\\.)|(?:\'\'))+'/,
         value: x => {
-            return x.substr(2, x.length - 3)
+            return x.substring(2, x.length - 1)
                 .replace(/''/g, '\'')
                 .replace(/\\([\s\n])/g, (_, x) => x)
                 .replace(/\\./g, m => JSON.parse('"' + m + '"'));
@@ -93,7 +93,7 @@ export const lexer = compile({
     codeblock: {
         match: /\$\$(?:.|[\s\t\n\v\f\r])*?\$\$/s,
         lineBreaks: true,
-        value: (x: string) => x.substr(2, x.length - 4),
+        value: (x: string) => x.substring(2, x.length - 2),
     },
 });
 
@@ -104,7 +104,7 @@ lexer.next = (next => () => {
         offset: number;
         text: string;
     } | null = null;
-    
+
     while (tok = next.call(lexer)) {
         // js regex can't be recursive, so we'll keep track of nested opens (/*) and closes (*/).
         if (tok.type === 'commentFullOpen') {
@@ -211,16 +211,32 @@ export function track(xs: any, ret: any) {
 }
 
 const literal = Symbol('_literal');
-export function box(xs: any, value: any) {
-    if (!trackingLoc) {
+const doubleQuotedSym = Symbol('_doublequoted');
+export function box(xs: any, value: any, doubleQuoted?: boolean) {
+    if (!trackingLoc && !doubleQuoted) {
         return value;
     }
-    return track(xs, { [literal]: value });
+    return track(xs, { [literal]: value, [doubleQuotedSym]: doubleQuoted });
+}
+
+
+function unwrapNoBox(e: any[]): any {
+    if (Array.isArray(e) && e.length === 1) {
+        e = unwrapNoBox(e[0]);
+    }
+    if (Array.isArray(e) && !e.length) {
+        return null;
+    }
+    return e;
+}
+export function doubleQuoted(value: any) {
+    const uw = unwrapNoBox(value);
+    if (typeof value === 'object' && uw?.[doubleQuotedSym]) {
+        return {doubleQuoted: true};
+    }
+    return undefined;
 }
 export function unbox(value: any): any {
-    if (!trackingLoc) {
-        return value;
-    }
     if (typeof value === 'object') {
         return value?.[literal] ?? value;
     }
