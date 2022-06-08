@@ -269,8 +269,8 @@ data_type_list -> data_type (comma data_type {% last %}):* {% ([head, tail]) => 
 } %}
 
 data_type_simple
-    -> data_type_text {% x => track(x, { name: toStr(x, ' '), special: true }) %}
-    | data_type_numeric  {% x => track(x, { name: toStr(x, ' '), special: true }) %}
+    -> data_type_text {% x => track(x, { name: toStr(x, ' ') }) %}
+    | data_type_numeric  {% x => track(x, { name: toStr(x, ' ') }) %}
     | data_type_date
     | qualified_name
     # | word {% anyKw('json', 'jsonb', 'boolean', 'bool', 'money', 'bytea', 'regtype') %}
@@ -287,9 +287,9 @@ data_type_text
 #https://www.postgresql.org/docs/9.5/datatype-datetime.html
 data_type_date
      ->  (%word {% anyKw('timestamp', 'time') %}) (%kw_with | %word {% kw('without') %}) (%word {% kw('time') %}) (%word {% kw('zone') %})
-        {% x => track(x, { name: toStr(x, ' '), special: true }) %}
+        {% x => track(x, { name: toStr(x, ' ') }) %}
      | (%word {% anyKw('timestamp', 'time') %}) (lparen int rparen {% get(1) %}) (%kw_with | %word {% kw('without') %}) (%word {% kw('time') %}) (%word {% kw('zone') %})
-        {% x => track(x, { name: `timestamp ${toStr(x[2])} time zone`, special: true, config: [unbox(x[1])] }) %}
+        {% x => track(x, { name: `timestamp ${toStr(x[2])} time zone`, config: [unbox(x[1])] }) %}
 
 
 # === Table ref  (ex:  [db.]mytable [as X] )

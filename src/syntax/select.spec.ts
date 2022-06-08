@@ -335,7 +335,7 @@ describe('Select statements', () => {
 
     checkSelect('select * from ta cross join tb on ta.id=tb.id'
         , buildJoin('CROSS JOIN'));
-
+        
     // implicit cross join
     checkSelect('select * from ta, tb where ta.id=tb.id',
         {
@@ -396,7 +396,7 @@ describe('Select statements', () => {
                 statement: {
                     type: 'select',
                     columns: [{ expr: star }],
-                    from: [tbl('td')],
+                    from: [ tbl('td') ],
                 },
             },
         ],
@@ -485,7 +485,7 @@ describe('Select statements', () => {
             expr: {
                 type: 'cast',
                 operand: { type: 'string', value: '1' },
-                to: { name: 'double precision', special: true },
+                to: { name: 'double precision' },
             }
         }]
     });
@@ -498,7 +498,7 @@ describe('Select statements', () => {
             expr: {
                 type: 'cast',
                 operand: { type: 'string', value: '1' },
-                to: { name: 'double precision', special: true },
+                to: { name: 'double precision' },
             }
         }]
     });
@@ -513,7 +513,7 @@ describe('Select statements', () => {
                     function: { name: 'now' },
                     args: [],
                 },
-                to: { name: 'time without time zone', special: true },
+                to: { name: 'time without time zone' },
             }
         }]
     })
