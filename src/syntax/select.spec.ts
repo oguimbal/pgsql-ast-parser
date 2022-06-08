@@ -335,7 +335,7 @@ describe('Select statements', () => {
 
     checkSelect('select * from ta cross join tb on ta.id=tb.id'
         , buildJoin('CROSS JOIN'));
-        
+
     // implicit cross join
     checkSelect('select * from ta, tb where ta.id=tb.id',
         {
@@ -486,6 +486,17 @@ describe('Select statements', () => {
                 type: 'cast',
                 operand: { type: 'string', value: '1' },
                 to: { name: 'double precision' },
+            }
+        }]
+    });
+
+    checkSelect(`select '1'::"double precision"`, {
+        type: 'select',
+        columns: [{
+            expr: {
+                type: 'cast',
+                operand: { type: 'string', value: '1' },
+                to: { name: 'double precision', doubleQuoted: true },
             }
         }]
     });

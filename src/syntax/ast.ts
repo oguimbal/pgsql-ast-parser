@@ -488,6 +488,8 @@ export interface ArrayDataTypeDef extends PGNode {
 
 export interface BasicDataTypeDef extends QName, PGNode {
     kind?: undefined;
+    /** Allows to differenciate types like 'double precision' from their double-quoted counterparts */
+    doubleQuoted?: true;
     /** varchar(length), numeric(precision, scale), ... */
     config?: number[];
 }
@@ -939,6 +941,7 @@ type SetGlobalValueRaw = {
     value: number | string;
 } | {
     type: 'identifier',
+    doubleQuoted?: true;
     name: string;
 };
 export type SetGlobalValue

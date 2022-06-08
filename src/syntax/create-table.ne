@@ -84,7 +84,7 @@ createtable_constraint_def_check
 
 createtable_constraint_foreignkey
     -> %kw_foreign kw_key collist_paren
-            %kw_references qualified_name collist_paren
+            %kw_references table_ref collist_paren
             createtable_constraint_foreignkey_onsometing:*
         {% (x: any[]) => {
             return track(x, {

@@ -287,13 +287,13 @@ describe('Create table', () => {
     checkInvalid('create table"test"(value "timestamp" with time zone)');
     checkInvalid('create table"test"(value timestamp with "time" zone)');
 
-    checkCreateTable(['create table"test"(value timestamp)', 'create table"test"(value "timestamp")'], {
+    checkCreateTable(['create table"test"(value "timestamp")'], {
         type: 'create table',
         name: { name: 'test', },
         columns: [{
             kind: 'column',
             name: { name: 'value' },
-            dataType: { name: 'timestamp' },
+            dataType: { name: 'timestamp', doubleQuoted: true },
         }],
     });
 
@@ -305,7 +305,7 @@ describe('Create table', () => {
         columns: [{
             kind: 'column',
             name: { name: 'id' },
-            dataType: { name: 'text' },
+            dataType: { name: 'text', doubleQuoted: true },
             constraints: [{ type: 'primary key' }],
         }, {
             kind: 'column',

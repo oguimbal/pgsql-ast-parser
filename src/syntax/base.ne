@@ -1,6 +1,6 @@
 @lexer lexerAny
 @{%
-    import {track, box, unbox} from '../lexer';
+    import {track, box, unbox, doubleQuoted} from '../lexer';
 
     // usage ex:  replace track(whatever) with debug(track)(whatever)
     function debug<T>(fn: any): any {
@@ -94,10 +94,8 @@ ident -> word {% get(0) %}
 word
     ->  %kw_primary {% x => box(x, 'primary') %}
     |  %kw_unique {% x => box(x, 'unique') %}
-    | %word  {% x => {
-    const val = x[0].value;
-    return box(x, val[0] === '"' ? val.substr(1, val.length - 2) : val);
-} %}
+    | %quoted_word {% x => box(x, x[0].value, true) %}
+    | %word  {% x => box(x, x[0].value) %}
 
 collist_paren -> lparen collist rparen {% get(1) %}
 collist -> ident (comma ident {% last %}):* {% ([head, tail]) => {
@@ -272,7 +270,7 @@ data_type_simple
     -> data_type_text {% x => track(x, { name: toStr(x, ' ') }) %}
     | data_type_numeric  {% x => track(x, { name: toStr(x, ' ') }) %}
     | data_type_date
-    | qualified_name
+    | qualified_name_mark_quotes
     # | word {% anyKw('json', 'jsonb', 'boolean', 'bool', 'money', 'bytea', 'regtype') %}
 
 
@@ -323,11 +321,20 @@ table_ref_aliased -> table_ref ident_aliased:? {% x => {
     })
 } %}
 
-qualified_name -> qname_ident {% x => track(x, {name: toStr(x)}) %}
+
+qualified_name -> qname_ident {% x => track(x, {name: toStr(x) }) %}
         | ident dot ident_extended {% x => {
                 const schema = toStr(x[0]);
                 const name = toStr(x[2]);
                 return track(x, {schema, name});
+            } %}
+        | %kw_current_schema {% x => track(x, { name: 'current_schema' }) %}
+
+qualified_name_mark_quotes -> qname_ident {% x => track(x, {name: toStr(x), ...doubleQuoted(x) }) %}
+        | ident dot ident_extended {% x => {
+                const schema = toStr(x[0]);
+                const name = toStr(x[2]);
+                return track(x, {schema, name, ...doubleQuoted(x[2])});
             } %}
         | %kw_current_schema {% x => track(x, { name: 'current_schema' }) %}
 

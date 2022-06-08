@@ -581,7 +581,7 @@ line`,
     // ====================================
 
     describe('Cast', () => {
-        checkTreeExpr(['a + b::jsonb', 'a + b::JSONB', '"a"+"b"::"jsonb"'], {
+        checkTreeExpr(['a + b::jsonb', 'a + b::JSONB'], {
             type: 'binary',
             op: '+',
             left: {
@@ -673,7 +673,7 @@ line`,
             },
             right: {
                 type: 'cast',
-                to: { name: 'JSONB' },
+                to: { name: 'JSONB', doubleQuoted: true },
                 operand: {
                     type: 'ref',
                     name: 'b',
@@ -681,7 +681,24 @@ line`,
             },
         });
 
-        checkTreeExpr(['(a + b)::jsonb', '(a + b)::"jsonb"'], {
+        checkTreeExpr(['(a + b)::"jsonb"'], {
+            type: 'cast',
+            to: { name: 'jsonb', doubleQuoted: true },
+            operand: {
+                type: 'binary',
+                op: '+',
+                left: {
+                    type: 'ref',
+                    name: 'a',
+                },
+                right: {
+                    type: 'ref',
+                    name: 'b',
+                }
+            },
+        });
+
+        checkTreeExpr(['(a + b)::jsonb'], {
             type: 'cast',
             to: { name: 'jsonb' },
             operand: {

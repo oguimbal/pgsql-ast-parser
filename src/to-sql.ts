@@ -19,11 +19,13 @@ function name<T extends Name>(nm: NoExtraProperties<Name, T>) {
     return ident(nm.name);
 }
 
-function ident(nm: string) {
-    // only add quotes if has upper cases, or if it is a keyword.
-    const low = nm.toLowerCase();
-    if (low === nm && !kwSet.has(low) && /^[a-z][a-z0-9_]*$/.test(low)) {
-        return nm;
+function ident(nm: string, forceDoubleQuote?: boolean) {
+    if (!forceDoubleQuote) {
+        // only add quotes if has upper cases, or if it is a keyword.
+        const low = nm.toLowerCase();
+        if (low === nm && !kwSet.has(low) && /^[a-z][a-z0-9_]*$/.test(low)) {
+            return nm;
+        }
     }
     return '"' + nm + '"';
 }
@@ -93,11 +95,11 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
             throw NotSupported.never(c)
     }
 }
-function visitQualifiedName(cs: QName) {
+function visitQualifiedName(cs: QName, forceDoubleQuote?: boolean) {
     if (cs.schema) {
         ret.push(ident(cs.schema), '.');
     }
-    ret.push(ident(cs.name), ' ');
+    ret.push(ident(cs.name, forceDoubleQuote), ' ');
 }
 
 function visitQualifiedNameAliased(cs: QNameAliased) {
@@ -820,34 +822,38 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
         let appendConfig = true;
         if (d.schema) {
-            visitQualifiedName(d);
+            visitQualifiedName(d, d.doubleQuoted);
         } else {
             // see https://www.postgresql.org/docs/13/datatype.html
             // & issue https://github.com/oguimbal/pgsql-ast-parser/issues/38
-            switch (d.name) {
-                case 'double precision':
-                case 'character varying':
-                case 'bit varying':
-                    ret.push(d.name, ' ');
-                    break;
-                case 'time without time zone':
-                case 'timestamp without time zone':
-                case 'time with time zone':
-                case 'timestamp with time zone':
-                    const parts = d.name.split(' ');
+            if (d.doubleQuoted) {
+                visitQualifiedName(d, true);
+            } else {
+                switch (d.name) {
+                    case 'double precision':
+                    case 'character varying':
+                    case 'bit varying':
+                        ret.push(d.name, ' ');
+                        break;
+                    case 'time without time zone':
+                    case 'timestamp without time zone':
+                    case 'time with time zone':
+                    case 'timestamp with time zone':
+                        const parts = d.name.split(' ');
 
-                    ret.push(parts.shift()!);
-                    if (d.config?.length) {
-                        list(d.config, v => ret.push(v.toString(10)), true);
-                    }
-                    ret.push(' ');
+                        ret.push(parts.shift()!);
+                        if (d.config?.length) {
+                            list(d.config, v => ret.push(v.toString(10)), true);
+                        }
+                        ret.push(' ');
 
-                    ret.push(parts.join(' '), ' ');
-                    appendConfig = false;
-                    break;
-                default:
-                    visitQualifiedName(d);
-                    break;
+                        ret.push(parts.join(' '), ' ');
+                        appendConfig = false;
+                        break;
+                    default:
+                        visitQualifiedName(d);
+                        break;
+                }
             }
         }
 

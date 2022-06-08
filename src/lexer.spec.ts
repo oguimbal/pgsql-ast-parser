@@ -7,12 +7,13 @@ import { Token } from 'moo';
 
 describe('Lexer', () => {
 
-    const hasContent = [
-        /^word$/,
-        /^int$/,
-        /^float$/,
-        /^codeblock$/,
-    ]
+    const hasContent = new Set([
+        'word',
+        'quoted_word',
+        'int',
+        'float',
+        'codeblock',
+    ]);
     function next(expected: any) {
         const result = lexer.next() as Optional<Token>;
         delete result.toString;
@@ -21,7 +22,7 @@ describe('Lexer', () => {
         delete result.lineBreaks;
         delete result.offset;
         delete result.text;
-        if (!hasContent.some(x => x.test(result.type!))) {
+        if (!hasContent.has(result.type!)) {
             delete result.value;
         }
         expect(result).to.deep.equal(expected);
@@ -67,18 +68,18 @@ describe('Lexer', () => {
         next({ type: 'word', value: 'id' });
         next({ type: 'rparen' });
         next({ type: 'kw_from' });
-        next({ type: 'word', value: '"test"' });
+        next({ type: 'quoted_word', value: 'test' });
     });
 
     it('tokenizes "" as the letter " in names', () => {
         lexer.reset(`"a""b"`);
-        next({ type: 'word', value: '"a""b"' });
+        next({ type: 'quoted_word', value: 'a""b' });
     });
 
 
     it('keeps case in quoted names', () => {
         lexer.reset(`"Name"`);
-        next({ type: 'word', value: '"Name"' });
+        next({ type: 'quoted_word', value: 'Name' });
     });
 
     it('lowers non quoted names', () => {
@@ -89,7 +90,7 @@ describe('Lexer', () => {
     it('supports edge cases names', () => {
         lexer.reset(`_Name "_Name" a_b name_`);
         next({ type: 'word', value: '_name' });
-        next({ type: 'word', value: '"_Name"' });
+        next({ type: 'quoted_word', value: '_Name' });
         next({ type: 'word', value: 'a_b' });
         next({ type: 'word', value: 'name_' });
     })
