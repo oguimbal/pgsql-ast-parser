@@ -86,13 +86,28 @@ select_values -> kw_values insert_values {% x => track(x, {
 }) %}
 
 
-stb_call -> expr_call (%kw_as:? ident {% last %}):?  {% x =>
-                 !x[1]
-                    ? x[0]
-                    : track(x, {
-                        ...x[0],
-                        alias: asName(x[1]),
-                    }) %}
+stb_call -> expr_function_call kw_withordinality:? stb_call_alias:? {% x => {
+    const withOrdinality = x[1];
+    const alias = x[2];
+
+    if (!withOrdinality && !alias) {
+        return x[0];
+    }
+
+    return track(x, {
+        ...x[0],
+        withOrdinality: withOrdinality ? true : undefined,
+        alias: alias ? asNameWithColumns(alias[0], alias[1]) : undefined,
+    });
+} %}
+
+stb_call_alias -> (%kw_as:? ident {% last %}) stb_call_alias_list:?
+
+stb_call_alias_list -> lparen stb_call_alias_list_raw rparen {% get(1) %}
+
+stb_call_alias_list_raw -> ident (comma ident {% last %}):* {% ([head, tail]) => {
+    return [head, ...(tail || [])];
+} %}
 
 select_table_join
     -> select_join_op %kw_join select_from_subject select_table_join_clause:? {% x => track(x, {

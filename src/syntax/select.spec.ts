@@ -97,6 +97,109 @@ describe('Select statements', () => {
         },
     });
 
+    checkSelect(['select * from unnest(generate_series(1, 10)) AS test(num)'], {
+        type: 'select',
+        from: [{
+            type: 'call',
+            function: { name: 'unnest' },
+            alias: {
+                name: 'test',
+                columns: [
+                    { name: 'num' },
+                ],
+            },
+            args: [
+                {
+                    type: 'call',
+                    function: { name: 'generate_series' },
+                    args: [
+                        { type: 'integer', value: 1 },
+                        { type: 'integer', value: 10 },
+                    ],
+                },
+            ],
+        }],
+        columns: columns({ type: 'ref', name: '*' }),
+    });
+
+    checkSelect(['select * from unnest(ARRAY[\'foo\', \'bar\', \'baz\']) with ordinality AS test(thing, num)'], {
+        type: 'select',
+        from: [{
+            type: 'call',
+            function: { name: 'unnest' },
+            withOrdinality: true,
+            alias: {
+                name: 'test',
+                columns: [
+                    { name: 'thing' },
+                    { name: 'num' },
+                ],
+            },
+            args: [
+                {
+                    type: 'array',
+                    expressions: [
+                        { type: 'string', value: 'foo' },
+                        { type: 'string', value: 'bar' },
+                        { type: 'string', value: 'baz' },
+                    ]
+                }
+            ],
+        }],
+        columns: columns({ type: 'ref', name: '*' }),
+    });
+
+    checkSelect(['select t.* from things AS t join unnest(ARRAY[\'foo\', \'bar\']) with ordinality AS f(thing, ord) using (thing) order by f.ord'], {
+        type: 'select',
+        from: [
+            {
+                type: 'table',
+                name: { name: 'things', alias: 't' }
+            },
+            {
+                type: 'call',
+                function: { name: 'unnest' },
+                join: {
+                    type: 'INNER JOIN',
+                    using: [
+                        { name: 'thing' }
+                    ],
+                },
+                withOrdinality: true,
+                alias: {
+                    name: 'f',
+                    columns: [
+                        { name: 'thing' },
+                        { name: 'ord' },
+                    ],
+                },
+                args: [
+                    {
+                        type: 'array',
+                        expressions: [
+                            { type: 'string', value: 'foo' },
+                            { type: 'string', value: 'bar' },
+                        ],
+                    }
+                ],
+            }
+        ],
+        columns: columns({
+            type: 'ref',
+            table: { name: 't' },
+            name: '*',
+        }),
+        orderBy: [
+            {
+                by: {
+                    type: 'ref',
+                    table: { name: 'f' },
+                    name: 'ord',
+                }
+            }
+        ]
+    });
+
     checkSelect(['select * from test limit 0'], {
         type: 'select',
         from: [tbl('test')],
@@ -247,6 +350,7 @@ describe('Select statements', () => {
     checkInvalid('select ("*") from test');
     checkInvalid('select * from (test)');
     checkInvalid('select * from (select id from test)'); // <== missing alias
+    checkInvalid('select * from sum(DISTINCT whatever)');
 
     checkSelect('select * from (select id from test) d', {
         type: 'select',
