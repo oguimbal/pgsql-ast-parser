@@ -11,9 +11,19 @@
         });
     }
 
-    function asName(val: any): any {
+    function asName(val: any, columns: any): any {
+        return asNameWithColumns(val);
+    }
+
+    function asNameWithColumns(val: any, columns: any): any {
         const name = toStr(val);
-        return track(val, {name});
+        if (!columns || columns.length === 0) {
+            return track(val, {name});
+        }
+        return track(val, {
+            name,
+            columns: columns.map(c => ({name: toStr(c)})),
+        });
     }
 
     function asLit(val: any): any {
@@ -211,6 +221,7 @@ kw_identity -> %word {% notReservedKw('identity')  %}
 kw_name -> %word {% notReservedKw('name')  %}
 kw_enum -> %word {% notReservedKw('enum')  %}
 kw_show -> %word {% notReservedKw('show')  %}
+kw_ordinality -> %word {% notReservedKw('ordinality')  %}
 kw_overriding -> %word {% notReservedKw('overriding')  %}
 kw_over -> %word {% notReservedKw('over')  %}
 kw_system -> %word {% notReservedKw('system')  %}
@@ -233,6 +244,7 @@ kw_refresh -> %word {% notReservedKw('refresh')  %}
 # === Composite keywords
 kw_ifnotexists -> kw_if %kw_not kw_exists
 kw_ifexists -> kw_if kw_exists
+kw_withordinality -> %kw_with kw_ordinality
 kw_not_null -> %kw_not %kw_null
 kw_primary_key -> %kw_primary kw_key
 

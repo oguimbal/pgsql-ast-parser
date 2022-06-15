@@ -183,7 +183,18 @@ expr_subarray_items
         })
     } %}
 
-
+# Cannot select from aggregate functions. Syntactically however, there is no way
+# to determine that a function is an aggregate.  At least we can rule out using 
+# DISTINCT, ALL, ORDER BY, and FILTER as part of the expression.
+expr_function_call -> expr_fn_name
+            lparen
+                expr_list_raw:?
+            rparen
+            {% x => track(x, {
+                type: 'call',
+                function: unwrap(x[0]),
+                args: x[2] || [],
+            }) %}
 
 expr_call -> expr_fn_name
             lparen
