@@ -621,6 +621,7 @@ export interface UpdateStatement extends PGNode {
     table: QNameAliased;
     sets: SetStatement[];
     where?: Expr | nil;
+    from?: From | nil;
     returning?: SelectedColumn[] | nil;
 }
 

@@ -301,7 +301,7 @@ export const starCol: SelectedColumn = { expr: star };
 export function col(name: string, alias?: string): SelectedColumn {
     return {
         expr: ref(name),
-        alias: alias ? { name: alias } : undefined,
+        ... alias ? { name: alias } : undefined,
     };
 }
 export function ref(name: string): Expr {

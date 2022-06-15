@@ -6,16 +6,19 @@
 
 update_statement -> kw_update table_ref_aliased
                     kw_set update_set_list
+                    (%kw_from select_from_subject {% last %}):?
                     select_where:?
                     (%kw_returning select_expr_list_aliased {% last %}):?
                     {% x => {
-                        const where = unwrap(x[4]);
-                        const returning = x[5];
+                        const from = unwrap(x[4]);
+                        const where = unwrap(x[5]);
+                        const returning = x[6];
                         return track(x, {
                             type: 'update',
                             table: unwrap(x[1]),
                             sets: x[3],
                             ...where ? {where} : {},
+                            ...from ? {from} : {},
                             ...returning ? {returning} : {},
                         });
                     } %}

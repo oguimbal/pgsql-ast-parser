@@ -1436,6 +1436,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(' SET ');
         list(u.sets, s => m.set(s), false);
         ret.push(' ');
+        if (u.from) {
+            ret.push('FROM ');
+            m.from(u.from);
+            ret.push(' ');
+        }
         if (u.where) {
             ret.push('WHERE ');
             m.expr(u.where);

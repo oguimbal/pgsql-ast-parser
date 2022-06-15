@@ -445,6 +445,9 @@ export class AstDefaultMapper implements IAstMapper {
         if (!table) {
             return null; // nothing to update
         }
+
+        const from = val.from && this.from(val.from);
+
         const where = val.where && this.expr(val.where);
 
         const sets = arrayNilMap(val.sets, x => this.set(x));
@@ -457,6 +460,7 @@ export class AstDefaultMapper implements IAstMapper {
             table,
             where,
             sets,
+            from,
             returning,
         });
     }

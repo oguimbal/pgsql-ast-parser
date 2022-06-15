@@ -11,11 +11,11 @@
         });
     }
 
-    function asName(val: any, columns: any): any {
-        return asNameWithColumns(val);
+    function asName(val: any): any {
+        return asNameWithColumns(val, undefined);
     }
 
-    function asNameWithColumns(val: any, columns: any): any {
+    function asNameWithColumns(val: any, columns: any[] | undefined): any {
         const name = toStr(val);
         if (!columns || columns.length === 0) {
             return track(val, {name});

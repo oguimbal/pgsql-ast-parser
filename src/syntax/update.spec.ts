@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkUpdate } from './spec-utils';
+import { checkUpdate, col } from './spec-utils';
 
 describe('Update', () => {
 
@@ -53,5 +53,35 @@ describe('Update', () => {
             column: { name: 'value' },
             value: { type: 'default' },
         }],
+    })
+
+    checkUpdate([`update mytable
+    set col = subsel.subcol
+        from (select id, subcol from subtable) as subsel
+    where subsel.id=mytable.id`], {
+        type: 'update',
+        table: { name: 'mytable' },
+        sets: [{
+            column: { name: 'col' },
+            value: { type: 'ref', name: 'subcol', table: { name: 'subsel' } },
+        }],
+        from: {
+            type: 'statement',
+            alias: 'subsel',
+            statement: {
+                type: 'select',
+                columns: [col('id'), col('subcol')],
+                from: [{
+                    type: 'table',
+                    name: { name: 'subtable' },
+                }]
+            },
+        },
+        where: {
+            type: 'binary',
+            op: '=',
+            left: { type: 'ref', name: 'id', table: { name: 'subsel' } },
+            right: { type: 'ref', name: 'id', table: { name: 'mytable' } },
+        }
     })
 });
