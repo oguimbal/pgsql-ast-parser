@@ -468,6 +468,9 @@ export interface Name extends PGNode {
     name: string;
 }
 
+export interface TableAliasName extends Name, PGNode {
+    columns?: Name[];
+}
 
 export interface QName extends Name, PGNode {
     schema?: string;
@@ -618,6 +621,7 @@ export interface UpdateStatement extends PGNode {
     table: QNameAliased;
     sets: SetStatement[];
     where?: Expr | nil;
+    from?: From | nil;
     returning?: SelectedColumn[] | nil;
 }
 
@@ -637,8 +641,9 @@ export type From = FromTable
 
 
 export interface FromCall extends ExprCall, PGNode {
-    alias?: Name;
+    alias?: TableAliasName;
     join?: JoinClause | nil;
+    withOrdinality?: boolean;
 };
 
 

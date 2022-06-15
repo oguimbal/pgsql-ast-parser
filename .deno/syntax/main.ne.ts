@@ -17,12 +17,12 @@ declare var kw_unique: any;
 declare var quoted_word: any;
 declare var word: any;
 declare var kw_not: any;
+declare var kw_with: any;
 declare var kw_null: any;
 declare var kw_array: any;
 declare var lbracket: any;
 declare var rbracket: any;
 declare var kw_precision: any;
-declare var kw_with: any;
 declare var kw_as: any;
 declare var kw_current_schema: any;
 declare var kw_all: any;
@@ -250,6 +250,7 @@ declare var kw_on: any;
 declare var kw_returning: any;
 declare var kw_do: any;
 declare var kw_where: any;
+declare var kw_from: any;
 declare var kw_returning: any;
 declare var op_eq: any;
 declare var kw_table: any;
@@ -316,8 +317,18 @@ import {track, box, unbox, doubleQuoted} from '../lexer.ts';
     }
 
     function asName(val: any): any {
+        return asNameWithColumns(val, undefined);
+    }
+
+    function asNameWithColumns(val: any, columns: any[] | undefined): any {
         const name = toStr(val);
-        return track(val, {name});
+        if (!columns || columns.length === 0) {
+            return track(val, {name});
+        }
+        return track(val, {
+            name,
+            columns: columns.map(c => ({name: toStr(c)})),
+        });
     }
 
     function asLit(val: any): any {
@@ -550,6 +561,7 @@ const grammar: Grammar = {
     {"name": "kw_name", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('name')},
     {"name": "kw_enum", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('enum')},
     {"name": "kw_show", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('show')},
+    {"name": "kw_ordinality", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('ordinality')},
     {"name": "kw_overriding", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('overriding')},
     {"name": "kw_over", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('over')},
     {"name": "kw_system", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('system')},
@@ -569,6 +581,7 @@ const grammar: Grammar = {
     {"name": "kw_refresh", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('refresh')},
     {"name": "kw_ifnotexists", "symbols": ["kw_if", (lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), "kw_exists"]},
     {"name": "kw_ifexists", "symbols": ["kw_if", "kw_exists"]},
+    {"name": "kw_withordinality", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with), "kw_ordinality"]},
     {"name": "kw_not_null", "symbols": [(lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), (lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)]},
     {"name": "kw_primary_key", "symbols": [(lexerAny.has("kw_primary") ? {type: "kw_primary"} : kw_primary), "kw_key"]},
     {"name": "data_type$ebnf$1$subexpression$1$macrocall$2", "symbols": ["int"]},
@@ -853,18 +866,37 @@ const grammar: Grammar = {
             type: 'values',
             values: x[1],
         }) },
-    {"name": "stb_call$ebnf$1$subexpression$1$ebnf$1", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as)], "postprocess": id},
-    {"name": "stb_call$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "stb_call$ebnf$1$subexpression$1", "symbols": ["stb_call$ebnf$1$subexpression$1$ebnf$1", "ident"], "postprocess": last},
-    {"name": "stb_call$ebnf$1", "symbols": ["stb_call$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "stb_call$ebnf$1", "symbols": ["kw_withordinality"], "postprocess": id},
     {"name": "stb_call$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "stb_call", "symbols": ["expr_call", "stb_call$ebnf$1"], "postprocess":  x =>
-        !x[1]
-           ? x[0]
-           : track(x, {
-               ...x[0],
-               alias: asName(x[1]),
-           }) },
+    {"name": "stb_call$ebnf$2", "symbols": ["stb_call_alias"], "postprocess": id},
+    {"name": "stb_call$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "stb_call", "symbols": ["expr_function_call", "stb_call$ebnf$1", "stb_call$ebnf$2"], "postprocess":  x => {
+            const withOrdinality = x[1];
+            const alias = x[2];
+        
+            if (!withOrdinality && !alias) {
+                return x[0];
+            }
+        
+            return track(x, {
+                ...x[0],
+                withOrdinality: withOrdinality ? true : undefined,
+                alias: alias ? asNameWithColumns(alias[0], alias[1]) : undefined,
+            });
+        } },
+    {"name": "stb_call_alias$subexpression$1$ebnf$1", "symbols": [(lexerAny.has("kw_as") ? {type: "kw_as"} : kw_as)], "postprocess": id},
+    {"name": "stb_call_alias$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "stb_call_alias$subexpression$1", "symbols": ["stb_call_alias$subexpression$1$ebnf$1", "ident"], "postprocess": last},
+    {"name": "stb_call_alias$ebnf$1", "symbols": ["stb_call_alias_list"], "postprocess": id},
+    {"name": "stb_call_alias$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "stb_call_alias", "symbols": ["stb_call_alias$subexpression$1", "stb_call_alias$ebnf$1"]},
+    {"name": "stb_call_alias_list", "symbols": ["lparen", "stb_call_alias_list_raw", "rparen"], "postprocess": get(1)},
+    {"name": "stb_call_alias_list_raw$ebnf$1", "symbols": []},
+    {"name": "stb_call_alias_list_raw$ebnf$1$subexpression$1", "symbols": ["comma", "ident"], "postprocess": last},
+    {"name": "stb_call_alias_list_raw$ebnf$1", "symbols": ["stb_call_alias_list_raw$ebnf$1", "stb_call_alias_list_raw$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "stb_call_alias_list_raw", "symbols": ["ident", "stb_call_alias_list_raw$ebnf$1"], "postprocess":  ([head, tail]) => {
+            return [head, ...(tail || [])];
+        } },
     {"name": "select_table_join$ebnf$1", "symbols": ["select_table_join_clause"], "postprocess": id},
     {"name": "select_table_join$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_table_join", "symbols": ["select_join_op", (lexerAny.has("kw_join") ? {type: "kw_join"} : kw_join), "select_from_subject", "select_table_join$ebnf$1"], "postprocess":  x => track(x, {
@@ -1432,6 +1464,13 @@ const grammar: Grammar = {
                 })
             })
         } },
+    {"name": "expr_function_call$ebnf$1", "symbols": ["expr_list_raw"], "postprocess": id},
+    {"name": "expr_function_call$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "expr_function_call", "symbols": ["expr_fn_name", "lparen", "expr_function_call$ebnf$1", "rparen"], "postprocess":  x => track(x, {
+            type: 'call',
+            function: unwrap(x[0]),
+            args: x[2] || [],
+        }) },
     {"name": "expr_call$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_all") ? {type: "kw_all"} : kw_all)]},
     {"name": "expr_call$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_distinct") ? {type: "kw_distinct"} : kw_distinct)]},
     {"name": "expr_call$ebnf$1", "symbols": ["expr_call$ebnf$1$subexpression$1"], "postprocess": id},
@@ -2067,19 +2106,24 @@ const grammar: Grammar = {
            do: { sets: x[1] },
            ...x[2] && { where: x[2] },
         }) },
-    {"name": "update_statement$ebnf$1", "symbols": ["select_where"], "postprocess": id},
+    {"name": "update_statement$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from), "select_from_subject"], "postprocess": last},
+    {"name": "update_statement$ebnf$1", "symbols": ["update_statement$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "update_statement$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "update_statement$ebnf$2$subexpression$1", "symbols": [(lexerAny.has("kw_returning") ? {type: "kw_returning"} : kw_returning), "select_expr_list_aliased"], "postprocess": last},
-    {"name": "update_statement$ebnf$2", "symbols": ["update_statement$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "update_statement$ebnf$2", "symbols": ["select_where"], "postprocess": id},
     {"name": "update_statement$ebnf$2", "symbols": [], "postprocess": () => null},
-    {"name": "update_statement", "symbols": ["kw_update", "table_ref_aliased", "kw_set", "update_set_list", "update_statement$ebnf$1", "update_statement$ebnf$2"], "postprocess":  x => {
-            const where = unwrap(x[4]);
-            const returning = x[5];
+    {"name": "update_statement$ebnf$3$subexpression$1", "symbols": [(lexerAny.has("kw_returning") ? {type: "kw_returning"} : kw_returning), "select_expr_list_aliased"], "postprocess": last},
+    {"name": "update_statement$ebnf$3", "symbols": ["update_statement$ebnf$3$subexpression$1"], "postprocess": id},
+    {"name": "update_statement$ebnf$3", "symbols": [], "postprocess": () => null},
+    {"name": "update_statement", "symbols": ["kw_update", "table_ref_aliased", "kw_set", "update_set_list", "update_statement$ebnf$1", "update_statement$ebnf$2", "update_statement$ebnf$3"], "postprocess":  x => {
+            const from = unwrap(x[4]);
+            const where = unwrap(x[5]);
+            const returning = x[6];
             return track(x, {
                 type: 'update',
                 table: unwrap(x[1]),
                 sets: x[3],
                 ...where ? {where} : {},
+                ...from ? {from} : {},
                 ...returning ? {returning} : {},
             });
         } },

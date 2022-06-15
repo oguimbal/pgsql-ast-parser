@@ -1025,8 +1025,22 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
         join(m, s.join, () => {
             m.call(s);
+            if (s.withOrdinality) {
+                ret.push(' WITH ORDINALITY')
+            }
             if (s.alias) {
-                ret.push(' AS ', name(s.alias), ' ');
+                ret.push(' AS ', name<Name>(s.alias), ' ');
+                const len = s.alias.columns?.length ?? 0;
+                if (len > 0) {
+                    ret.push('(')
+                    for (let ix = 0; ix < len; ++ix) {
+                        if (ix !== 0) {
+                            ret.push(', ')
+                        }
+                        ret.push(name(s.alias.columns![ix]));
+                    }
+                    ret.push(')')
+                }
             }
         });
 
@@ -1422,6 +1436,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(' SET ');
         list(u.sets, s => m.set(s), false);
         ret.push(' ');
+        if (u.from) {
+            ret.push('FROM ');
+            m.from(u.from);
+            ret.push(' ');
+        }
         if (u.where) {
             ret.push('WHERE ');
             m.expr(u.where);
