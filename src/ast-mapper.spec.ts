@@ -222,6 +222,21 @@ describe('Ast mapper', () => {
 
     })
 
+    it('removes WITH node if one of its contained statements is removed', () => {
+        // create a mapper
+        const mapper = astMapper(map => ({
+            statement: s => {
+                return (s.type !== 'select' && s.type !== 'with') ? null : map.super().statement(s)
+            },
+        }));
+
+        // process sql
+        const killed = mapper.statement(parse('with ids as (select id from t1) delete from t1 where 1=1 returning id'));
+        assert.isNull(killed, 'default mapper maps a WITH to null if its contained `in` statement gets mapped to null');
+        const survived = mapper.statement(parse('with ids as (select id from t1) select * from ids'));
+        assert.equal(toSql.statement(survived!), 'WITH ids AS (SELECT id  FROM t1   ) SELECT *  FROM ids');
+    });
+
     it('maps insert with super() call', () => {
 
         // create a mapper
