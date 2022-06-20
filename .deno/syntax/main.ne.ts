@@ -1711,15 +1711,20 @@ const grammar: Grammar = {
             type: 'check',
             expr: unwrap(x[1]),
         }) },
-    {"name": "createtable_constraint_foreignkey$ebnf$1", "symbols": []},
-    {"name": "createtable_constraint_foreignkey$ebnf$1", "symbols": ["createtable_constraint_foreignkey$ebnf$1", "createtable_constraint_foreignkey_onsometing"], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "createtable_constraint_foreignkey", "symbols": [(lexerAny.has("kw_foreign") ? {type: "kw_foreign"} : kw_foreign), "kw_key", "collist_paren", (lexerAny.has("kw_references") ? {type: "kw_references"} : kw_references), "table_ref", "collist_paren", "createtable_constraint_foreignkey$ebnf$1"], "postprocess":  (x: any[]) => {
+    {"name": "createtable_constraint_foreignkey", "symbols": [(lexerAny.has("kw_foreign") ? {type: "kw_foreign"} : kw_foreign), "kw_key", "collist_paren", "createtable_references"], "postprocess":  (x: any[]) => {
             return track(x, {
                 type: 'foreign key',
                 localColumns: x[2].map(asName),
-                foreignTable: unwrap(x[4]),
-                foreignColumns: x[5].map(asName),
-                ...x[6].reduce((a: any, b: any) => ({...a, ...b}), {}),
+                ...x[3],
+            });
+        } },
+    {"name": "createtable_references$ebnf$1", "symbols": []},
+    {"name": "createtable_references$ebnf$1", "symbols": ["createtable_references$ebnf$1", "createtable_constraint_foreignkey_onsometing"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "createtable_references", "symbols": [(lexerAny.has("kw_references") ? {type: "kw_references"} : kw_references), "table_ref", "collist_paren", "createtable_references$ebnf$1"], "postprocess":  (x: any[]) => {
+            return track(x, {
+                foreignTable: unwrap(x[1]),
+                foreignColumns: x[2].map(asName),
+                ...x[3].reduce((a: any, b: any) => ({...a, ...b}), {}),
             });
         } },
     {"name": "createtable_constraint_foreignkey_onsometing", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), "kw_delete", "createtable_constraint_on_action"], "postprocess": x => track(x, {onDelete:  last(x)})},
@@ -1791,6 +1796,7 @@ const grammar: Grammar = {
     {"name": "createtable_column_constraint_def", "symbols": [(lexerAny.has("kw_null") ? {type: "kw_null"} : kw_null)], "postprocess": x => track(x, { type: 'null' })},
     {"name": "createtable_column_constraint_def", "symbols": [(lexerAny.has("kw_default") ? {type: "kw_default"} : kw_default), "expr"], "postprocess": x => track(x, { type: 'default', default: unwrap(x[1]) })},
     {"name": "createtable_column_constraint_def", "symbols": [(lexerAny.has("kw_check") ? {type: "kw_check"} : kw_check), "expr_paren"], "postprocess": x => track(x, { type: 'check', expr: unwrap(x[1]) })},
+    {"name": "createtable_column_constraint_def", "symbols": ["createtable_references"], "postprocess": x => track(x, { type: 'reference', ...unwrap(x) })},
     {"name": "createtable_column_constraint_def", "symbols": ["altercol_generated"]},
     {"name": "createtable_collate", "symbols": [(lexerAny.has("kw_collate") ? {type: "kw_collate"} : kw_collate), "qualified_name"]},
     {"name": "createtable_opts$subexpression$1", "symbols": ["word"], "postprocess": kw('inherits')},
@@ -2316,10 +2322,15 @@ const grammar: Grammar = {
     {"name": "delete_truncate$ebnf$1$subexpression$1", "symbols": ["delete_truncate$ebnf$1$subexpression$1$subexpression$1", "kw_identity"]},
     {"name": "delete_truncate$ebnf$1", "symbols": ["delete_truncate$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "delete_truncate$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "delete_truncate", "symbols": ["delete_truncate$subexpression$1", "delete_truncate$macrocall$1", "delete_truncate$ebnf$1"], "postprocess":  x => track(x, {
+    {"name": "delete_truncate$ebnf$2$subexpression$1", "symbols": ["kw_restrict"]},
+    {"name": "delete_truncate$ebnf$2$subexpression$1", "symbols": ["kw_cascade"]},
+    {"name": "delete_truncate$ebnf$2", "symbols": ["delete_truncate$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "delete_truncate$ebnf$2", "symbols": [], "postprocess": () => null},
+    {"name": "delete_truncate", "symbols": ["delete_truncate$subexpression$1", "delete_truncate$macrocall$1", "delete_truncate$ebnf$1", "delete_truncate$ebnf$2"], "postprocess":  x => track(x, {
             type: 'truncate table',
             tables: x[1],
-            ...x[2] && { identity: toStr(x[2][0]) }
+            ...x[2] && { identity: toStr(x[2][0]) },
+            ... x[3] && {cascade: toStr(x[3]) },
         }) },
     {"name": "create_sequence_statement$ebnf$1$subexpression$1", "symbols": ["kw_temp"]},
     {"name": "create_sequence_statement$ebnf$1$subexpression$1", "symbols": ["kw_temporary"]},

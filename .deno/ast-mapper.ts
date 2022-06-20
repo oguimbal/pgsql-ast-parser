@@ -167,7 +167,7 @@ export function arrayNilMap<T extends Object>(this: void, collection: T[] | nil,
     for (let i = 0; i < collection.length; i++) {
         const orig = collection[i];
         const val = mapper(orig);
-        if (!val || val !== orig) {
+        if (!changed && (!val || val !== orig)) {
             changed = true;
             ret = collection.slice(0, i);
         }
@@ -591,6 +591,15 @@ export class AstDefaultMapper implements IAstMapper {
                 }
                 return assignChanged(c, {
                     expr: def,
+                });
+            }
+            case 'reference': {
+                const foreignTable = this.tableRef(c.foreignTable);
+                if (!foreignTable) {
+                    return null;
+                }
+                return assignChanged(c, {
+                    foreignTable,
                 });
             }
             default:

@@ -49,12 +49,14 @@ function list<T>(elems: T[], act: (e: T) => any, addParen: boolean) {
 
 
 function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
-    ret.push(c.type);
     switch (c.type) {
         case 'foreign key':
-            ret.push('('
+            ret.push(' foreign key ('
                 , ...c.localColumns.map(name).join(', ')
-                , ') REFERENCES ');
+                , ')');
+        // 👈 There is no "break" here... that's not an error, we want to fall throught the 'reference' case
+        case 'reference':
+            ret.push(' REFERENCES ');
             m.tableRef(c.foreignTable);
             ret.push('('
                 , ...c.foreignColumns.map(name).join(', ')
@@ -71,6 +73,7 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
             break;
         case 'primary key':
         case 'unique':
+            ret.push(' ', c.type, ' ');
             if ('columns' in c) {
                 ret.push('('
                     , ...c.columns.map(name).join(', ')
@@ -78,13 +81,15 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
             }
             break;
         case 'check':
+            ret.push(' check ');
             m.expr(c.expr);
             break;
         case 'not null':
         case 'null':
+            ret.push(' ', c.type, ' ');
             break;
         case 'default':
-            ret.push(' DEFAULT ');
+            ret.push(' default ');
             m.expr(c.default);
             break;
         case 'add generated':
@@ -94,6 +99,7 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
         default:
             throw NotSupported.never(c)
     }
+    ret.push(' ');
 }
 function visitQualifiedName(cs: QName, forceDoubleQuote?: boolean) {
     if (cs.schema) {
@@ -636,31 +642,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     constraint: cst => {
-        if (cst.constraintName) {
+        if ('constraintName' in cst && cst.constraintName) {
             ret.push(' CONSTRAINT ', name(cst.constraintName), ' ');
         }
-        switch (cst.type) {
-            case 'not null':
-            case 'null':
-            case 'primary key':
-            case 'unique':
-                ret.push(' ', cst.type, ' ');
-                return;
-            case 'default':
-                ret.push(' DEFAULT ');
-                m.expr(cst.default);
-                break;
-            case 'check':
-                ret.push(' CHECK ');
-                m.expr(cst.expr);
-                break;
-            case 'add generated':
-                ret.push(' GENERATED ');
-                visitGenerated(m, cst);
-                break;
-            default:
-                throw NotSupported.never(cst);
-        }
+        addConstraint(cst, m);
     },
 
     do: d => {
@@ -982,6 +967,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                     ret.push(' CONTINUE IDENTITY ');
                     break;
             }
+        }
+        if (t.cascade) {
+            ret.push(' ', t.cascade, ' ');
         }
     },
 
