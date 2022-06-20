@@ -96,7 +96,7 @@ stb_call -> expr_function_call kw_withordinality:? stb_call_alias:? {% x => {
 
     return track(x, {
         ...x[0],
-        withOrdinality: withOrdinality ? true : undefined,
+        ... withOrdinality && { withOrdinality: true },
         alias: alias ? asNameWithColumns(alias[0], alias[1]) : undefined,
     });
 } %}
