@@ -502,6 +502,7 @@ export type ColumnConstraint
     = ColumnConstraintSimple
     | ColumnConstraintDefault
     | AlterColumnAddGenerated
+    | ColumnConstraintReference
     | ColumnConstraintCheck;
 
 export interface ColumnConstraintSimple extends PGNode {
@@ -512,15 +513,22 @@ export interface ColumnConstraintSimple extends PGNode {
     constraintName?: Name;
 }
 
+export interface ColumnConstraintReference extends TableReference, PGNode {
+    type: 'reference';
+}
+
 export interface ColumnConstraintDefault extends PGNode {
     type: 'default';
     default: Expr;
     constraintName?: Name;
 }
 
-export interface ColumnConstraintForeignKey extends PGNode {
+export interface ColumnConstraintForeignKey extends TableReference, PGNode {
     type: 'foreign key';
     constraintName?: Name;
+}
+
+export interface TableReference {
     foreignTable: QName;
     foreignColumns: Name[];
     onDelete?: ConstraintAction;

@@ -83,16 +83,22 @@ createtable_constraint_def_check
      }) %}
 
 createtable_constraint_foreignkey
-    -> %kw_foreign kw_key collist_paren
-            %kw_references table_ref collist_paren
-            createtable_constraint_foreignkey_onsometing:*
+    -> %kw_foreign kw_key collist_paren createtable_references
         {% (x: any[]) => {
             return track(x, {
                 type: 'foreign key',
                 localColumns: x[2].map(asName),
-                foreignTable: unwrap(x[4]),
-                foreignColumns: x[5].map(asName),
-                ...x[6].reduce((a: any, b: any) => ({...a, ...b}), {}),
+                ...x[3],
+            });
+        } %}
+
+createtable_references -> %kw_references table_ref collist_paren
+            createtable_constraint_foreignkey_onsometing:*
+        {% (x: any[]) => {
+            return track(x, {
+                foreignTable: unwrap(x[1]),
+                foreignColumns: x[2].map(asName),
+                ...x[3].reduce((a: any, b: any) => ({...a, ...b}), {}),
             });
         } %}
 
@@ -155,6 +161,7 @@ createtable_column_constraint_def
     | %kw_null          {% x => track(x, { type: 'null' }) %}
     | %kw_default expr  {% x => track(x, { type: 'default', default: unwrap(x[1]) }) %}
     | %kw_check expr_paren {% x => track(x, { type: 'check', expr: unwrap(x[1]) }) %}
+    | createtable_references {% x => track(x, { type: 'reference', ...unwrap(x) }) %}
     | altercol_generated
 
 createtable_collate

@@ -593,6 +593,15 @@ export class AstDefaultMapper implements IAstMapper {
                     expr: def,
                 });
             }
+            case 'reference': {
+                const foreignTable = this.tableRef(c.foreignTable);
+                if (!foreignTable) {
+                    return null;
+                }
+                return assignChanged(c, {
+                    foreignTable,
+                });
+            }
             default:
                 throw NotSupported.never(c);
         }

@@ -165,8 +165,7 @@ describe('Ast mapper', () => {
             type: 'ref',
             name: 'foo',
         });
-    })
-
+    });
 
     it('maps deep', () => {
         // create a mapper

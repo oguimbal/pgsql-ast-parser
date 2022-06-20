@@ -729,4 +729,33 @@ describe('Create table', () => {
             },
         ]
     });
+
+    checkCreateTable(`CREATE TABLE foo (
+        id BIGSERIAL PRIMARY KEY,
+        bar_id INTEGER NOT NULL REFERENCES users(id)
+    )`, {
+        type: 'create table',
+        name: { name: 'foo' },
+        columns: [
+            {
+                kind: 'column',
+                name: { name: 'id' },
+                dataType: { name: 'bigserial' },
+                constraints: [{ type: 'primary key' }],
+            },
+            {
+                kind: 'column',
+                name: { name: 'bar_id' },
+                dataType: { name: 'integer' },
+                constraints: [
+                    { type: 'not null' },
+                    {
+                        type: 'reference',
+                        foreignTable: { name: 'users' },
+                        foreignColumns: [{ name: 'id' }],
+                    }
+                ],
+            },
+        ]
+    })
 });
