@@ -515,6 +515,7 @@ export interface ColumnConstraintSimple extends PGNode {
 
 export interface ColumnConstraintReference extends TableReference, PGNode {
     type: 'reference';
+    constraintName?: Name;
 }
 
 export interface ColumnConstraintDefault extends PGNode {

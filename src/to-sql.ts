@@ -642,7 +642,7 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     },
 
     constraint: cst => {
-        if ('constraintName' in cst && cst.constraintName) {
+        if (cst.constraintName) {
             ret.push(' CONSTRAINT ', name(cst.constraintName), ' ');
         }
         addConstraint(cst, m);
