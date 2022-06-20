@@ -983,6 +983,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
                     break;
             }
         }
+        if (t.cascade) {
+            ret.push(' ', t.cascade, ' ');
+        }
     },
 
     delete: t => {

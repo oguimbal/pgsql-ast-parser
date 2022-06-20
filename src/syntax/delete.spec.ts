@@ -33,6 +33,24 @@ describe('Delete', () => {
         identity: 'continue'
     });
 
+    checkStatement([`TRUNCATE TABLE t1,t2 RESTART IDENTITY CASCADE`], {
+        type: 'truncate table',
+        tables: [{ name: 't1' }, { name: 't2' }],
+        identity: 'restart',
+        cascade: 'cascade',
+    });
+
+    checkStatement([`TRUNCATE TABLE t1,t2 CASCADE`], {
+        type: 'truncate table',
+        tables: [{ name: 't1' }, { name: 't2' }],
+        cascade: 'cascade',
+    });
+    checkStatement([`TRUNCATE TABLE t1,t2 restrict`], {
+        type: 'truncate table',
+        tables: [{ name: 't1' }, { name: 't2' }],
+        cascade: 'restrict',
+    });
+
     checkStatement([`truncate ta, "tb"`, `truncate table "ta","tb"`], {
         type: 'truncate table',
         tables: [{ name: 'ta' }, { name: 'tb' }]

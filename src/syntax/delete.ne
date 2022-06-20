@@ -28,8 +28,9 @@ delete_delete -> (kw_delete %kw_from)
                         });
                     } %}
 
-delete_truncate ->  (kw_truncate %kw_table:?) array_of[table_ref] ((kw_restart | kw_continue) kw_identity):? {% x => track(x, {
+delete_truncate ->  (kw_truncate %kw_table:?) array_of[table_ref] ((kw_restart | kw_continue) kw_identity):? (kw_restrict | kw_cascade):? {% x => track(x, {
                             type: 'truncate table',
                             tables: x[1],
-                            ...x[2] && { identity: toStr(x[2][0]) }
+                            ...x[2] && { identity: toStr(x[2][0]) },
+                            ... x[3] && {cascade: toStr(x[3]) },
                         }) %}
