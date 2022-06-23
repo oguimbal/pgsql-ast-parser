@@ -36,6 +36,7 @@ describe('Select statements', () => {
 
     checkSelect(['select 42 as unique'], aliased('unique'));
 
+    checkSelect(['select 42 as "alias with ""double-quoted"" part"'], aliased('alias with "double-quoted" part'));
 
     checkSelect(['select count(*)'], {
         type: 'select',

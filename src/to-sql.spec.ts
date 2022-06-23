@@ -71,6 +71,23 @@ describe('SQL builder', () => {
             .to.equal(`SELECT "whAtever"`);
     })
 
+    it('quotes quotes in identifiers', () => {
+        expect(stm(`select "a ""quote"" you say?"`))
+            .to.equal(`SELECT "a ""quote"" you say?"`);
+        expect(stm(`select a AS "a ""quote"" you say?"`))
+            .to.equal(`SELECT a AS "a ""quote"" you say?"`);
+        expect(toSql.statement({
+            columns: [
+              {
+                expr: { type: 'ref', name: 'a' },
+                alias: { name: 'a "quote" you say?' }
+              }
+            ],
+            type: 'select'
+          }))
+            .to.equal(`SELECT a AS "a ""quote"" you say?"`)
+    })
+
     it('quotes spaced', () => {
         expect(stm(`select "ab cd"`))
             .to.equal(`SELECT "ab cd"`);
