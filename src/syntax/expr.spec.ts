@@ -907,6 +907,27 @@ line`,
             right: { type: 'string', value: '.*' },
         });
 
+        checkTreeExpr([`$1 ~* '.*'`], {
+            type: 'binary',
+            op: '~*',
+            left: { type: 'parameter', name: '$1' },
+            right: { type: 'string', value: '.*' },
+        });
+
+        checkTreeExpr([`$1 !~ '.*'`], {
+            type: 'binary',
+            op: '!~',
+            left: { type: 'parameter', name: '$1' },
+            right: { type: 'string', value: '.*' },
+        });
+
+        checkTreeExpr([`$1 !~* '.*'`], {
+            type: 'binary',
+            op: '!~*',
+            left: { type: 'parameter', name: '$1' },
+            right: { type: 'string', value: '.*' },
+        });
+
         checkTreeExpr(['a != b', '"a"!="b"', 'a<>b'], {
             type: 'binary',
             op: '!=',
