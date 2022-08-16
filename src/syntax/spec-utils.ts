@@ -2,7 +2,7 @@ import { Parser, Grammar } from 'nearley';
 import { expect, assert } from 'chai';
 import grammar from '../syntax/main.ne';
 import { trimNullish } from '../utils';
-import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, SelectedColumn, Interval, BinaryOperator, ExprBinary, Name, ExprInteger, FromTable, QName } from './ast';
+import { Expr, SelectStatement, CreateTableStatement, CreateIndexStatement, Statement, InsertStatement, UpdateStatement, AlterTableStatement, DeleteStatement, CreateExtensionStatement, CreateSequenceStatement, AlterSequenceStatement, SelectedColumn, Interval, BinaryOperator, ExprBinary, Name, ExprInteger, FromTable, QName, AlterIndexStatement } from './ast';
 import { astMapper, IAstMapper } from '../ast-mapper';
 import { toSql, IAstToSql } from '../to-sql';
 import { parseIntervalLiteral } from '../parser';
@@ -48,6 +48,9 @@ export function checkDelete(value: string | string[], expected: DeleteStatement)
 }
 
 export function checkAlterTable(value: string | string[], expected: AlterTableStatement) {
+    checkTree(value, expected, (p, m) => m.statement(p));
+}
+export function checkAlterIndex(value: string | string[], expected: AlterIndexStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 export function checkAlterTableLoc(value: string | string[], expected: AlterTableStatement) {

@@ -362,6 +362,28 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         list(t.changes, change => m.tableAlteration(change, t.table), false);
     },
 
+    alterIndex: t => {
+        ret.push('ALTER INDEX ');
+        if (t.ifExists) {
+            ret.push(' IF EXISTS ');
+        }
+        visitQualifiedNameAliased(t.index);
+        switch (t.change.type) {
+            case 'rename':
+                ret.push(' RENAME TO ');
+                visitQualifiedName(t.change.to);
+                ret.push(' ');
+                break;
+            case 'set tablespace':
+                ret.push(' SET TABLESPACE ');
+                visitQualifiedName(t.change.tablespace);
+                ret.push(' ');
+                break;
+            default:
+                throw NotSupported.never(t.change, 'Alter index type not supported: ');
+        }
+    },
+
     tableAlteration: (change, table) => {
         switch (change.type) {
             case 'add column':

@@ -28,6 +28,7 @@ export type Statement = SelectStatement
     | CreateMaterializedViewStatement
     | RefreshMaterializedViewStatement
     | AlterTableStatement
+    | AlterIndexStatement
     | AlterSequenceStatement
     | SetGlobalStatement
     | SetTimezone
@@ -246,6 +247,28 @@ export interface OnConflictAction extends PGNode {
         sets: SetStatement[];
     };
     where?: Expr;
+}
+
+export interface AlterIndexStatement extends PGNode {
+    type: 'alter index';
+    index: QNameAliased;
+    ifExists?: boolean;
+    change: IndexAlteration;
+}
+
+export type IndexAlteration
+    = IndexAlterationRename
+    | IndexAlterationSetTablespace
+
+
+export interface IndexAlterationRename {
+    type: 'rename';
+    to: QName;
+}
+
+export interface IndexAlterationSetTablespace  {
+    type: 'set tablespace';
+    tablespace: QName;
 }
 
 export interface AlterTableStatement extends PGNode {

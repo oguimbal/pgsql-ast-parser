@@ -30,6 +30,7 @@ export interface IAstPartialMapper {
     transaction?: (val: a.CommitStatement | a.RollbackStatement | a.StartTransactionStatement) => a.Statement | nil
     createIndex?: (val: a.CreateIndexStatement) => a.Statement | nil
     alterTable?: (st: a.AlterTableStatement) => a.Statement | nil
+    alterIndex?: (st: a.AlterIndexStatement) => a.Statement | nil
     tableAlteration?: (change: a.TableAlteration, table: a.QNameAliased) => a.TableAlteration | nil
     dropColumn?: (change: a.TableAlterationDropColumn, table: a.QNameAliased) => a.TableAlteration | nil
     dropConstraint?: (change: a.TableAlterationDropConstraint, table: a.QNameAliased) => a.TableAlteration | nil
@@ -216,6 +217,8 @@ export class AstDefaultMapper implements IAstMapper {
         switch (val.type) {
             case 'alter table':
                 return this.alterTable(val);
+            case 'alter index':
+                return this.alterIndex(val);
             case 'commit':
             case 'start transaction':
             case 'rollback':
@@ -674,6 +677,15 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     deallocate(st: a.DeallocateStatement): a.Statement | nil {
+        return st;
+    }
+
+    // =========================================
+    // ============== ALTER INDEX ==============
+    // =========================================
+
+    alterIndex(st: a.AlterIndexStatement): a.Statement | nil {
+        // not much as of today...might improve this in the future
         return st;
     }
 
