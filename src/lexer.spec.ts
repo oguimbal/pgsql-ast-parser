@@ -98,6 +98,13 @@ describe('Lexer', () => {
         next({ type: 'star' });
     });
 
+    it('allows punctuation in keyords', () => {
+        // see https://github.com/oguimbal/pgsql-ast-parser/issues/100
+        lexer.reset(`SELECT /* :,| */ *`);
+        next({ type: 'kw_select' });
+        next({ type: 'star' });
+    });
+
     it('tokenizes select', () => {
         lexer.reset(`SELECT * FROM test`);
         next({ type: 'kw_select' });

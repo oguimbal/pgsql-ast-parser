@@ -61,6 +61,7 @@ export const lexer = compile({
     semicolon: ';',
     dot: /\.(?!\d)/,
     op_cast: '::',
+    op_colon: ':',
     op_plus: '+',
     op_eq: '=',
     op_neq: {
