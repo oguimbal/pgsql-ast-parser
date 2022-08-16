@@ -281,6 +281,7 @@ export interface TableAlterationDropColumn extends PGNode {
     type: 'drop column';
     ifExists?: boolean;
     column: Name;
+    behaviour?: 'cascade' | 'restrict';
 }
 
 export interface TableAlterationDropConstraint extends PGNode {

@@ -413,5 +413,45 @@ describe('Alter table', () => {
                 }
             },
         }]
-    })
+    });
+
+
+    checkAlterTable(['ALTER TABLE foo DROP bar CASCADE'], {
+        type: 'alter table',
+        table: { name: 'foo' },
+        changes: [{
+            type: 'drop column',
+            column: { name: 'bar' },
+            behaviour: 'cascade',
+        }],
+    });
+
+
+    checkAlterTable(['alter table test drop column a cascade, drop column b restrict'], {
+        type: 'alter table',
+        table: { name: 'test' },
+        changes: [{
+            type: 'drop column',
+            column: { name: 'a' },
+            behaviour: 'cascade',
+        }, {
+            type: 'drop column',
+            column: { name: 'b' },
+            behaviour: 'restrict',
+        }],
+    });
+
+    checkAlterTable(['alter table test drop constraint a cascade, drop constraint b restrict'], {
+        type: 'alter table',
+        table: { name: 'test' },
+        changes: [{
+            type: 'drop constraint',
+            constraint: { name: 'a' },
+            behaviour: 'cascade',
+        }, {
+            type: 'drop constraint',
+            constraint: { name: 'b' },
+            behaviour: 'restrict',
+        }],
+    });
 });

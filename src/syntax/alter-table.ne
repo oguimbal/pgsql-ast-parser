@@ -54,10 +54,11 @@ altertable_add_column -> kw_add kw_column:? kw_ifnotexists:? createtable_column 
 }) %}
 
 
-altertable_drop_column -> kw_drop kw_column:? kw_ifexists:? ident {% x => track(x, {
+altertable_drop_column -> kw_drop kw_column:? kw_ifexists:? ident (kw_restrict | kw_cascade):? {% x => track(x, {
     type: 'drop column',
     ... x[2] ? {ifExists: true} : {},
     column: asName(x[3]),
+    ... x[4] ? {behaviour: toStr(x[4], ' ')} : {},
 }) %}
 
 

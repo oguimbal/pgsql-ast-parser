@@ -994,6 +994,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push(' IF EXISTS ');
         }
         ret.push(name(t.column));
+        if (t.behaviour) {
+            ret.push(' ', t.behaviour);
+        }
+        ret.push(' ');
     },
 
     dropConstraint: t => {
