@@ -59,6 +59,26 @@ describe('Insert', () => {
         },
     });
 
+    checkInsert([`insert into test(a) values (1) on conflict on constraint cst do nothing`], {
+        type: 'insert',
+        into: { name: 'test' },
+        columns: [{ name: 'a' }],
+        insert: {
+            type: 'values',
+            values: [[{
+                type: 'integer',
+                value: 1,
+            },]]
+        },
+        onConflict: {
+            do: 'do nothing',
+            on: {
+                type: 'on constraint',
+                constraint: { name: 'cst' },
+            }
+        },
+    });
+
     checkInsert([`insert into test(a) values (1) on conflict (a, b) do nothing`], {
         type: 'insert',
         into: { name: 'test' },
@@ -72,10 +92,13 @@ describe('Insert', () => {
         },
         onConflict: {
             do: 'do nothing',
-            on: [
-                { type: 'ref', name: 'a' }
-                , { type: 'ref', name: 'b' }
-            ]
+            on: {
+                type: 'on expr',
+                exprs: [
+                    { type: 'ref', name: 'a' }
+                    , { type: 'ref', name: 'b' }
+                ],
+            },
         },
     });
 

@@ -41,12 +41,19 @@ insert_expr_list_raw -> expr_or_select (comma expr_or_select {% last %}):* {% ([
 
 insert_on_conflict
     -> insert_on_conflict_what:? insert_on_conflict_do {% x => track(x, {
-        ...x[0] ? { on: x[0][0] } : {},
+        ...x[0] ? { on: unwrap(x[0]) } : {},
         ...x[1],
     }) %}
 
 insert_on_conflict_what
-    -> (lparen expr_list_raw rparen {% get(1) %})
+    -> lparen expr_list_raw rparen {% x => track(x, {
+        type: 'on expr',
+        exprs: x[1],
+    }) %}
+    | %kw_on %kw_constraint qname {% x => track(x, {
+        type: 'on constraint',
+        constraint: last(x),
+    }) %}
 
 insert_on_conflict_do
     -> %kw_do kw_nothing {% x => ({ do: 'do nothing' }) %}

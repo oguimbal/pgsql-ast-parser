@@ -484,7 +484,22 @@ export class AstDefaultMapper implements IAstMapper {
         }
 
         const returning = arrayNilMap(val.returning, c => this.selectionColumn(c));
-        const onConflictOn = arrayNilMap(val.onConflict?.on, e => this.expr(e));
+        let on = val.onConflict?.on;
+        switch (on?.type) {
+            case 'on constraint':
+                // nothing to do
+                break;
+            case 'on expr':
+                on = assignChanged(on, {
+                    exprs: arrayNilMap(on.exprs, e => this.expr(e)),
+                });
+                break;
+            case null:
+            case undefined:
+                break;
+            default:
+                throw NotSupported.never(on);
+        }
         let ocdo = val.onConflict?.do;
         if (ocdo && ocdo !== 'do nothing') {
             const sets = arrayNilMap(ocdo.sets, x => this.set(x));
@@ -501,7 +516,7 @@ export class AstDefaultMapper implements IAstMapper {
             returning,
             onConflict: !ocdo ? val.onConflict : assignChanged(val.onConflict, {
                 do: ocdo,
-                on: onConflictOn,
+                on,
             }),
         });
     }

@@ -242,11 +242,20 @@ export interface InsertStatement extends PGNode {
 }
 
 export interface OnConflictAction extends PGNode {
-    on?: Expr[] | nil;
+    on?: OnConflictOnExpr | OnConflictOnConstraint;
     do: 'do nothing' | {
         sets: SetStatement[];
     };
     where?: Expr;
+}
+
+export interface OnConflictOnExpr extends PGNode {
+    type: 'on expr';
+    exprs: Expr[];
+}
+export interface OnConflictOnConstraint extends PGNode {
+    type: 'on constraint';
+    constraint: QName;
 }
 
 export interface AlterIndexStatement extends PGNode {
