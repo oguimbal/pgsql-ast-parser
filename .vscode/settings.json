@@ -23,5 +23,6 @@
         "dist": true,
         "lib": true,
         ".deno": true
-    }
+    },
+    "typescript.tsdk": "node_modules/typescript/lib"
 }
