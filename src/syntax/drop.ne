@@ -21,6 +21,7 @@ drop_what
     -> %kw_table {% x => track(x, { type: 'drop table' }) %}
     | kw_sequence {% x => track(x, { type: 'drop sequence' }) %}
     | kw_type {% x => track(x, { type: 'drop type' }) %}
+    | kw_trigger {% x => track(x, { type: 'drop trigger' }) %}
     | kw_index %kw_concurrently:? {% x => track(x, {
             type: 'drop index',
             ...x[1] && {concurrently: true },

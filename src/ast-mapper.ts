@@ -259,6 +259,7 @@ export class AstDefaultMapper implements IAstMapper {
             case 'drop index':
             case 'drop sequence':
             case 'drop type':
+            case 'drop trigger':
                 return this.drop(val);
             case 'create enum':
                 return this.createEnum(val);

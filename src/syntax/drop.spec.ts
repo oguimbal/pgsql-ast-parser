@@ -62,6 +62,11 @@ describe('Drop', () => {
         names: [{ name: 'test' }],
     });
 
+    checkStatement([`DROP TRIGGER test`], {
+        type: 'drop trigger',
+        names: [{ name: 'test' }],
+    });
+
     checkStatement([`drop index concurrently if exists test`], {
         type: 'drop index',
         names: [{ name: 'test' }],

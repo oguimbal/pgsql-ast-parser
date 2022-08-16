@@ -183,6 +183,7 @@ kw_minvalue -> %word {% notReservedKw('minvalue')  %}
 kw_maxvalue -> %word {% notReservedKw('maxvalue')  %}
 kw_data -> %word {% notReservedKw('data')  %}
 kw_type -> %word {% notReservedKw('type')  %}
+kw_trigger -> %word {% notReservedKw('trigger')  %}
 kw_delete -> %word {% notReservedKw('delete')  %}
 kw_cache -> %word {% notReservedKw('cache')  %}
 kw_cascade -> %word {% notReservedKw('cascade')  %}

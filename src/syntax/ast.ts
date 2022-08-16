@@ -194,7 +194,7 @@ export interface TruncateTableStatement extends PGNode {
 }
 
 export interface DropStatement extends PGNode {
-    type: 'drop table' | 'drop sequence' | 'drop index' | 'drop type';
+    type: 'drop table' | 'drop sequence' | 'drop index' | 'drop type' | 'drop trigger';
     names: QName[];
     ifExists?: boolean;
     cascade?: 'cascade' | 'restrict';
