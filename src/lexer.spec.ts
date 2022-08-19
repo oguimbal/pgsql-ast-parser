@@ -28,6 +28,51 @@ describe('Lexer', () => {
         expect(result).to.deep.equal(expected);
     }
 
+    it('comments and minus are not confused', () => {
+        lexer.reset(`1 - 2`);
+        next({ type: 'int', value: '1' });
+        next({ type: 'op_minus' });
+        next({ type: 'int', value: '2' });
+
+        lexer.reset(`1 -- 2`);
+        next({ type: 'int', value: '1' });
+        expect(lexer.next()).to.equal(undefined)
+    });
+
+    it('member and minus ops are not confused', () => {
+        lexer.reset(`- -> ->>`);
+        next({ type: 'op_minus'});
+        next({ type: 'op_member'});
+        next({ type: 'op_membertext'});
+    });
+
+    it('comments and division are not confused', () => {
+        lexer.reset(`1 / 2`);
+        next({ type: 'int', value: '1' });
+        next({ type: 'op_div' });
+        next({ type: 'int', value: '2' });
+
+        lexer.reset(`1 /* 2 */`);
+        next({ type: 'int', value: '1' });
+        expect(lexer.next()).to.equal(undefined)
+    });
+
+    it('like/ilike ops', () => {
+        lexer.reset(`!~~*`);
+        next({ type: 'op_not_ilike' });
+
+        lexer.reset(`!~~ *`);
+        next({ type: 'op_not_like' });
+        next({ type: 'star' });
+
+        lexer.reset(`~~*`);
+        next({ type: 'op_ilike' });
+
+        lexer.reset(`~~ *`);
+        next({ type: 'op_like' });
+        next({ type: 'star' });
+    });
+
     it('tokenizes end comment', () => {
         lexer.reset(`SELECT -- test`);
         next({ type: 'kw_select' });

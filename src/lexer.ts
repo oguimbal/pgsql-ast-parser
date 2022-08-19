@@ -46,7 +46,7 @@ export const lexer = compile({
         match: /\$\d+/,
     },
     commentLine: /\-\-.*?$[\s\r\n]*/,
-    commentFullOpen: /(?<!\/)\/\*/,
+    commentFullOpen: /\/\*/,
     commentFullClose: /\*\/[\s\r\n]*/,
     star: '*',
     comma: ',',
@@ -67,16 +67,16 @@ export const lexer = compile({
         match: /(?:!=)|(?:\<\>)/,
         value: () => '!=',
     },
-    op_minus: /(?<!\-)\-(?!\-)(?!\>)/,
-    op_div: /(?<!\/)\/(?!\/)/,
-    op_like: /(?<!\!)~~(?!\*)/, // ~~ =LIKE
-    op_ilike: /(?<!\!)~~\*/, // ~~* =ILIKE
-    op_not_like: /\!~~(?!\*)/, // !~~ =LIKE
+    op_membertext: '->>',
+    op_member: '->',
+    op_minus: '-',
+    op_div: /\//,
     op_not_ilike: /\!~~\*/, // !~~* =ILIKE
+    op_not_like: /\!~~/, // !~~ =LIKE
+    op_ilike: /~~\*/, // ~~* =ILIKE
+    op_like: /~~/, // ~~ =LIKE
     op_mod: '%',
     op_exp: '^',
-    op_member: /\-\>(?!\>)/,
-    op_membertext: '->>',
     op_additive: {
         // group other additive operators
         match: ['||', '-', '#-', '&&'],
