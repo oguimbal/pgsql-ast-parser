@@ -362,6 +362,28 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         list(t.changes, change => m.tableAlteration(change, t.table), false);
     },
 
+    alterIndex: t => {
+        ret.push('ALTER INDEX ');
+        if (t.ifExists) {
+            ret.push(' IF EXISTS ');
+        }
+        visitQualifiedNameAliased(t.index);
+        switch (t.change.type) {
+            case 'rename':
+                ret.push(' RENAME TO ');
+                visitQualifiedName(t.change.to);
+                ret.push(' ');
+                break;
+            case 'set tablespace':
+                ret.push(' SET TABLESPACE ');
+                visitQualifiedName(t.change.tablespace);
+                ret.push(' ');
+                break;
+            default:
+                throw NotSupported.never(t.change, 'Alter index type not supported: ');
+        }
+    },
+
     tableAlteration: (change, table) => {
         switch (change.type) {
             case 'add column':
@@ -994,6 +1016,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push(' IF EXISTS ');
         }
         ret.push(name(t.column));
+        if (t.behaviour) {
+            ret.push(' ', t.behaviour);
+        }
+        ret.push(' ');
     },
 
     dropConstraint: t => {
@@ -1100,8 +1126,19 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
         if (i.onConflict) {
             ret.push('ON CONFLICT ');
-            if (i.onConflict.on) {
-                list(i.onConflict.on, e => m.expr(e), true);
+            const on = i.onConflict.on;
+            switch (on?.type) {
+                case 'on expr':
+                    list(on.exprs, e => m.expr(e), true);
+                    break;
+                case 'on constraint':
+                    ret.push('ON CONSTRAINT ');
+                    visitQualifiedName(on.constraint);
+                case null:
+                case undefined:
+                    break;
+                default:
+                    throw NotSupported.never(on);
             }
             if (i.onConflict.do === 'do nothing') {
                 ret.push(' DO NOTHING');

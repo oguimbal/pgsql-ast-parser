@@ -30,6 +30,7 @@ export interface IAstPartialMapper {
     transaction?: (val: a.CommitStatement | a.RollbackStatement | a.StartTransactionStatement) => a.Statement | nil
     createIndex?: (val: a.CreateIndexStatement) => a.Statement | nil
     alterTable?: (st: a.AlterTableStatement) => a.Statement | nil
+    alterIndex?: (st: a.AlterIndexStatement) => a.Statement | nil
     tableAlteration?: (change: a.TableAlteration, table: a.QNameAliased) => a.TableAlteration | nil
     dropColumn?: (change: a.TableAlterationDropColumn, table: a.QNameAliased) => a.TableAlteration | nil
     dropConstraint?: (change: a.TableAlterationDropConstraint, table: a.QNameAliased) => a.TableAlteration | nil
@@ -216,6 +217,8 @@ export class AstDefaultMapper implements IAstMapper {
         switch (val.type) {
             case 'alter table':
                 return this.alterTable(val);
+            case 'alter index':
+                return this.alterIndex(val);
             case 'commit':
             case 'start transaction':
             case 'rollback':
@@ -256,6 +259,7 @@ export class AstDefaultMapper implements IAstMapper {
             case 'drop index':
             case 'drop sequence':
             case 'drop type':
+            case 'drop trigger':
                 return this.drop(val);
             case 'create enum':
                 return this.createEnum(val);
@@ -480,7 +484,22 @@ export class AstDefaultMapper implements IAstMapper {
         }
 
         const returning = arrayNilMap(val.returning, c => this.selectionColumn(c));
-        const onConflictOn = arrayNilMap(val.onConflict?.on, e => this.expr(e));
+        let on = val.onConflict?.on;
+        switch (on?.type) {
+            case 'on constraint':
+                // nothing to do
+                break;
+            case 'on expr':
+                on = assignChanged(on, {
+                    exprs: arrayNilMap(on.exprs, e => this.expr(e)),
+                });
+                break;
+            case null:
+            case undefined:
+                break;
+            default:
+                throw NotSupported.never(on);
+        }
         let ocdo = val.onConflict?.do;
         if (ocdo && ocdo !== 'do nothing') {
             const sets = arrayNilMap(ocdo.sets, x => this.set(x));
@@ -497,7 +516,7 @@ export class AstDefaultMapper implements IAstMapper {
             returning,
             onConflict: !ocdo ? val.onConflict : assignChanged(val.onConflict, {
                 do: ocdo,
-                on: onConflictOn,
+                on,
             }),
         });
     }
@@ -674,6 +693,15 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     deallocate(st: a.DeallocateStatement): a.Statement | nil {
+        return st;
+    }
+
+    // =========================================
+    // ============== ALTER INDEX ==============
+    // =========================================
+
+    alterIndex(st: a.AlterIndexStatement): a.Statement | nil {
+        // not much as of today...might improve this in the future
         return st;
     }
 

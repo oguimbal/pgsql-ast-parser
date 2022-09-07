@@ -60,7 +60,7 @@ export function parse(sql: string, optEntry?: string | ParseOptions): any {
         : doParse();
 
     // always return an array of statements.
-    if (!entry && !Array.isArray(parsed)) {
+    if (typeof optEntry !== 'string' && !Array.isArray(parsed)) {
         parsed = [parsed]
     }
     return parsed;
@@ -120,10 +120,10 @@ function _parse(sql: string, grammar: Grammar, entry?: string): any {
         }
         return asts[0];
     } catch (e) {
-        if (typeof e?.message !== 'string') {
+        if (typeof (e as any)?.message !== 'string') {
             throw e;
         }
-        let msg: string = e.message;
+        let msg: string = (e as any).message;
         // remove all the stack crap of nearley parser
         let begin: string | null = null;
         const parts: string[] = [];
@@ -136,7 +136,7 @@ function _parse(sql: string, grammar: Grammar, entry?: string): any {
         if (begin) {
             msg = begin + parts.join('\n') + '\n\n';
         }
-        e.message = msg;
+        (e as any).message = msg;
         throw e;
     }
 }

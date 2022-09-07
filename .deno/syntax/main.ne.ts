@@ -1,4 +1,4 @@
-// Generated automatically by nearley, version 2.19.7
+// Generated automatically by nearley, version 2.20.1
 // http://github.com/Hardmath123/nearley
 // Bypasses TS6133. Allow declared but unused functions.
 // @ts-ignore
@@ -248,6 +248,7 @@ declare var kw_into: any;
 declare var kw_user: any;
 declare var kw_on: any;
 declare var kw_returning: any;
+declare var kw_constraint: any;
 declare var kw_do: any;
 declare var kw_where: any;
 declare var kw_from: any;
@@ -259,6 +260,7 @@ declare var kw_to: any;
 declare var kw_constraint: any;
 declare var kw_default: any;
 declare var kw_as: any;
+declare var kw_to: any;
 declare var kw_from: any;
 declare var kw_returning: any;
 declare var kw_table: any;
@@ -419,7 +421,8 @@ function setSeqOpts(ret: any, opts: any) {
     }
 }
 
-interface NearleyToken {  value: any;
+interface NearleyToken {
+  value: any;
   [key: string]: any;
 };
 
@@ -427,7 +430,7 @@ interface NearleyLexer {
   reset: (chunk: string, info: any) => void;
   next: () => NearleyToken | undefined;
   save: () => any;
-  formatError: (token: NearleyToken) => string;
+  formatError: (token: never) => string;
   has: (tokenType: string) => boolean;
 };
 
@@ -523,6 +526,7 @@ const grammar: Grammar = {
     {"name": "kw_maxvalue", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('maxvalue')},
     {"name": "kw_data", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('data')},
     {"name": "kw_type", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('type')},
+    {"name": "kw_trigger", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('trigger')},
     {"name": "kw_delete", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('delete')},
     {"name": "kw_cache", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('cache')},
     {"name": "kw_cascade", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('cascade')},
@@ -2098,11 +2102,17 @@ const grammar: Grammar = {
     {"name": "insert_on_conflict$ebnf$1", "symbols": ["insert_on_conflict_what"], "postprocess": id},
     {"name": "insert_on_conflict$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "insert_on_conflict", "symbols": ["insert_on_conflict$ebnf$1", "insert_on_conflict_do"], "postprocess":  x => track(x, {
-            ...x[0] ? { on: x[0][0] } : {},
+            ...x[0] ? { on: unwrap(x[0]) } : {},
             ...x[1],
         }) },
-    {"name": "insert_on_conflict_what$subexpression$1", "symbols": ["lparen", "expr_list_raw", "rparen"], "postprocess": get(1)},
-    {"name": "insert_on_conflict_what", "symbols": ["insert_on_conflict_what$subexpression$1"]},
+    {"name": "insert_on_conflict_what", "symbols": ["lparen", "expr_list_raw", "rparen"], "postprocess":  x => track(x, {
+            type: 'on expr',
+            exprs: x[1],
+        }) },
+    {"name": "insert_on_conflict_what", "symbols": [(lexerAny.has("kw_on") ? {type: "kw_on"} : kw_on), (lexerAny.has("kw_constraint") ? {type: "kw_constraint"} : kw_constraint), "qname"], "postprocess":  x => track(x, {
+            type: 'on constraint',
+            constraint: last(x),
+        }) },
     {"name": "insert_on_conflict_do", "symbols": [(lexerAny.has("kw_do") ? {type: "kw_do"} : kw_do), "kw_nothing"], "postprocess": x => ({ do: 'do nothing' })},
     {"name": "insert_on_conflict_do$subexpression$1", "symbols": [(lexerAny.has("kw_do") ? {type: "kw_do"} : kw_do), "kw_update", "kw_set"]},
     {"name": "insert_on_conflict_do$ebnf$1$subexpression$1", "symbols": [(lexerAny.has("kw_where") ? {type: "kw_where"} : kw_where), "expr"], "postprocess": last},
@@ -2221,10 +2231,15 @@ const grammar: Grammar = {
     {"name": "altertable_drop_column$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "altertable_drop_column$ebnf$2", "symbols": ["kw_ifexists"], "postprocess": id},
     {"name": "altertable_drop_column$ebnf$2", "symbols": [], "postprocess": () => null},
-    {"name": "altertable_drop_column", "symbols": ["kw_drop", "altertable_drop_column$ebnf$1", "altertable_drop_column$ebnf$2", "ident"], "postprocess":  x => track(x, {
+    {"name": "altertable_drop_column$ebnf$3$subexpression$1", "symbols": ["kw_restrict"]},
+    {"name": "altertable_drop_column$ebnf$3$subexpression$1", "symbols": ["kw_cascade"]},
+    {"name": "altertable_drop_column$ebnf$3", "symbols": ["altertable_drop_column$ebnf$3$subexpression$1"], "postprocess": id},
+    {"name": "altertable_drop_column$ebnf$3", "symbols": [], "postprocess": () => null},
+    {"name": "altertable_drop_column", "symbols": ["kw_drop", "altertable_drop_column$ebnf$1", "altertable_drop_column$ebnf$2", "ident", "altertable_drop_column$ebnf$3"], "postprocess":  x => track(x, {
             type: 'drop column',
             ... x[2] ? {ifExists: true} : {},
             column: asName(x[3]),
+            ... x[4] ? {behaviour: toStr(x[4], ' ')} : {},
         }) },
     {"name": "altertable_alter_column$ebnf$1", "symbols": ["kw_column"], "postprocess": id},
     {"name": "altertable_alter_column$ebnf$1", "symbols": [], "postprocess": () => null},
@@ -2289,6 +2304,24 @@ const grammar: Grammar = {
             setSeqOpts(ret, x[1]);
             return track(x, ret);
         }},
+    {"name": "alterindex_statement$ebnf$1", "symbols": ["kw_ifexists"], "postprocess": id},
+    {"name": "alterindex_statement$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "alterindex_statement", "symbols": ["kw_alter", "kw_index", "alterindex_statement$ebnf$1", "table_ref", "alterindex_action"], "postprocess":  x => track(x, {
+            type: 'alter index',
+            ... x[2] ? {ifExists: true} : {},
+            index: unwrap(x[3]),
+            change: unwrap(x[4]),
+        }) },
+    {"name": "alterindex_action", "symbols": ["alterindex_rename"]},
+    {"name": "alterindex_action", "symbols": ["alterindex_set_tablespace"]},
+    {"name": "alterindex_rename", "symbols": ["kw_rename", (lexerAny.has("kw_to") ? {type: "kw_to"} : kw_to), "word"], "postprocess":  x => track(x, {
+            type: 'rename',
+            to: asName(last(x)),
+        }) },
+    {"name": "alterindex_set_tablespace", "symbols": ["kw_set", "kw_tablespace", "word"], "postprocess":  x => track(x, {
+            type: 'set tablespace',
+            tablespace: asName(last(x)),
+        }) },
     {"name": "delete_statement", "symbols": ["delete_delete"]},
     {"name": "delete_statement", "symbols": ["delete_truncate"]},
     {"name": "delete_delete$subexpression$1", "symbols": ["kw_delete", (lexerAny.has("kw_from") ? {type: "kw_from"} : kw_from)]},
@@ -2430,6 +2463,7 @@ const grammar: Grammar = {
     {"name": "drop_what", "symbols": [(lexerAny.has("kw_table") ? {type: "kw_table"} : kw_table)], "postprocess": x => track(x, { type: 'drop table' })},
     {"name": "drop_what", "symbols": ["kw_sequence"], "postprocess": x => track(x, { type: 'drop sequence' })},
     {"name": "drop_what", "symbols": ["kw_type"], "postprocess": x => track(x, { type: 'drop type' })},
+    {"name": "drop_what", "symbols": ["kw_trigger"], "postprocess": x => track(x, { type: 'drop trigger' })},
     {"name": "drop_what$ebnf$1", "symbols": [(lexerAny.has("kw_concurrently") ? {type: "kw_concurrently"} : kw_concurrently)], "postprocess": id},
     {"name": "drop_what$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "drop_what", "symbols": ["kw_index", "drop_what$ebnf$1"], "postprocess":  x => track(x, {
@@ -2796,6 +2830,7 @@ const grammar: Grammar = {
     {"name": "statement_noprep", "symbols": ["insert_statement"]},
     {"name": "statement_noprep", "symbols": ["update_statement"]},
     {"name": "statement_noprep", "symbols": ["altertable_statement"]},
+    {"name": "statement_noprep", "symbols": ["alterindex_statement"]},
     {"name": "statement_noprep", "symbols": ["delete_statement"]},
     {"name": "statement_noprep", "symbols": ["create_sequence_statement"]},
     {"name": "statement_noprep", "symbols": ["alter_sequence_statement"]},

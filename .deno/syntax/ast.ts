@@ -28,6 +28,7 @@ export type Statement = SelectStatement
     | CreateMaterializedViewStatement
     | RefreshMaterializedViewStatement
     | AlterTableStatement
+    | AlterIndexStatement
     | AlterSequenceStatement
     | SetGlobalStatement
     | SetTimezone
@@ -193,7 +194,7 @@ export interface TruncateTableStatement extends PGNode {
 }
 
 export interface DropStatement extends PGNode {
-    type: 'drop table' | 'drop sequence' | 'drop index' | 'drop type';
+    type: 'drop table' | 'drop sequence' | 'drop index' | 'drop type' | 'drop trigger';
     names: QName[];
     ifExists?: boolean;
     cascade?: 'cascade' | 'restrict';
@@ -241,11 +242,42 @@ export interface InsertStatement extends PGNode {
 }
 
 export interface OnConflictAction extends PGNode {
-    on?: Expr[] | nil;
+    on?: OnConflictOnExpr | OnConflictOnConstraint;
     do: 'do nothing' | {
         sets: SetStatement[];
     };
     where?: Expr;
+}
+
+export interface OnConflictOnExpr extends PGNode {
+    type: 'on expr';
+    exprs: Expr[];
+}
+export interface OnConflictOnConstraint extends PGNode {
+    type: 'on constraint';
+    constraint: QName;
+}
+
+export interface AlterIndexStatement extends PGNode {
+    type: 'alter index';
+    index: QNameAliased;
+    ifExists?: boolean;
+    change: IndexAlteration;
+}
+
+export type IndexAlteration
+    = IndexAlterationRename
+    | IndexAlterationSetTablespace
+
+
+export interface IndexAlterationRename {
+    type: 'rename';
+    to: QName;
+}
+
+export interface IndexAlterationSetTablespace  {
+    type: 'set tablespace';
+    tablespace: QName;
 }
 
 export interface AlterTableStatement extends PGNode {
@@ -281,6 +313,7 @@ export interface TableAlterationDropColumn extends PGNode {
     type: 'drop column';
     ifExists?: boolean;
     column: Name;
+    behaviour?: 'cascade' | 'restrict';
 }
 
 export interface TableAlterationDropConstraint extends PGNode {
@@ -752,7 +785,7 @@ export type LogicOperator = 'OR' | 'AND';
 export type EqualityOperator = 'IN' | 'NOT IN' | 'LIKE' | 'NOT LIKE' | 'ILIKE' | 'NOT ILIKE' | '=' | '!=';
 // see https://www.postgresql.org/docs/12/functions-math.html
 export type MathOpsBinary = '|' | '&' | '>>' | '^' | '#' | '<<' | '>>';
-export type ComparisonOperator = '>' | '>=' | '<' | '<=' | '@>' | '<@' | '?' | '?|' | '?&' | '#>>' | '~';
+export type ComparisonOperator = '>' | '>=' | '<' | '<=' | '@>' | '<@' | '?' | '?|' | '?&' | '#>>' | '~' | '~*' | '!~' | '!~*';
 export type AdditiveOperator = '||' | '-' | '#-' | '&&' | '+';
 export type MultiplicativeOperator = '*' | '%' | '/';
 export type ConstructOperator = 'AT TIME ZONE';

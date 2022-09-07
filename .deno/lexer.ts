@@ -45,7 +45,7 @@ export const lexer = compile({
         match: /\$\d+/,
     },
     commentLine: /\-\-.*?$[\s\r\n]*/,
-    commentFullOpen: /(?<!\/)\/\*/,
+    commentFullOpen: /\/\*/,
     commentFullClose: /\*\/[\s\r\n]*/,
     star: '*',
     comma: ',',
@@ -60,22 +60,23 @@ export const lexer = compile({
     semicolon: ';',
     dot: /\.(?!\d)/,
     op_cast: '::',
+    op_colon: ':',
     op_plus: '+',
     op_eq: '=',
     op_neq: {
         match: /(?:!=)|(?:\<\>)/,
         value: () => '!=',
     },
-    op_minus: /(?<!\-)\-(?!\-)(?!\>)/,
-    op_div: /(?<!\/)\/(?!\/)/,
-    op_like: /(?<!\!)~~(?!\*)/, // ~~ =LIKE
-    op_ilike: /(?<!\!)~~\*/, // ~~* =ILIKE
-    op_not_like: /\!~~(?!\*)/, // !~~ =LIKE
+    op_membertext: '->>',
+    op_member: '->',
+    op_minus: '-',
+    op_div: /\//,
     op_not_ilike: /\!~~\*/, // !~~* =ILIKE
+    op_not_like: /\!~~/, // !~~ =LIKE
+    op_ilike: /~~\*/, // ~~* =ILIKE
+    op_like: /~~/, // ~~ =LIKE
     op_mod: '%',
     op_exp: '^',
-    op_member: /\-\>(?!\>)/,
-    op_membertext: '->>',
     op_additive: {
         // group other additive operators
         match: ['||', '-', '#-', '&&'],
@@ -83,7 +84,7 @@ export const lexer = compile({
     op_compare: {
         // group other comparison operators
         // ... to add: "IN" and "NOT IN" that are matched by keywords
-        match: ['>', '>=', '<', '<=', '@>', '<@', '?', '?|', '?&', '#>>', '>>', '<<', '~'],
+        match: ['>', '>=', '<', '<=', '@>', '<@', '?', '?|', '?&', '#>>', '>>', '<<', '~', '~*', '!~', '!~*'],
     },
     ops_others: {
         // referenced as (any other operator) in https://www.postgresql.org/docs/12/sql-syntax-lexical.html#SQL-PRECEDENCE
