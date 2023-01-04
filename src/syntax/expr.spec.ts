@@ -849,6 +849,13 @@ line`,
             right: { type: 'ref', name: 'b' },
         });
 
+        checkTreeExpr(['a @@ b'], {
+            type: 'binary',
+            op: '@@',
+            left: { type: 'ref', name: 'a' },
+            right: { type: 'ref', name: 'b' },
+        });
+
 
         checkTreeExpr(['a like b', '"a"LIKE"b"', 'a ~~ b', 'a~~b'], {
             type: 'binary',
