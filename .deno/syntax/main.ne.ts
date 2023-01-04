@@ -133,6 +133,7 @@ declare var kw_all: any;
 declare var kw_distinct: any;
 declare var kw_where: any;
 declare var kw_group: any;
+declare var kw_having: any;
 declare var kw_offset: any;
 declare var kw_limit: any;
 declare var kw_fetch: any;
@@ -806,7 +807,10 @@ const grammar: Grammar = {
     {"name": "select_statement$ebnf$1", "symbols": [], "postprocess": () => null},
     {"name": "select_statement$ebnf$2", "symbols": ["select_where"], "postprocess": id},
     {"name": "select_statement$ebnf$2", "symbols": [], "postprocess": () => null},
-    {"name": "select_statement$ebnf$3", "symbols": ["select_groupby"], "postprocess": id},
+    {"name": "select_statement$ebnf$3$subexpression$1$ebnf$1", "symbols": ["select_having"], "postprocess": id},
+    {"name": "select_statement$ebnf$3$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "select_statement$ebnf$3$subexpression$1", "symbols": ["select_groupby", "select_statement$ebnf$3$subexpression$1$ebnf$1"]},
+    {"name": "select_statement$ebnf$3", "symbols": ["select_statement$ebnf$3$subexpression$1"], "postprocess": id},
     {"name": "select_statement$ebnf$3", "symbols": [], "postprocess": () => null},
     {"name": "select_statement$ebnf$4", "symbols": ["select_order_by"], "postprocess": id},
     {"name": "select_statement$ebnf$4", "symbols": [], "postprocess": () => null},
@@ -815,13 +819,17 @@ const grammar: Grammar = {
     {"name": "select_statement$ebnf$6", "symbols": ["select_for"], "postprocess": id},
     {"name": "select_statement$ebnf$6", "symbols": [], "postprocess": () => null},
     {"name": "select_statement", "symbols": ["select_what", "select_statement$ebnf$1", "select_statement$ebnf$2", "select_statement$ebnf$3", "select_statement$ebnf$4", "select_statement$ebnf$5", "select_statement$ebnf$6"], "postprocess":  x => {
-            let [what, from, where, groupBy, orderBy, limit, selectFor] = x;
+            let [what, from, where, _groupBy, orderBy, limit, selectFor] = x;
             from = unwrap(from);
+            let groupBy = _groupBy && _groupBy[0];
+            let having = _groupBy && _groupBy[1];
             groupBy = groupBy && (groupBy.length === 1 && groupBy[0].type === 'list' ? groupBy[0].expressions : groupBy);
+            having = having && unwrap(having);
             return track(x, {
                 ...what,
                 ...from ? { from: Array.isArray(from) ? from : [from] } : {},
                 ...groupBy ? { groupBy } : {},
+                ...having ? { having } : {},
                 ...limit ? { limit: unwrap(limit) } : {},
                 ...orderBy ? { orderBy } : {},
                 ...where ? { where } : {},
@@ -964,6 +972,7 @@ const grammar: Grammar = {
     {"name": "select_distinct", "symbols": [(lexerAny.has("kw_distinct") ? {type: "kw_distinct"} : kw_distinct), "select_distinct$ebnf$1"], "postprocess": x => box(x, x[1] || 'distinct')},
     {"name": "select_where", "symbols": [(lexerAny.has("kw_where") ? {type: "kw_where"} : kw_where), "expr"], "postprocess": last},
     {"name": "select_groupby", "symbols": [(lexerAny.has("kw_group") ? {type: "kw_group"} : kw_group), "kw_by", "expr_list_raw"], "postprocess": last},
+    {"name": "select_having", "symbols": [(lexerAny.has("kw_having") ? {type: "kw_having"} : kw_having), "expr"], "postprocess": last},
     {"name": "select_limit_offset$ebnf$1$subexpression$1", "symbols": ["select_offset"]},
     {"name": "select_limit_offset$ebnf$1$subexpression$1", "symbols": ["select_limit"]},
     {"name": "select_limit_offset$ebnf$1", "symbols": ["select_limit_offset$ebnf$1$subexpression$1"]},

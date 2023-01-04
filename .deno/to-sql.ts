@@ -1329,6 +1329,12 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             ret.push('GROUP BY ');
             list(s.groupBy, e => m.expr(e), false);
             ret.push(' ');
+
+            if (s.having) {
+                ret.push(' HAVING ');
+                m.expr(s.having);
+                ret.push(' ');
+            }
         }
 
         if (s.orderBy) {
