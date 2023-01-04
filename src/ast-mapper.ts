@@ -902,6 +902,7 @@ export class AstDefaultMapper implements IAstMapper {
         const columns = arrayNilMap(val.columns, c => this.selectionColumn(c));
         const where = val.where && this.expr(val.where);
         const groupBy = arrayNilMap(val.groupBy, c => this.expr(c));
+        const having = val.having && this.expr(val.having);
         const orderBy = this.orderBy(val.orderBy);
         const limit = assignChanged(val.limit, {
             limit: this.expr(val.limit?.limit),
@@ -913,6 +914,7 @@ export class AstDefaultMapper implements IAstMapper {
             columns,
             where,
             groupBy,
+            having,
             orderBy,
             limit,
         });

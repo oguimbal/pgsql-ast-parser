@@ -373,6 +373,20 @@ describe('Select statements', () => {
         groupBy: [{ type: 'ref', name: 'grp' }]
     })
 
+
+    checkSelect(['select * from test group by grp having a > 42'], {
+        type: 'select',
+        columns: columns({ type: 'ref', name: '*' }),
+        from: [tbl('test')],
+        groupBy: [{ type: 'ref', name: 'grp' }],
+        having: {
+            type: 'binary',
+            op: '>',
+            left: ref('a'),
+            right: { type: 'integer', value: 42 },
+        },
+    })
+
     checkSelect(['select * from test group by a,b', 'select * from test group by (a,b)'], {
         type: 'select',
         columns: columns({ type: 'ref', name: '*' }),
@@ -500,7 +514,7 @@ describe('Select statements', () => {
                 statement: {
                     type: 'select',
                     columns: [{ expr: star }],
-                    from: [ tbl('td') ],
+                    from: [tbl('td')],
                 },
             },
         ],

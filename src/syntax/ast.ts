@@ -631,6 +631,7 @@ export interface SelectFromStatement extends PGNode {
     from?: From[] | nil;
     where?: Expr | nil;
     groupBy?: Expr[] | nil;
+    having?: Expr | nil;
     limit?: LimitStatement | nil;
     orderBy?: OrderByStatement[] | nil;
     distinct?: 'all' | 'distinct' | Expr[] | nil;

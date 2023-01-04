@@ -10,15 +10,19 @@ array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
 # https://www.postgresql.org/docs/12/sql-select.html
 
 select_statement
-    -> select_what select_from:? select_where:? select_groupby:? select_order_by:? select_limit_offset:? select_for:?
+    -> select_what select_from:? select_where:? (select_groupby select_having:?):? select_order_by:? select_limit_offset:? select_for:?
     {% x => {
-        let [what, from, where, groupBy, orderBy, limit, selectFor] = x;
+        let [what, from, where, _groupBy, orderBy, limit, selectFor] = x;
         from = unwrap(from);
+        let groupBy = _groupBy && _groupBy[0];
+        let having = _groupBy && _groupBy[1];
         groupBy = groupBy && (groupBy.length === 1 && groupBy[0].type === 'list' ? groupBy[0].expressions : groupBy);
+        having = having && unwrap(having);
         return track(x, {
             ...what,
             ...from ? { from: Array.isArray(from) ? from : [from] } : {},
             ...groupBy ? { groupBy } : {},
+            ...having ? { having } : {},
             ...limit ? { limit: unwrap(limit) } : {},
             ...orderBy ? { orderBy } : {},
             ...where ? { where } : {},
@@ -157,6 +161,8 @@ select_where -> %kw_where expr {% last %}
 
 
 select_groupby -> %kw_group kw_by expr_list_raw {% last %}
+
+select_having -> %kw_having expr {% last %}
 
 # [ LIMIT { count | ALL } ]
 # [ OFFSET start [ ROW | ROWS ] ]
