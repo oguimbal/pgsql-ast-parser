@@ -39,7 +39,6 @@
     "@types/mocha": "^8.0.0",
     "@types/moo": "^0.5.3",
     "@types/nearley": "^2.11.1",
-    "@types/node": "^14.0.23",
     "chai": "^4.2.0",
     "copy-webpack-plugin": "^6.0.3",
     "cross-env": "^7.0.2",
