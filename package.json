@@ -42,7 +42,6 @@
     "chai": "^4.2.0",
     "copy-webpack-plugin": "^6.0.3",
     "cross-env": "^7.0.2",
-    "html-webpack-plugin": "^4.3.0",
     "istanbul-instrumenter-loader": "^3.0.1",
     "mocha": "^8.0.1",
     "mochapack": "^2.0.3",
