@@ -41,7 +41,6 @@
     "@types/nearley": "^2.11.1",
     "@types/node": "^14.0.23",
     "chai": "^4.2.0",
-    "chai-shallow-deep-equal": "^1.4.6",
     "copy-webpack-plugin": "^6.0.3",
     "cross-env": "^7.0.2",
     "css-loader": "^4.1.0",
