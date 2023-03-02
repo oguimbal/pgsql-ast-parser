@@ -50,7 +50,7 @@ import { /* imports here */ } from 'https://deno.land/x/pgsql_ast_parser/mod.ts'
 
 # 📖 Parsing SQL
 
-⚠ I strongly recommand NOT using this parser without Typescript. It will work, but types are awesome.
+⚠ I strongly recommend NOT using this parser without Typescript. It will work, but types are awesome.
 
 Parse sql to an AST like this:
 
