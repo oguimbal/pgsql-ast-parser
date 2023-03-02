@@ -9,7 +9,6 @@
         "types": [],
         "skipLibCheck": true,
         "moduleResolution": "node",
-        "jsx": "react",
         "declaration": true,
         "declarationMap": true,
         "declarationDir": "lib",
