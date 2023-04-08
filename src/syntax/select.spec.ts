@@ -920,4 +920,27 @@ describe('Select statements', () => {
             type: 'key share',
         }
     });
+
+    checkSelect('select * from test for key share nowait', {
+        type: 'select',
+        from: [tbl('test')],
+        columns: columns({ type: 'ref', name: '*' }),
+        for: {
+            type: 'key share',
+        },
+        skip: {
+            type: 'nowait',
+        }
+    });
+    checkSelect('select * from test for key share skip locked', {
+        type: 'select',
+        from: [tbl('test')],
+        columns: columns({ type: 'ref', name: '*' }),
+        for: {
+            type: 'key share',
+        },
+        skip: {
+            type: 'skip locked',
+        }
+    });
 });
