@@ -10,14 +10,17 @@ array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
 # https://www.postgresql.org/docs/12/sql-select.html
 
 select_statement
-    -> select_what select_from:? select_where:? (select_groupby select_having:?):? select_order_by:? select_limit_offset:? select_for:?
+    -> select_what select_from:? select_where:? (select_groupby select_having:?):? select_order_by:? select_limit_offset:? (select_for select_skip:?):?
     {% x => {
-        let [what, from, where, _groupBy, orderBy, limit, selectFor] = x;
+        let [what, from, where, _groupBy, orderBy, limit, _selectFor] = x;
         from = unwrap(from);
         let groupBy = _groupBy && _groupBy[0];
         let having = _groupBy && _groupBy[1];
         groupBy = groupBy && (groupBy.length === 1 && groupBy[0].type === 'list' ? groupBy[0].expressions : groupBy);
         having = having && unwrap(having);
+        let selectFor = _selectFor && _selectFor[0];
+        let skip = _selectFor && _selectFor[1];
+        skip = unwrap(skip);
         return track(x, {
             ...what,
             ...from ? { from: Array.isArray(from) ? from : [from] } : {},
@@ -27,6 +30,7 @@ select_statement
             ...orderBy ? { orderBy } : {},
             ...where ? { where } : {},
             ...selectFor ? { for: selectFor[1] } : {},
+            ...skip ? { skip } : {},
             type: 'select',
         });
     } %}
@@ -200,6 +204,9 @@ select_for -> %kw_for (
     | kw_no kw_key kw_update {% x => track(x, {type: 'no key update'}) %}
     | kw_share {% x => track(x, {type: 'share'}) %}
     | kw_key kw_share {% x => track(x, {type: 'key share'}) %})
+
+# [ NOWAIT | SKIP LOCKED ]
+select_skip -> (%kw_nowait {% x => track(x, {type: 'nowait'}) %} | %kw_skip %kw_locked {% x => track(x, {type: 'skip locked'}) %})
 
 select_order_by -> (%kw_order kw_by) select_order_by_expr (comma select_order_by_expr {%last%}):*  {% ([_, head, tail]) => {
     return [head, ...(tail || [])];
