@@ -206,7 +206,7 @@ select_for -> %kw_for (
     | kw_key kw_share {% x => track(x, {type: 'key share'}) %})
 
 # [ NOWAIT | SKIP LOCKED ]
-select_skip -> (%kw_nowait {% x => track(x, {type: 'nowait'}) %} | %kw_skip %kw_locked {% x => track(x, {type: 'skip locked'}) %})
+select_skip -> (kw_nowait {% x => track(x, {type: 'nowait'}) %} | kw_skip kw_locked {% x => track(x, {type: 'skip locked'}) %})
 
 select_order_by -> (%kw_order kw_by) select_order_by_expr (comma select_order_by_expr {%last%}):*  {% ([_, head, tail]) => {
     return [head, ...(tail || [])];
