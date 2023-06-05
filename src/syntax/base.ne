@@ -240,6 +240,9 @@ kw_raise -> %word {% notReservedKw('raise')  %}
 kw_continue -> %word {% notReservedKw('continue')  %}
 kw_share -> %word {% notReservedKw('share')  %}
 kw_refresh -> %word {% notReservedKw('refresh')  %}
+kw_nowait -> %word {% notReservedKw('nowait')  %}
+kw_skip -> %word {% notReservedKw('skip')  %}
+kw_locked -> %word {% notReservedKw('locked')  %}
 
 
 # === Composite keywords

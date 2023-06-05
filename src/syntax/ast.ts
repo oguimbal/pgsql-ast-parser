@@ -636,6 +636,7 @@ export interface SelectFromStatement extends PGNode {
     orderBy?: OrderByStatement[] | nil;
     distinct?: 'all' | 'distinct' | Expr[] | nil;
     for?: ForStatement;
+    skip?: SkipClause;
 }
 
 export interface SelectFromUnion extends PGNode {
@@ -652,6 +653,10 @@ export interface OrderByStatement extends PGNode {
 
 export interface ForStatement extends PGNode {
     type: 'update' | 'no key update' | 'share' | 'key share';
+}
+
+export interface SkipClause extends PGNode {
+    type: 'nowait' | 'skip locked' 
 }
 
 export interface LimitStatement extends PGNode {
