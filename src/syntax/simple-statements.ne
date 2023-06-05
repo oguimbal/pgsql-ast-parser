@@ -34,7 +34,11 @@ simplestatements_tablespace -> kw_tablespace word {% x => track(x, {
  }) %}
 
 
-simplestatements_set -> kw_set (simplestatements_set_simple | simplestatements_set_timezone) {% last %}
+simplestatements_set -> kw_set (simplestatements_set_simple
+                              | simplestatements_set_timezone
+			      | simplestatements_set_session
+			      | simplestatements_set_transaction_snapshot
+			      | simplestatements_set_transaction) {% last %}
 
 simplestatements_set_timezone -> kw_time kw_zone simplestatements_set_timezone_val {% x => track(x, { type: 'set timezone', to: x[2] }) %}
 
@@ -65,6 +69,27 @@ simplestatements_set_val_raw
 
 
 simplestatements_show -> kw_show ident {% x => track(x, { type: 'show', variable: asName(x[1]) }) %}
+
+# https://www.postgresql.org/docs/current/sql-set-transaction.html
+simplestatements_set_transaction_snapshot
+    -> kw_transaction kw_snapshot ident {% x => track(x, { type: 'set transaction snapshot', snapshotId: asName(x[2]) }) %}
+
+simplestatements_set_session
+    -> kw_session kw_characteristics %kw_as kw_transaction
+                    (simplestatements_begin_isol | simplestatements_begin_writ | simplestatements_begin_def):* {%
+                    x => track(x, {
+                        type: 'set session characteristics as transaction',
+                        ...x[4].reduce((a: any, b: any) => ({...unwrap(a), ...unwrap(b)}), {}),
+                    })
+                    %}
+
+simplestatements_set_transaction
+    -> kw_transaction (simplestatements_begin_isol | simplestatements_begin_writ | simplestatements_begin_def):* {%
+                    x => track(x, {
+                        type: 'set transaction',
+                        ...x[1].reduce((a: any, b: any) => ({...unwrap(a), ...unwrap(b)}), {}),
+                    })
+                    %}
 
 
 # https://www.postgresql.org/docs/current/sql-createschema.html

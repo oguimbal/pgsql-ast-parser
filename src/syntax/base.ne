@@ -152,6 +152,9 @@ kw_filter -> %word {% notReservedKw('filter')  %}
 kw_commit -> %word {% notReservedKw('commit')  %}
 kw_tablespace -> %word {% notReservedKw('tablespace')  %}
 kw_transaction -> %word {% notReservedKw('transaction')  %}
+kw_snapshot -> %word {% notReservedKw('snapshot')  %}
+kw_session -> %word {% notReservedKw('session')  %}
+kw_characteristics -> %word {% notReservedKw('characteristics')  %}
 kw_work -> %word {% notReservedKw('work')  %}
 kw_read -> %word {% notReservedKw('read')  %}
 kw_write -> %word {% notReservedKw('write')  %}

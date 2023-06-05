@@ -594,6 +594,43 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    setTransactionSnapshot: s => {
+        ret.push('SET TRANSACTION SNAPSHOT ');
+        ret.push(name(s.snapshotId));
+    },
+
+    setTransaction: tx => {
+        ret.push('SET TRANSACTION ');
+        if (tx.isolationLevel) {
+            ret.push('ISOLATION LEVEL ', tx.isolationLevel.toUpperCase(), ' ');
+        }
+        if (tx.writeable) {
+            ret.push(tx.writeable.toUpperCase(), ' ');
+        }
+        if (typeof tx.deferrable === 'boolean') {
+            if (!tx.deferrable) {
+                ret.push('NOT ');
+            }
+            ret.push('DEFERRABLE ');
+        }
+    },
+
+    setSession: s => {
+        ret.push('SET SESSION CHARACTERISTICS AS TRANSACTION ');
+        if (s.isolationLevel) {
+            ret.push('ISOLATION LEVEL ', s.isolationLevel.toUpperCase(), ' ');
+        }
+        if (s.writeable) {
+            ret.push(s.writeable.toUpperCase(), ' ');
+        }
+        if (typeof s.deferrable === 'boolean') {
+            if (!s.deferrable) {
+                ret.push('NOT ');
+            }
+            ret.push('DEFERRABLE ');
+        }
+    },
+
     begin: beg => {
         ret.push('BEGIN ');
         if (beg.isolationLevel) {

@@ -247,6 +247,26 @@ describe('Simple statements', () => {
     })
 
 
+    checkStatement(`set transaction SNAPSHOT mysnapshot`, {
+        type: 'set transaction snapshot',
+        snapshotId: { name: 'mysnapshot' },
+    });
+
+    checkStatement(`set transaction isolation level repeatable read read only not deferrable`, {
+        type: 'set transaction',
+        isolationLevel:  'repeatable read',
+        writeable: 'read only',
+        deferrable: false,
+    });
+
+    checkStatement(`set session characteristics as transaction isolation level read uncommitted deferrable read write`, {
+        type: 'set session characteristics as transaction',
+        isolationLevel:  'read uncommitted',
+        writeable: 'read write',
+        deferrable: true,
+    });
+
+
     checkStatement(`select * from (select a from mytable) myalias(col_renamed)`, {
         type: 'select',
         columns: [{ expr: { type: 'ref', name: '*' } }],
