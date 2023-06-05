@@ -584,6 +584,9 @@ const grammar: Grammar = {
     {"name": "kw_continue", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('continue')},
     {"name": "kw_share", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('share')},
     {"name": "kw_refresh", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('refresh')},
+    {"name": "kw_nowait", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('nowait')},
+    {"name": "kw_skip", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('skip')},
+    {"name": "kw_locked", "symbols": [(lexerAny.has("word") ? {type: "word"} : word)], "postprocess": notReservedKw('locked')},
     {"name": "kw_ifnotexists", "symbols": ["kw_if", (lexerAny.has("kw_not") ? {type: "kw_not"} : kw_not), "kw_exists"]},
     {"name": "kw_ifexists", "symbols": ["kw_if", "kw_exists"]},
     {"name": "kw_withordinality", "symbols": [(lexerAny.has("kw_with") ? {type: "kw_with"} : kw_with), "kw_ordinality"]},
@@ -816,15 +819,21 @@ const grammar: Grammar = {
     {"name": "select_statement$ebnf$4", "symbols": [], "postprocess": () => null},
     {"name": "select_statement$ebnf$5", "symbols": ["select_limit_offset"], "postprocess": id},
     {"name": "select_statement$ebnf$5", "symbols": [], "postprocess": () => null},
-    {"name": "select_statement$ebnf$6", "symbols": ["select_for"], "postprocess": id},
+    {"name": "select_statement$ebnf$6$subexpression$1$ebnf$1", "symbols": ["select_skip"], "postprocess": id},
+    {"name": "select_statement$ebnf$6$subexpression$1$ebnf$1", "symbols": [], "postprocess": () => null},
+    {"name": "select_statement$ebnf$6$subexpression$1", "symbols": ["select_for", "select_statement$ebnf$6$subexpression$1$ebnf$1"]},
+    {"name": "select_statement$ebnf$6", "symbols": ["select_statement$ebnf$6$subexpression$1"], "postprocess": id},
     {"name": "select_statement$ebnf$6", "symbols": [], "postprocess": () => null},
     {"name": "select_statement", "symbols": ["select_what", "select_statement$ebnf$1", "select_statement$ebnf$2", "select_statement$ebnf$3", "select_statement$ebnf$4", "select_statement$ebnf$5", "select_statement$ebnf$6"], "postprocess":  x => {
-            let [what, from, where, _groupBy, orderBy, limit, selectFor] = x;
+            let [what, from, where, _groupBy, orderBy, limit, _selectFor] = x;
             from = unwrap(from);
             let groupBy = _groupBy && _groupBy[0];
             let having = _groupBy && _groupBy[1];
             groupBy = groupBy && (groupBy.length === 1 && groupBy[0].type === 'list' ? groupBy[0].expressions : groupBy);
             having = having && unwrap(having);
+            let selectFor = _selectFor && _selectFor[0];
+            let skip = _selectFor && _selectFor[1];
+            skip = unwrap(skip);
             return track(x, {
                 ...what,
                 ...from ? { from: Array.isArray(from) ? from : [from] } : {},
@@ -834,6 +843,7 @@ const grammar: Grammar = {
                 ...orderBy ? { orderBy } : {},
                 ...where ? { where } : {},
                 ...selectFor ? { for: selectFor[1] } : {},
+                ...skip ? { skip } : {},
                 type: 'select',
             });
         } },
@@ -1018,6 +1028,9 @@ const grammar: Grammar = {
     {"name": "select_for$subexpression$1", "symbols": ["kw_share"], "postprocess": x => track(x, {type: 'share'})},
     {"name": "select_for$subexpression$1", "symbols": ["kw_key", "kw_share"], "postprocess": x => track(x, {type: 'key share'})},
     {"name": "select_for", "symbols": [(lexerAny.has("kw_for") ? {type: "kw_for"} : kw_for), "select_for$subexpression$1"]},
+    {"name": "select_skip$subexpression$1", "symbols": ["kw_nowait"], "postprocess": x => track(x, {type: 'nowait'})},
+    {"name": "select_skip$subexpression$1", "symbols": ["kw_skip", "kw_locked"], "postprocess": x => track(x, {type: 'skip locked'})},
+    {"name": "select_skip", "symbols": ["select_skip$subexpression$1"]},
     {"name": "select_order_by$subexpression$1", "symbols": [(lexerAny.has("kw_order") ? {type: "kw_order"} : kw_order), "kw_by"]},
     {"name": "select_order_by$ebnf$1", "symbols": []},
     {"name": "select_order_by$ebnf$1$subexpression$1", "symbols": ["comma", "select_order_by_expr"], "postprocess": last},

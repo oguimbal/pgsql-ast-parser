@@ -1356,6 +1356,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
         if (s.for) {
             ret.push('FOR ', s.for.type.toUpperCase());
+            if (s.skip) {
+                ret.push(' ', s.skip.type.toUpperCase());
+            }
         }
     },
 
