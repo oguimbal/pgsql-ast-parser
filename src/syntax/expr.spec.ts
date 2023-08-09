@@ -400,6 +400,19 @@ line`,
             }
         });
 
+        checkTreeExpr(['42-51', '42 - 51'], {
+            type: 'binary',
+            op: '-',
+            left: {
+                type: 'integer',
+                value: 42,
+            },
+            right: {
+                type: 'integer',
+                value: 51,
+            }
+        });
+
         checkTreeExpr(['42*51', '42 * 51'], {
             type: 'binary',
             op: '*',
