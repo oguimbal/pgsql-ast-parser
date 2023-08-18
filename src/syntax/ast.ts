@@ -898,6 +898,8 @@ export interface ExprCall extends PGNode {
     orderBy?: OrderByStatement[] | nil;
     /** [AGGREGATION FUNCTIONS] Filter clause */
     filter?: Expr | nil;
+    /** [AGGREGATION FUNCTIONS] WITHIN GROUP clause */
+    withinGroup?: OrderByStatement | nil;
     /** [AGGREGATION FUNCTIONS] OVER clause */
     over?: CallOver | nil;
 }

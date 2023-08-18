@@ -490,6 +490,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
             m.expr(v.filter);
             ret.push(') ');
         }
+        if (v.withinGroup) {
+            ret.push('WITHIN GROUP (');
+            visitOrderBy(m, [v.withinGroup]);
+            ret.push(') ');
+        }
         if (v.over) {
             ret.push('over (');
             if (v.over.partitionBy) {

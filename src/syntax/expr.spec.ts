@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkTreeExpr, checkInvalidExpr, checkInvalid, checkTreeExprLoc, starCol, star, col, ref, tbl, name } from './spec-utils';
+import { checkTreeExpr, checkInvalidExpr, checkInvalid, checkTreeExprLoc, starCol, star, col, ref, tbl, name, numeric } from './spec-utils';
 import { toSql } from '../to-sql';
 import { expect } from 'chai';
 import { parse } from '../parser';
@@ -1573,6 +1573,13 @@ line`,
             function: { name: 'count' },
             args: [ref('c')],
             orderBy: [{ by: ref('o') }]
+        });
+
+        checkTreeExpr(`PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY a)`, {
+            type: 'call',
+            function: { name: 'percentile_disc' },
+            args: [numeric(0.5)],
+            withinGroup: { by: ref('a') }
         });
     })
 

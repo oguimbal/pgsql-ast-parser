@@ -203,6 +203,7 @@ expr_call -> expr_fn_name
                 select_order_by:?
             rparen
             (kw_filter lparen %kw_where expr rparen {% get(3) %}):?
+            expr_call_within_group:?
             expr_call_over:?
             {% x => track(x, {
                 type: 'call',
@@ -211,7 +212,8 @@ expr_call -> expr_fn_name
                 args: x[3] || [],
                 ...x[4] && {orderBy: x[4]},
                 ...x[6] && {filter: unwrap(x[6])},
-                ...x[7] && {over: unwrap(x[7])},
+                ...x[7] && {withinGroup: x[7]},
+                ...x[8] && {over: unwrap(x[8])},
             }) %}
 
 expr_call_over -> kw_over
@@ -222,6 +224,13 @@ expr_call_over -> kw_over
                 ...x[2] && { partitionBy: x[2] },
                 ...x[3] && { orderBy: x[3] },
             }) %}
+
+expr_call_within_group -> (kw_within %kw_group)
+            lparen
+                (%kw_order kw_by)
+                select_order_by_expr
+            rparen
+            {% x => track(x, x[3]) %}
 
 # https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-EXTRACT
 expr_extract -> (word {% kw('extract') %}) lparen word %kw_from expr rparen {% x => track(x, {
