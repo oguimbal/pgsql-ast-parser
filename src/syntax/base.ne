@@ -218,6 +218,7 @@ kw_partition -> %word {% notReservedKw('partition')  %}
 kw_simple -> %word {% notReservedKw('simple')  %}
 kw_generated -> %word {% notReservedKw('generated')  %}
 kw_always -> %word {% notReservedKw('always')  %}
+kw_stored -> %word {% notReservedKw('stored') %}
 kw_identity -> %word {% notReservedKw('identity')  %}
 kw_name -> %word {% notReservedKw('name')  %}
 kw_enum -> %word {% notReservedKw('enum')  %}

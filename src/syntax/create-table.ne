@@ -162,11 +162,14 @@ createtable_column_constraint_def
     | %kw_default expr  {% x => track(x, { type: 'default', default: unwrap(x[1]) }) %}
     | %kw_check expr_paren {% x => track(x, { type: 'check', expr: unwrap(x[1]) }) %}
     | createtable_references {% x => track(x, { type: 'reference', ...unwrap(x) }) %}
+    | createtable_generated_stored
     | altercol_generated
 
 createtable_collate
     -> %kw_collate qualified_name
 
+createtable_generated_stored
+    -> kw_generated kw_always %kw_as expr_paren kw_stored {% x => track(x, {type: 'default', default: unwrap(x[3]) }) %}
 
 
 # ========================== OPTIONS =======================
