@@ -106,6 +106,13 @@ describe('Simple statements', () => {
         },
     });
 
+    checkStatement(`SET NAMES 'utf8'`, {
+        type: 'set names',
+        to: {
+            type: 'value',
+            value: 'utf8',
+        },
+    });
 
     checkStatement(['create schema test'], {
         type: 'create schema',

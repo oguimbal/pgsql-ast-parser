@@ -84,6 +84,7 @@ export interface IAstPartialMapper {
     tablespace?(val: a.TablespaceStatement): a.Statement | nil
     setGlobal?(val: a.SetGlobalStatement): a.Statement | nil
     setTimezone?(val: a.SetTimezone): a.Statement | nil
+    setNames?(val: a.SetNames): a.Statement | nil
     createSequence?(seq: a.CreateSequenceStatement): a.Statement | nil
     alterSequence?(seq: a.AlterSequenceStatement): a.Statement | nil
     begin?(begin: a.BeginStatement): a.Statement | nil
@@ -249,6 +250,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.setGlobal(val);
             case 'set timezone':
                 return this.setTimezone(val);
+            case 'set names':
+                return this.setNames(val);
             case 'create sequence':
                 return this.createSequence(val);
             case 'alter sequence':
@@ -440,6 +443,9 @@ export class AstDefaultMapper implements IAstMapper {
         return val;
     }
 
+    setNames(val: a.SetNames): a.Statement | nil {
+        return val;
+    }
 
     update(val: a.UpdateStatement): a.Statement | nil {
         if (!val) {
