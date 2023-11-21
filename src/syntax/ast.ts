@@ -34,6 +34,7 @@ export type Statement = SelectStatement
     | SetTimezone
     | CreateEnumType
     | CreateCompositeType
+    | AlterEnumType
     | TruncateTableStatement
     | DropStatement
     | CommentStatement
@@ -168,6 +169,27 @@ export interface CreateCompositeType extends PGNode {
     type: 'create composite type';
     name: QName;
     attributes: CompositeTypeAttribute[];
+}
+
+export interface AlterEnumType extends PGNode {
+    type: 'alter enum',
+    name: QName,
+    change: EnumAlteration
+}
+
+export type EnumAlteration
+    = EnumAlterationRename
+    | EnumAlterationAddValue
+
+
+export interface EnumAlterationRename {
+    type: 'rename';
+    to: QName;
+}
+
+export interface EnumAlterationAddValue  {
+    type: 'add value';
+    add: Literal;
 }
 
 export interface CompositeTypeAttribute extends PGNode {

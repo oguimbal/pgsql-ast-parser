@@ -316,6 +316,17 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(' ');
     },
 
+    alterEnum: t => {
+        ret.push('ALTER TYPE ');
+        visitQualifiedName(t.name);
+        if (t.change.type === 'rename') {
+            ret.push(' RENAME TO ');
+            visitQualifiedName(t.change.to);
+        } else {
+            ret.push(' ADD VALUE ', literal(t.change.add.value));
+        }
+    },
+
     createCompositeType: c => {
         ret.push('CREATE TYPE ');
         visitQualifiedName(c.name);
