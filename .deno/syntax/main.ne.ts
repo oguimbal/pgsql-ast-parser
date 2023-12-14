@@ -1620,6 +1620,8 @@ const grammar: Grammar = {
     {"name": "expr_fn_name$subexpression$2$subexpression$1", "symbols": [(lexerAny.has("kw_any") ? {type: "kw_any"} : kw_any)]},
     {"name": "expr_fn_name$subexpression$2$subexpression$1", "symbols": [(lexerAny.has("kw_some") ? {type: "kw_some"} : kw_some)]},
     {"name": "expr_fn_name$subexpression$2$subexpression$1", "symbols": [(lexerAny.has("kw_all") ? {type: "kw_all"} : kw_all)]},
+    {"name": "expr_fn_name$subexpression$2$subexpression$1", "symbols": [(lexerAny.has("kw_left") ? {type: "kw_left"} : kw_left)]},
+    {"name": "expr_fn_name$subexpression$2$subexpression$1", "symbols": [(lexerAny.has("kw_right") ? {type: "kw_right"} : kw_right)]},
     {"name": "expr_fn_name$subexpression$2", "symbols": ["expr_fn_name$subexpression$2$subexpression$1"], "postprocess":  x => track(x, {
             name: toStr(unwrap(x)),
         })},
