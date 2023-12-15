@@ -583,6 +583,123 @@ describe('Select statements', () => {
         ]
     });
 
+    checkSelect(`
+        select * from test
+        inner join lateral (
+            select * from test2
+            where test2.foo = test1.bar
+        ) test2_inner on true
+    `, {
+        type: 'select',
+        columns: [{ expr: star }],
+        from: [tbl('test'),
+        {
+            alias: "test2_inner",
+            join: {
+                on: {
+                    type: "boolean",
+                    value: true
+                },
+                type: "INNER JOIN",
+            },
+            statement: {
+                columns: [
+                    {
+                        expr: {
+                            name: "*",
+                            type: "ref"
+                        }
+                    }
+                ],
+                from: [
+                    {
+                        name: {
+                            name: "test2"
+                        },
+                        type: "table"
+                    }
+                ],
+                type: "select",
+                where: {
+                    left: {
+                        name: "foo",
+                        table: {
+                            name: "test2"
+                        },
+                        type: "ref"
+                    },
+                    op: "=",
+                    right: {
+                        name: "bar",
+                        table: {
+                            name: "test1"
+                        },
+                        type: "ref",
+                    },
+                    type: "binary"
+                }
+            },
+            type: "statement",
+            lateral: true,
+        }
+        ]
+    });
+
+    checkSelect(`
+        SELECT m.name AS mname, pname
+        FROM manufacturers m, LATERAL get_product_names(m.id) pname;
+    `, {
+        "columns": [
+            {
+                "expr": {
+                    "type": "ref",
+                    "table": {
+                        "name": "m"
+                    },
+                    "name": "name"
+                },
+                "alias": {
+                    "name": "mname"
+                }
+            },
+            {
+                "expr": {
+                    "type": "ref",
+                    "name": "pname"
+                }
+            }
+        ],
+        "from": [
+            {
+                "type": "table",
+                "name": {
+                    "name": "manufacturers",
+                    "alias": "m"
+                }
+            },
+            {
+                "type": "call",
+                "function": {
+                    "name": "get_product_names"
+                },
+                "args": [
+                    {
+                        "type": "ref",
+                        "table": {
+                            "name": "m"
+                        },
+                        "name": "id"
+                    }
+                ],
+                "lateral": true,
+                "alias": {
+                    "name": "pname"
+                }
+            }
+        ],
+        "type": "select"
+    });
+
     checkSelect(['select current_schema()'], {
         type: 'select',
         columns: [{
