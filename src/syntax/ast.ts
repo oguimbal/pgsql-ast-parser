@@ -409,6 +409,7 @@ export interface CreateIndexStatement extends PGNode {
     where?: Expr;
     unique?: true;
     ifNotExists?: true;
+    concurrently?: true;
     indexName?: Name;
     tablespace?: string;
     with?: CreateIndexWith[];
