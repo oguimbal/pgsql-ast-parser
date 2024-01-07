@@ -40,6 +40,14 @@ describe('Simple statements', () => {
         }
     });
 
+    checkStatement(`SET NAMES 'utf8'`, {
+        type: 'set names',
+        encoding: {
+          type: 'value',
+          value: 'utf8'
+        }
+    });
+
     checkStatement(`SET client_min_messages = warning`, {
         type: 'set',
         variable: { name: 'client_min_messages' },

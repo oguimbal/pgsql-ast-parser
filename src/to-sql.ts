@@ -796,7 +796,10 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push('SET ', name(g.variable), ' = ');
         visitSetVal(g.set);
     },
-
+    setNames: g => {
+        ret.push('SET NAMES ');
+        ret.push(literal(g.encoding.value))
+    },
     setTimezone: g => {
         ret.push('SET TIME ZONE ');
         switch (g.to.type) {

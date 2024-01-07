@@ -31,6 +31,7 @@ export type Statement = SelectStatement
     | AlterIndexStatement
     | AlterSequenceStatement
     | SetGlobalStatement
+    | SetNamesStatement
     | SetTimezone
     | CreateEnumType
     | CreateCompositeType
@@ -656,7 +657,7 @@ export interface ForStatement extends PGNode {
 }
 
 export interface SkipClause extends PGNode {
-    type: 'nowait' | 'skip locked' 
+    type: 'nowait' | 'skip locked'
 }
 
 export interface LimitStatement extends PGNode {
@@ -974,6 +975,15 @@ export interface SetGlobalStatement extends PGNode {
     type: 'set';
     variable: Name;
     set: SetGlobalValue;
+}
+export interface SetNamesStatement extends PGNode {
+    type: 'set names';
+    encoding: SetEncodingValue;
+}
+
+export type SetEncodingValue = {
+    type: 'value';
+    value: string;
 }
 export interface SetTimezone extends PGNode {
     type: 'set timezone',

@@ -220,6 +220,7 @@ kw_generated -> %word {% notReservedKw('generated')  %}
 kw_always -> %word {% notReservedKw('always')  %}
 kw_identity -> %word {% notReservedKw('identity')  %}
 kw_name -> %word {% notReservedKw('name')  %}
+kw_names -> %word {% notReservedKw('names')  %}
 kw_enum -> %word {% notReservedKw('enum')  %}
 kw_show -> %word {% notReservedKw('show')  %}
 kw_ordinality -> %word {% notReservedKw('ordinality')  %}
