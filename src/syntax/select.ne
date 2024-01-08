@@ -81,10 +81,11 @@ stb_table ->  table_ref stb_opts:? {% x => {
 
 
 # Selects on subselects MUST have an alias
-stb_statement -> selection_paren stb_opts {% x => track(x, {
+stb_statement -> %kw_lateral:? selection_paren stb_opts {% x => track(x, {
     type: 'statement',
-    statement: unwrap(x[0]),
-    ...x[1],
+    statement: unwrap(x[1]),
+    ...x[0] && { lateral: true },
+    ...x[2],
 }) %}
 
 
@@ -94,16 +95,18 @@ select_values -> kw_values insert_values {% x => track(x, {
 }) %}
 
 
-stb_call -> expr_function_call kw_withordinality:? stb_call_alias:? {% x => {
-    const withOrdinality = x[1];
-    const alias = x[2];
+stb_call -> %kw_lateral:? expr_function_call kw_withordinality:? stb_call_alias:? {% x => {
+    const lateral = x[0];
+    const withOrdinality = x[2];
+    const alias = x[3];
 
     if (!withOrdinality && !alias) {
-        return x[0];
+        return x[1];
     }
 
     return track(x, {
-        ...x[0],
+        ...x[1],
+        ...lateral && { lateral: true },
         ... withOrdinality && { withOrdinality: true },
         alias: alias ? asNameWithColumns(alias[0], alias[1]) : undefined,
     });
@@ -138,7 +141,6 @@ select_join_op
     | (%kw_left %kw_outer:? {% x => box(x, 'LEFT JOIN') %})
     | (%kw_right %kw_outer:? {% x => box(x, 'RIGHT JOIN') %})
     | (%kw_full %kw_outer:? {% x => box(x, 'FULL JOIN') %})
-
 
 
 # SELECT x,y as YY,z

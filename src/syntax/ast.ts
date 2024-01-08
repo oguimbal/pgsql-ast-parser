@@ -693,6 +693,7 @@ export type From = FromTable
 export interface FromCall extends ExprCall, PGNode {
     alias?: TableAliasName;
     join?: JoinClause | nil;
+    lateral?: true;
     withOrdinality?: boolean;
 };
 
@@ -716,6 +717,7 @@ export interface QNameMapped extends QNameAliased {
 export interface FromTable extends PGNode {
     type: 'table',
     name: QNameMapped;
+    lateral?: true;
     join?: JoinClause | nil;
 }
 
@@ -723,6 +725,7 @@ export interface FromStatement extends PGNode {
     type: 'statement';
     statement: SelectStatement;
     alias: string;
+    lateral?: true;
     columnNames?: Name[] | nil;
     db?: null | nil;
     join?: JoinClause | nil;

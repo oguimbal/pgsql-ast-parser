@@ -1047,6 +1047,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     fromCall: s => {
 
         join(m, s.join, () => {
+            if (s.lateral) {
+                ret.push("LATERAL ")
+            }
             m.call(s);
             if (s.withOrdinality) {
                 ret.push(' WITH ORDINALITY')
@@ -1074,6 +1077,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
         // todo: use 's.db' if defined
         join(m, s.join, () => {
+            if (s.lateral) {
+                ret.push("LATERAL ")
+            }
             ret.push('(');
             m.select(s.statement);
             ret.push(') ');
