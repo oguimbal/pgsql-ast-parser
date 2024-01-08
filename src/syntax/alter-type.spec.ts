@@ -2,7 +2,7 @@ import 'mocha';
 import 'chai';
 import { checkStatement } from './spec-utils';
 
-describe.only('Alter types', () => {
+describe('Alter types', () => {
 
     checkStatement([`ALTER TYPE myType ADD VALUE 'c'`], {
         type: 'alter enum',
