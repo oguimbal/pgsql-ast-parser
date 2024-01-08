@@ -817,6 +817,15 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    setNames: g => {
+        ret.push('SET NAMES ');
+        switch (g.to.type) {
+            case 'value':
+                ret.push(literal(g.to.value));
+                break;
+        }
+    },
+
     dataType: d => {
         if (d?.kind === 'array') {
             m.dataType(d.arrayOf!)

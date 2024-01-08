@@ -32,6 +32,7 @@ export type Statement = SelectStatement
     | AlterSequenceStatement
     | SetGlobalStatement
     | SetTimezone
+    | SetNames
     | CreateEnumType
     | CreateCompositeType
     | TruncateTableStatement
@@ -987,6 +988,16 @@ export type SetTimezoneValue = {
     type: 'local' | 'default';
 } | {
     type: 'interval';
+    value: string;
+};
+
+export interface SetNames extends PGNode {
+    type: 'set names',
+    to: SetNamesValue;
+}
+
+export type SetNamesValue = {
+    type: 'value';
     value: string;
 };
 
