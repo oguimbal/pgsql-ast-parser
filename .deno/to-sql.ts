@@ -809,7 +809,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
 
     setGlobal: g => {
-        ret.push('SET ', name(g.variable), ' = ');
+        ret.push('SET ')
+        if (g.scope) {
+            ret.push(g.scope.toUpperCase() + ' ');
+        }
+        ret.push(name(g.variable), ' = ');
         visitSetVal(g.set);
     },
 
