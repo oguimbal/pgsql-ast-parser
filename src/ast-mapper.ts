@@ -15,6 +15,7 @@ export interface IAstPartialMapper {
     raise?: (val: a.RaiseStatement) => a.Statement | nil
     createSchema?: (val: a.CreateSchemaStatement) => a.Statement | nil
     createEnum?(val: a.CreateEnumType): a.Statement | nil
+    alterEnum?(val: a.AlterEnumType): a.Statement | nil
     createCompositeType?(val: a.CreateCompositeType): a.Statement | nil
     drop?: (val: a.DropStatement) => a.Statement | nil
     show?: (val: a.ShowStatement) => a.Statement | nil
@@ -266,6 +267,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.drop(val);
             case 'create enum':
                 return this.createEnum(val);
+            case 'alter enum':
+                return this.alterEnum(val);
             case 'create composite type':
                 return this.createCompositeType(val);
             case 'union':
@@ -396,6 +399,10 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     createEnum(val: a.CreateEnumType): a.Statement | nil {
+        return val;
+    }
+
+    alterEnum(val: a.AlterEnumType): a.Statement | nil {
         return val;
     }
 

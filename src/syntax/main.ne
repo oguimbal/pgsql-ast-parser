@@ -20,6 +20,7 @@ import {lexerAny} from '../lexer';
 @include "drop.ne"
 @include "with.ne"
 @include "create-type.ne"
+@include "alter-type.ne"
 @include "union.ne"
 @include "prepare.ne"
 @include "deallocate.ne"
@@ -58,6 +59,7 @@ statement_noprep
     | alter_sequence_statement
     | drop_statement
     | createtype_statement
+    | altertype_statement
     | create_view_statements
     | refresh_view_statements
     | create_schema
