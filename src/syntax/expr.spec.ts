@@ -1247,6 +1247,20 @@ line`,
             args: [],
         });
 
+        checkTreeExprLoc([`left('foo')`], {
+            _location: { start: 0, end: 11 },
+            type: 'call',
+            function: {
+                _location: { start: 0, end: 4 },
+                name: 'left'
+            },
+            args: [{
+                _location: { start: 5, end: 10 },
+                type: 'string',
+                value: 'foo'
+            }],
+        });
+
         checkTreeExprLoc([`pg_catalog.col_description(23208,4)`], {
             _location: { start: 0, end: 35 },
             type: 'call',
