@@ -10,6 +10,7 @@ createindex_statement
     -> %kw_create
         %kw_unique:?
         kw_index
+        %kw_concurrently:?
         kw_ifnotexists:?
         word:?
         %kw_on
@@ -24,14 +25,15 @@ createindex_statement
          {% x => track(x, {
             type: 'create index',
             ...x[1] && { unique: true },
-            ...x[3] && { ifNotExists: true },
-            ...x[4] && { indexName: asName(x[4]) },
-            table: x[6],
-            ...x[7] && { using: asName(x[7]) },
-            expressions: x[9],
-            ...x[11] && { with: x[11] },
-            ...x[12] && { tablespace: unwrap(x[12]) },
-            ...x[13] && { where: unwrap(x[13]) },
+            ...x[3] && { concurrently: true },
+            ...x[4] && { ifNotExists: true },
+            ...x[5] && { indexName: asName(x[5]) },
+            table: x[7],
+            ...x[8] && { using: asName(x[8]) },
+            expressions: x[10],
+            ...x[12] && { with: x[12] },
+            ...x[13] && { tablespace: unwrap(x[13]) },
+            ...x[14] && { where: unwrap(x[14]) },
         }) %}
 
 createindex_expressions -> createindex_expression (comma createindex_expression {% last %}):* {% ([head, tail]) => {

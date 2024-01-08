@@ -215,4 +215,31 @@ describe('Create index', () => {
         }],
         tablespace: 'abc',
     });
+
+    checkCreateIndex(['create index concurrently blah on test(col)'], {
+        type: 'create index',
+        indexName: { name: 'blah' },
+        table: { name: 'test' },
+        concurrently: true,
+        expressions: [{
+            expression: { type: 'ref', name: 'col' },
+        }],
+    });
+    checkCreateIndex(['create index concurrently on test(col)'], {
+        type: 'create index',
+        table: { name: 'test', },
+        concurrently: true,
+        expressions: [{
+            expression: { type: 'ref', name: 'col' },
+        }],
+    });
+    checkCreateIndex(['create unique index concurrently on test(col)'], {
+        type: 'create index',
+        table: { name: 'test', },
+        concurrently: true,
+        unique: true,
+        expressions: [{
+            expression: { type: 'ref', name: 'col' },
+        }],
+    });
 });

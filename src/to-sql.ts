@@ -880,6 +880,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     createIndex: c => {
         ret.push(c.unique ? 'CREATE UNIQUE INDEX ' : 'CREATE INDEX ');
+        if (c.concurrently) {
+            ret.push('CONCURRENTLY ');
+        }
         if (c.ifNotExists) {
             ret.push(' IF NOT EXISTS ');
         }
