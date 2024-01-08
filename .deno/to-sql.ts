@@ -316,6 +316,17 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         ret.push(' ');
     },
 
+    alterEnum: t => {
+        ret.push('ALTER TYPE ');
+        visitQualifiedName(t.name);
+        if (t.change.type === 'rename') {
+            ret.push(' RENAME TO ');
+            visitQualifiedName(t.change.to);
+        } else {
+            ret.push(' ADD VALUE ', literal(t.change.add.value));
+        }
+    },
+
     createCompositeType: c => {
         ret.push('CREATE TYPE ');
         visitQualifiedName(c.name);
@@ -488,6 +499,11 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         if (v.filter) {
             ret.push('filter (where ');
             m.expr(v.filter);
+            ret.push(') ');
+        }
+        if (v.withinGroup) {
+            ret.push('WITHIN GROUP (');
+            visitOrderBy(m, [v.withinGroup]);
             ret.push(') ');
         }
         if (v.over) {
@@ -880,6 +896,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
     createIndex: c => {
         ret.push(c.unique ? 'CREATE UNIQUE INDEX ' : 'CREATE INDEX ');
+        if (c.concurrently) {
+            ret.push('CONCURRENTLY ');
+        }
         if (c.ifNotExists) {
             ret.push(' IF NOT EXISTS ');
         }
@@ -1047,6 +1066,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
     fromCall: s => {
 
         join(m, s.join, () => {
+            if (s.lateral) {
+                ret.push("LATERAL ")
+            }
             m.call(s);
             if (s.withOrdinality) {
                 ret.push(' WITH ORDINALITY')
@@ -1074,6 +1096,9 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
 
         // todo: use 's.db' if defined
         join(m, s.join, () => {
+            if (s.lateral) {
+                ret.push("LATERAL ")
+            }
             ret.push('(');
             m.select(s.statement);
             ret.push(') ');
