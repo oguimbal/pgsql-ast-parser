@@ -1002,6 +1002,7 @@ export interface ExprWhen extends PGNode {
 export interface SetGlobalStatement extends PGNode {
     type: 'set';
     variable: Name;
+    scope?: string;
     set: SetGlobalValue;
 }
 export interface SetTimezone extends PGNode {
