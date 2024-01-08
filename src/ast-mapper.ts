@@ -1247,10 +1247,13 @@ export class AstDefaultMapper implements IAstMapper {
         }
         const orderBy = this.orderBy(val.orderBy);
         const filter = this.expr(val.filter);
+        const withinGroupList = val.withinGroup ? [val.withinGroup] : undefined
+        const withinGroup = this.orderBy(withinGroupList)?.[0];
         return assignChanged(val, {
             args,
             orderBy,
             filter,
+            withinGroup,
         });
     }
 

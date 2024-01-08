@@ -244,6 +244,7 @@ kw_refresh -> %word {% notReservedKw('refresh')  %}
 kw_nowait -> %word {% notReservedKw('nowait')  %}
 kw_skip -> %word {% notReservedKw('skip')  %}
 kw_locked -> %word {% notReservedKw('locked')  %}
+kw_within -> %word {% notReservedKw('within')  %}
 
 
 # === Composite keywords
