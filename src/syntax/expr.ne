@@ -107,7 +107,13 @@ expr_array_index
     | expr_member {% unwrap %}
 
 expr_member
-    -> (expr_member | expr_paren) ops_member (string | int) {% x => track(x, {
+    -> (expr_member | expr_paren) ops_member %op_minus int {% x => track(x, {
+            type: 'member',
+            operand: unwrap(x[0]),
+            op: x[1],
+            member: -unwrap(x[3])
+        }) %}
+    | (expr_member | expr_paren) ops_member (string | int) {% x => track(x, {
             type: 'member',
             operand: unwrap(x[0]),
             op: x[1],

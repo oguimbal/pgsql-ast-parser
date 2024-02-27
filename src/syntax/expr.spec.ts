@@ -46,18 +46,37 @@ describe('Expressions', () => {
         });
 
         checkTreeExpr(['-0.5', '-.5'], {
-            type: 'numeric',
-            value: -0.5,
+            type: 'unary',
+            op: '-',
+            operand: {
+                type: 'numeric',
+                value: 0.5,
+            }
         });
 
         checkTreeExpr(['-42.', '-42.0'], {
-            type: 'numeric',
-            value: -42,
+            type: 'unary',
+            op: '-',
+            operand: {
+                type: 'numeric',
+                value: 42,
+            }
         });
 
         checkInvalidExpr('42. 51');
 
-        checkInvalidExpr('42.-51');
+        checkTreeExpr(['42.-51'], {
+            type: 'binary',
+            op: '-',
+            left: {
+                type: 'numeric',
+                value: 42,
+            },
+            right: {
+                type: 'integer',
+                value: 51,
+            },
+        });
 
         checkTreeExprLoc(['null'], {
             _location: { start: 0, end: 4 },
