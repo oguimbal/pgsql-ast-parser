@@ -51,8 +51,6 @@ export const lexer = compile({
     star: '*',
     comma: ',',
     space: { match: /[\s\t\n\v\f\r]+/, lineBreaks: true, },
-    int: /\-?\d+(?![\.\d])/,
-    float: /\-?(?:(?:\d*\.\d+)|(?:\d+\.\d*))/,
     // word: /[a-zA-Z][A-Za-z0-9_\-]*/,
     lparen: '(',
     rparen: ')',
@@ -71,6 +69,8 @@ export const lexer = compile({
     op_membertext: '->>',
     op_member: '->',
     op_minus: '-',
+    int: /\-?\d+(?![\.\d])/,
+    float: /\-?(?:(?:\d*\.\d+)|(?:\d+\.\d*))/,
     op_div: /\//,
     op_not_ilike: /\!~~\*/, // !~~* =ILIKE
     op_not_like: /\!~~/, // !~~ =LIKE

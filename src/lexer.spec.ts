@@ -168,15 +168,18 @@ describe('Lexer', () => {
         next({ type: 'comma' });
         next({ type: 'float', value: '.1' });
         next({ type: 'comma' });
-        next({ type: 'float', value: '-.1' });
+        next({ type: 'op_minus' });
+        next({ type: 'float', value: '.1' });
         next({ type: 'comma' });
-        next({ type: 'float', value: '-0.1' });
+        next({ type: 'op_minus' });
+        next({ type: 'float', value: '0.1' });
         next({ type: 'comma' });
         next({ type: 'float', value: '0.1' });
         next({ type: 'comma' });
         next({ type: 'float', value: '10.' });
         next({ type: 'comma' });
-        next({ type: 'float', value: '-10.' });
+        next({ type: 'op_minus' });
+        next({ type: 'float', value: '10.' });
     })
 
     it('tokenizes ->', () => {
