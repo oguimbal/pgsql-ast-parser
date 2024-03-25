@@ -13,6 +13,10 @@ export function checkSelect(value: string | string[], expected: SelectStatement)
     checkTree(value, expected, (p, m) => m.statement(p));
 }
 
+export function checkSelectLoc(value: string | string[], expected: SelectStatement) {
+    checkTree(value, expected, (p, m) => m.statement(p), undefined, true);
+}
+
 export function checkCreateSequence(value: string | string[], expected: CreateSequenceStatement) {
     checkTree(value, expected, (p, m) => m.statement(p));
 }
