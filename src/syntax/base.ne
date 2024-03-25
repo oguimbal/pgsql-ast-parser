@@ -312,7 +312,7 @@ data_type_date
 # === Table ref  (ex:  [db.]mytable [as X] )
 
 # [AS x] or just [x]
-ident_aliased -> (%kw_as ident {% last %}) | ident {% unwrap %}
+ident_aliased -> (%kw_as ident {% last %}) | ident {% last %}
 
 table_ref -> qualified_name {% unwrap %}
 
