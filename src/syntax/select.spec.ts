@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkSelect, checkInvalid, columns, ref, star, tbl, name, qname, checkStatement, int, binary } from './spec-utils';
+import { checkSelect, checkSelectLoc, checkInvalid, columns, ref, star, tbl, name, qname, checkStatement, int, binary } from './spec-utils';
 import { JoinType, SelectStatement } from './ast';
 
 describe('Select statements', () => {
@@ -1059,5 +1059,49 @@ describe('Select statements', () => {
         skip: {
             type: 'skip locked',
         }
+    });
+
+    checkSelectLoc('select * from test as t', {
+        _location: { start: 0, end: 23 },
+        type: 'select',
+        from: [{
+            _location: { start: 14, end: 23 },
+            type: 'table',
+            name: {
+                _location: { start: 14, end: 23 },
+                name: 'test',
+                alias: 't',
+            }
+        }],
+        columns: [{
+            _location: { start: 7, end: 8 },
+            expr: {
+                _location: { start: 7, end: 8 },
+                type: 'ref',
+                name: '*',
+            }
+        }]
+    });
+
+    checkSelectLoc('select * from test t', {
+        _location: { start: 0, end: 20 },
+        type: 'select',
+        from: [{
+            _location: { start: 14, end: 20 },
+            type: 'table',
+            name: {
+                _location: { start: 14, end: 20 },
+                name: 'test',
+                alias: 't',
+            },
+        }],
+        columns: [{
+            _location: { start: 7, end: 8 },
+            expr: {
+                _location: { start: 7, end: 8 },
+                type: 'ref',
+                name: '*',
+            },
+        }]
     });
 });
