@@ -817,7 +817,7 @@ export interface ExprSubstring extends PGNode {
 
 // === https://www.postgresql.org/docs/12/functions.html
 export type LogicOperator = 'OR' | 'AND';
-export type EqualityOperator = 'IN' | 'NOT IN' | 'LIKE' | 'NOT LIKE' | 'ILIKE' | 'NOT ILIKE' | '=' | '!=';
+export type EqualityOperator = 'IN' | 'NOT IN' | 'LIKE' | 'NOT LIKE' | 'ILIKE' | 'NOT ILIKE' | '=' | '!=' | 'IS DISTINCT FROM' | 'IS NOT DISTINCT FROM';
 // see https://www.postgresql.org/docs/12/functions-math.html
 export type MathOpsBinary = '|' | '&' | '>>' | '^' | '#' | '<<' | '>>';
 export type ComparisonOperator = '>' | '>=' | '<' | '<=' | '@>' | '<@' | '?' | '?|' | '?&' | '#>>' | '~' | '~*' | '!~' | '!~*' | '@@';

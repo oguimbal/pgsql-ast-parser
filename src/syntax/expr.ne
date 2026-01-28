@@ -90,7 +90,8 @@ expr_is
 expr_compare -> expr_binary[op_scopable[%op_compare], expr_compare, expr_range]
 expr_range -> expr_ternary[ops_between, %kw_and, expr_range, expr_others]
 expr_others -> expr_binary[op_scopable[%ops_others], expr_others, expr_like]
-expr_like -> expr_binary[op_single[ops_like], expr_like, expr_in]
+expr_like -> expr_binary[op_single[ops_like], expr_like, expr_is_distinct_from]
+expr_is_distinct_from -> expr_binary[op_single[ops_is_distinct_from], expr_is_distinct_from, expr_in]
 expr_in -> expr_binary[op_single[ops_in], expr_in, expr_add]
 expr_add -> expr_binary[op_scopable[(%op_plus | %op_minus | %op_additive)], expr_add, expr_mult]
 expr_mult -> expr_binary[op_scopable[(%star | %op_div | %op_mod)],  expr_mult, expr_exp]
@@ -252,8 +253,8 @@ expr_primary
 
 
 # LIKE-kind operators
-ops_like ->  ops_like_keywors | ops_like_operators
-ops_like_keywors -> %kw_not:? (%kw_like | %kw_ilike)
+ops_like ->  ops_like_keywords | ops_like_operators
+ops_like_keywords -> %kw_not:? (%kw_like | %kw_ilike)
 ops_like_operators
     -> (%op_like {% () => 'LIKE' %})
     | (%op_ilike {% () => 'ILIKE' %})
@@ -348,3 +349,10 @@ spe_substring -> (word {% kw('substring') %})
 
 various_binaries
     -> kw_at kw_time kw_zone {% () => 'AT TIME ZONE' %}
+
+
+ops_is_distinct_from -> ops_is_distinct_from_keywords | ops_is_distinct_from_operators
+ops_is_distinct_from_keywords -> %kw_is %kw_not:? %kw_distinct %kw_from
+ops_is_distinct_from_operators
+    -> (%op_is_distinct_from {% () => 'IS DISTINCT FROM' %})
+    | (%op_is_not_distinct_from {% () => 'IS NOT DISTINCT FROM' %})
