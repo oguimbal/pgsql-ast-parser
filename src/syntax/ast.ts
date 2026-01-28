@@ -533,13 +533,15 @@ export interface TableAliasName extends Name, PGNode {
 }
 
 export interface QName extends Name, PGNode {
+    database?: string;
     schema?: string;
 }
 
 export interface QColumn extends PGNode {
+    database?: string;
+    schema?: string;
     table: string;
     column: string;
-    schema?: string;
 }
 
 export type DataTypeDef = ArrayDataTypeDef | BasicDataTypeDef;

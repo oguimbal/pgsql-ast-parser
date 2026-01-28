@@ -102,6 +102,12 @@ function addConstraint(c: ColumnConstraint | TableConstraint, m: IAstVisitor) {
     ret.push(' ');
 }
 function visitQualifiedName(cs: QName, forceDoubleQuote?: boolean) {
+    if (cs.database !== undefined && cs.schema === undefined) {
+        throw new Error('Cannot qualify by database without also qualifying by schema')
+    }
+    if (cs.database) {
+        ret.push(ident(cs.database), '.');
+    }
     if (cs.schema) {
         ret.push(ident(cs.schema), '.');
     }
@@ -228,6 +234,12 @@ function visitSeqOpts(m: IAstVisitor, cs: AlterSequenceSetOptions | CreateSequen
 }
 
 function visitQColumn(col: QColumn) {
+    if (col.database !== undefined && col.schema === undefined) {
+        throw new Error('Cannot qualify by database without also qualifying by schema')
+    }
+    if (col.database) {
+        ret.push(ident(col.database), '.');
+    }
     if (col.schema) {
         ret.push(ident(col.schema), '.');
     }

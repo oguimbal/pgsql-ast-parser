@@ -233,6 +233,15 @@ describe('Simple statements', () => {
         }
     });
 
+    checkStatement(`COMMENT ON COLUMN my_database.public.groups.members is 'some text'`, {
+        type: 'comment',
+        comment: 'some text',
+        on: {
+            type: 'column',
+            column: { database: 'my_database', schema: 'public', table: 'groups', column: 'members', }
+        }
+    });
+
 
 
     it('can fetch comments', () => {
@@ -323,5 +332,28 @@ describe('Simple statements', () => {
         type: 'select',
         columns: [{ expr: ref('something'), alias: { name: 'column' } }],
         from: [tbl('whatever')],
+    });
+
+    checkStatement('SELECT my_database.my_schema.my_table.my_column FROM my_database.my_schema.my_table', {
+        type: 'select',
+        columns: [{
+            expr: {
+                type: 'ref',
+                table: {
+                    database: 'my_database',
+                    schema: 'my_schema',
+                    name: 'my_table',
+                },
+                name: 'my_column',
+            },
+        }],
+        from: [{
+            type: 'table',
+            name: {
+                database: 'my_database',
+                schema: 'my_schema',
+                name: 'my_table',
+            },
+        }],
     });
 });

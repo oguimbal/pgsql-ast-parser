@@ -317,17 +317,26 @@ ident_aliased -> (%kw_as ident {% last %}) | ident {% unwrap %}
 
 table_ref -> qualified_name {% unwrap %}
 
-qcolumn -> ident dot ident (dot ident {% last %}):? {% x => {
-                if (!x[3]) {
-                    return track(x, {
-                            table: unbox(x[0]),
-                            column: unbox(x[2]),
-                        });
-                }
+
+qcolumn -> ident dot ident dot ident dot ident {% x => {
+                return track(x, {
+                    database: unbox(x[0]),
+                    schema: unbox(x[2]),
+                    table: unbox(x[4]),
+                    column: unbox(x[6]),
+                });
+            } %}
+        |  ident dot ident dot ident {% x => {
                 return track(x, {
                     schema: unbox(x[0]),
                     table: unbox(x[2]),
-                    column: unbox(x[3]),
+                    column: unbox(x[4]),
+                });
+            } %}
+        |  ident dot ident {% x => {
+                return track(x, {
+                    table: unbox(x[0]),
+                    column: unbox(x[2]),
                 });
             } %}
 
@@ -343,6 +352,12 @@ table_ref_aliased -> table_ref ident_aliased:? {% x => {
 
 
 qualified_name -> qname_ident {% x => track(x, {name: toStr(x) }) %}
+        | ident dot ident dot ident_extended {% x => {
+                const database = toStr(x[0]);
+                const schema = toStr(x[2]);
+                const name = toStr(x[4]);
+                return track(x, {database, schema, name});
+            } %}
         | ident dot ident_extended {% x => {
                 const schema = toStr(x[0]);
                 const name = toStr(x[2]);
@@ -351,6 +366,12 @@ qualified_name -> qname_ident {% x => track(x, {name: toStr(x) }) %}
         | %kw_current_schema {% x => track(x, { name: 'current_schema' }) %}
 
 qualified_name_mark_quotes -> qname_ident {% x => track(x, {name: toStr(x), ...doubleQuoted(x) }) %}
+        | ident dot ident dot ident_extended {% x => {
+                const database = toStr(x[0]);
+                const schema = toStr(x[2]);
+                const name = toStr(x[4]);
+                return track(x, {database, schema, name, ...doubleQuoted(x[4])});
+            } %}
         | ident dot ident_extended {% x => {
                 const schema = toStr(x[0]);
                 const name = toStr(x[2]);
