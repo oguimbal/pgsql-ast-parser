@@ -80,8 +80,8 @@ stb_table ->  table_ref stb_opts:? {% x => {
     } %}
 
 
-# Selects on subselects MUST have an alias
-stb_statement -> %kw_lateral:? selection_paren stb_opts {% x => track(x, {
+# Selects on subselects CAN have an alias
+stb_statement -> %kw_lateral:? selection_paren stb_opts:? {% x => track(x, {
     type: 'statement',
     statement: unwrap(x[1]),
     ...x[0] && { lateral: true },

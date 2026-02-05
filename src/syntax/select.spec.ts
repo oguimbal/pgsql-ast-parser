@@ -349,7 +349,6 @@ describe('Select statements', () => {
     checkInvalid('select (*) from test');
     checkInvalid('select ("*") from test');
     checkInvalid('select * from (test)');
-    checkInvalid('select * from (select id from test)'); // <== missing alias
     checkInvalid('select * from sum(DISTINCT whatever)');
 
     checkSelect('select * from (select id from test) d', {
@@ -363,6 +362,19 @@ describe('Select statements', () => {
                 columns: columns({ type: 'ref', name: 'id' }),
             },
             alias: 'd',
+        }]
+    })
+
+    checkSelect('select * from (select id from test)', {
+        type: 'select',
+        columns: columns({ type: 'ref', name: '*' }),
+        from: [{
+            type: 'statement',
+            statement: {
+                type: 'select',
+                from: [tbl('test')],
+                columns: columns({ type: 'ref', name: 'id' }),
+            },
         }]
     })
 

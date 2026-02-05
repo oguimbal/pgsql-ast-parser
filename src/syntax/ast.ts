@@ -749,7 +749,7 @@ export interface FromTable extends PGNode {
 export interface FromStatement extends PGNode {
     type: 'statement';
     statement: SelectStatement;
-    alias: string;
+    alias?: string;
     lateral?: true;
     columnNames?: Name[] | nil;
     db?: null | nil;
