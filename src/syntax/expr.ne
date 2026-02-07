@@ -77,7 +77,7 @@ expr_star -> star  {% x => track(x, { type: 'ref', name: '*' }) %}
 expr_is
     -> (expr_is | expr_paren) (%kw_isnull | %kw_is %kw_null) {% x => track(x, { type: 'unary', op: 'IS NULL', operand: unwrap(x[0]) }) %}
     | (expr_is | expr_paren) (%kw_notnull | %kw_is kw_not_null)  {% x => track(x, { type: 'unary', op: 'IS NOT NULL', operand: unwrap(x[0])}) %}
-    | (expr_is | expr_paren) %kw_is %kw_not:? (%kw_true | %kw_false)  {% x => track(x, {
+    | (expr_is | expr_paren) %kw_is %kw_not:? (%kw_true | %kw_false | %kw_unknown)  {% x => track(x, {
             type: 'unary',
             op: 'IS ' + flattenStr([x[2], x[3]])
                 .join(' ')
@@ -249,6 +249,7 @@ expr_primary
     | value_keyword {% x => track(x, {type: 'keyword', keyword: toStr(x) }) %}
     | %qparam {% x => track(x, { type: 'parameter', name: toStr(x[0]) }) %}
     | %kw_default  {% x => track(x, { type: 'default'}) %}
+    | %kw_unknown {% x => track(x, { type: 'unknown' }) %}
 
 
 # LIKE-kind operators

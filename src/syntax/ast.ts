@@ -864,7 +864,7 @@ export interface ExprCast extends PGNode {
 }
 
 
-export type UnaryOperator = '+' | '-' | 'NOT' | 'IS NULL' | 'IS NOT NULL' | 'IS TRUE' | 'IS FALSE' | 'IS NOT TRUE' | 'IS NOT FALSE';
+export type UnaryOperator = '+' | '-' | 'NOT' | 'IS NULL' | 'IS NOT NULL' | 'IS TRUE' | 'IS FALSE' | 'IS NOT TRUE' | 'IS NOT FALSE' | 'IS UNKNOWN' | 'IS NOT UNKNOWN';
 export interface ExprUnary extends PGNode {
     type: 'unary';
     operand: Expr;
