@@ -78,6 +78,15 @@ export const lexer = compile({
     op_like: /~~/, // ~~ =LIKE
     op_mod: '%',
     op_exp: '^',
+    op_square_root: '|/', // https://www.postgresql.org/docs/16/functions-math.html
+    op_cube_root: '||/', // https://www.postgresql.org/docs/16/functions-math.html
+    op_double_at: '@@', // https://www.postgresql.org/docs/16/functions-geometry.html and https://www.postgresql.org/docs/16/functions-json.html
+    op_tilde_star: '~*', // https://www.postgresql.org/docs/16/functions-matching.html
+    op_tilde: '~', // https://www.postgresql.org/docs/16/functions-bitstring.html and https://www.postgresql.org/docs/current/functions-matching.html
+    op_question_mark_dash: '?-', // https://www.postgresql.org/docs/16/functions-geometry.html
+    op_question_mark_pipe: '?|', // https://www.postgresql.org/docs/16/functions-geometry.html
+    op_hash_rangle_rangle: '#>>', // https://www.postgresql.org/docs/16/functions-json.html
+    op_hash: '#', // https://www.postgresql.org/docs/16/functions-geometry.html
     op_additive: {
         // group other additive operators
         match: ['||', '-', '#-', '&&'],
@@ -85,7 +94,10 @@ export const lexer = compile({
     op_compare: {
         // group other comparison operators
         // ... to add: "IN" and "NOT IN" that are matched by keywords
-        match: ['>', '>=', '<', '<=', '@>', '<@', '?', '?|', '?&', '#>>', '>>', '<<', '~', '~*', '!~', '!~*', '@@'],
+        match: ['>', '>=', '<', '<=', '@>', '<@', '?', '?&', '>>', '<<', '!~', '!~*'],
+    },
+    op_others_unary: {
+        match: ['@', '@-@', '!!'],
     },
     ops_others: {
         // referenced as (any other operator) in https://www.postgresql.org/docs/12/sql-syntax-lexical.html#SQL-PRECEDENCE

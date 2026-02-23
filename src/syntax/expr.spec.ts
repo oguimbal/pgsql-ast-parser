@@ -835,6 +835,66 @@ line`,
             operand: { type: 'ref', name: 'a' }
         });
 
+        checkTreeExpr('|/ a', {
+            type: 'unary',
+            op: '|/',
+            operand: { type: 'ref', name: 'a' }
+        });
+
+        checkTreeExpr('||/ a', {
+            type: 'unary',
+            op: '||/',
+            operand: { type: 'ref', name: 'a' }
+        });
+
+        checkTreeExpr('@ a', {
+            type: 'unary',
+            op: '@',
+            operand: { type: 'ref', name: 'a' }
+        });
+
+        checkTreeExpr('~ a', {
+            type: 'unary',
+            op: '~',
+            operand: { type: 'ref', name: 'a' }
+        });
+
+        checkTreeExpr('@-@ a', {
+            type: 'unary',
+            op: '@-@',
+            operand: { type: 'ref', name: 'a' }
+        });
+
+        checkTreeExpr('@@ a', {
+            type: 'unary',
+            op: '@@',
+            operand: { type: 'ref', name: 'a' }
+        });
+
+        checkTreeExpr('# a', {
+            type: 'unary',
+            op: '#',
+            operand: { type: 'ref', name: 'a' }
+        });
+
+        checkTreeExpr('?- a', {
+            type: 'unary',
+            op: '?-',
+            operand: { type: 'ref', name: 'a' }
+        });
+
+        checkTreeExpr('?| a', {
+            type: 'unary',
+            op: '?|',
+            operand: { type: 'ref', name: 'a' }
+        });
+
+        checkTreeExpr('!! a', {
+            type: 'unary',
+            op: '!!',
+            operand: { type: 'ref', name: 'a' }
+        });
+
     });
 
 
