@@ -1060,4 +1060,91 @@ describe('Select statements', () => {
             type: 'skip locked',
         }
     });
+
+    checkSelect("(select * from foo)",
+        {
+            type: 'select',
+            "columns": [
+                {
+                    "expr": {
+                        "name": "*",
+                        "type": "ref"
+                    }
+                }
+            ],
+            "from": [
+                {
+                    "name": {
+                        "name": "foo"
+                    },
+                    "type": "table"
+                }
+            ]
+        }
+    );
+
+    const testSubselect: SelectStatement = {
+        type: 'select',
+        "columns": [
+            {
+                "expr": {
+                    "name": "*",
+                    "type": "ref"
+                }
+            }
+        ],
+        "from": [
+            {
+                "alias": "a",
+                "statement": {
+                    "columns": [
+                        {
+                            "expr": {
+                                "name": "*",
+                                "type": "ref"
+                            }
+                        }
+                    ],
+                    "from": [
+                        {
+                            "name": {
+                                "name": "bar"
+                            },
+                            "type": "table"
+                        }
+                    ],
+                    "type": "select",
+                },
+                "type": "statement"
+            }
+        ]
+    };
+
+    checkSelect(`
+        select * from  (
+            select * from bar
+        ) a`,
+        testSubselect
+    );
+
+    checkSelect(`
+        select * from (
+            (
+                select * from bar
+            )
+        ) a`,
+        testSubselect
+    );
+
+    checkSelect(`
+        select * from (
+            (   
+                (
+                    select * from bar
+                )
+            )
+        ) a`,
+        testSubselect
+    );
+
 });
