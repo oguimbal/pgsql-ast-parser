@@ -329,5 +329,8 @@ export function tbl(nm: string): FromTable {
     };
 }
 export function numeric(value: number): ExprNumeric {
-    return { type: 'numeric', value };
+    // mirror the parser: fractional numeric literals carry their canonical text
+    return Number.isInteger(value)
+        ? { type: 'numeric', value }
+        : { type: 'numeric', value, valueText: String(value) };
 }

@@ -9,7 +9,7 @@ union_left -> select_statement
 union_right -> selection
             | selection_paren
 
-union_statement  -> union_left (%kw_union %kw_all:?) union_right {% x => {
+union_statement  -> union_left ((%kw_union | %kw_intersect | %kw_except) %kw_all:?) union_right {% x => {
         return track(x, {
             type: toStr(x[1], ' '),
             left: unwrap(x[0]),

@@ -84,6 +84,12 @@ expr_is
                 .toUpperCase(),
             operand: unwrap(x[0]),
         }) %}
+    | (expr_is | expr_paren) %kw_is %kw_not:? %kw_distinct %kw_from (expr_compare | expr_paren) {% x => track(x, {
+            type: 'binary',
+            op: x[2] ? 'IS NOT DISTINCT FROM' : 'IS DISTINCT FROM',
+            left: unwrap(x[0]),
+            right: unwrap(x[5]),
+        }) %}
     | expr_compare {% unwrap %}
 
 
@@ -104,6 +110,12 @@ expr_array_index
             array: unwrap(x[0]),
             index: unwrap(x[2]),
         }) %}
+    | (expr_array_index | expr_paren) %lbracket expr_nostar:? %op_colon expr_nostar:? %rbracket {% x => track(x, {
+            type: 'arraySlice',
+            array: unwrap(x[0]),
+            ...x[2] ? { from: unwrap(x[2]) } : {},
+            ...x[4] ? { to: unwrap(x[4]) } : {},
+        }) %}
     | expr_member {% unwrap %}
 
 expr_member
@@ -117,6 +129,12 @@ expr_member
             type: 'cast',
             operand: unwrap(x[0]),
             to: x[2],
+        }) %}
+    | expr_paren %dot word {% x => track(x, {
+            type: 'member',
+            operand: unwrap(x[0]),
+            op: '.',
+            member: toStr(x[2]),
         }) %}
     | %kw_cast lparen expr_nostar %kw_as data_type rparen {% x => track(x, {
             type: 'cast',
@@ -205,25 +223,61 @@ expr_call -> expr_fn_name
             (kw_filter lparen %kw_where expr rparen {% get(3) %}):?
             expr_call_within_group:?
             expr_call_over:?
-            {% x => track(x, {
-                type: 'call',
-                function: unwrap(x[0]),
-                ...x[2] && {distinct: toStr(x[2])},
-                args: x[3] || [],
-                ...x[4] && {orderBy: x[4]},
-                ...x[6] && {filter: unwrap(x[6])},
-                ...x[7] && {withinGroup: x[7]},
-                ...x[8] && {over: unwrap(x[8])},
-            }) %}
+            {% (x, _loc, reject) => {
+                const fn = unwrap(x[0]);
+                // "position" has no generic call form in postgres - only the special
+                // "position(x in y)" syntax (spe_position). Reject the generic parse to
+                // avoid an ambiguity, since "x in y" is also a valid boolean argument.
+                if (fn && !fn.schema && typeof fn.name === 'string' && fn.name.toLowerCase() === 'position') {
+                    return reject;
+                }
+                return track(x, {
+                    type: 'call',
+                    function: fn,
+                    ...x[2] && {distinct: toStr(x[2])},
+                    args: x[3] || [],
+                    ...x[4] && {orderBy: x[4]},
+                    ...x[6] && {filter: unwrap(x[6])},
+                    ...x[7] && {withinGroup: x[7]},
+                    ...x[8] && {over: unwrap(x[8])},
+                });
+            } %}
 
 expr_call_over -> kw_over
             lparen
                 (kw_partition kw_by expr_list_raw {% last %}):?
                 select_order_by:?
+                expr_call_over_frame:?
             rparen {% x => track(x, {
                 ...x[2] && { partitionBy: x[2] },
                 ...x[3] && { orderBy: x[3] },
+                ...x[4] && { frame: unwrap(x[4]) },
             }) %}
+
+# frame clause: https://www.postgresql.org/docs/current/sql-expressions.html#SYNTAX-WINDOW-FUNCTIONS
+expr_call_over_frame -> (kw_rows | kw_range | kw_groups)
+            expr_call_over_frame_bounds
+            {% x => track(x, {
+                unit: toStr(x[0]),
+                ...x[1],
+            }) %}
+
+expr_call_over_frame_bounds
+    -> kw_between expr_call_over_frame_bound %kw_and expr_call_over_frame_bound {% x => ({ start: unwrap(x[1]), end: unwrap(x[3]) }) %}
+    | expr_call_over_frame_bound {% x => ({ start: unwrap(x[0]) }) %}
+
+expr_call_over_frame_bound
+    -> kw_unbounded kw_preceding {% x => track(x, { type: 'unbounded preceding' }) %}
+    | kw_unbounded kw_following {% x => track(x, { type: 'unbounded following' }) %}
+    | kw_current kw_row {% x => track(x, { type: 'current row' }) %}
+    | expr_call_over_frame_value kw_preceding {% x => track(x, { type: 'preceding', value: unwrap(x[0]) }) %}
+    | expr_call_over_frame_value kw_following {% x => track(x, { type: 'following', value: unwrap(x[0]) }) %}
+
+# restricted to unambiguous forms (a general expr would clash with keyword bounds)
+expr_call_over_frame_value
+    -> int {% x => track(x, { type: 'integer', value: unbox(x[0]) }) %}
+    | %qparam {% x => track(x, { type: 'parameter', name: toStr(x[0]) }) %}
+    | expr_paren {% unwrap %}
 
 expr_call_within_group -> (kw_within %kw_group)
             lparen
@@ -240,9 +294,10 @@ expr_extract -> (word {% kw('extract') %}) lparen word %kw_from expr rparen {% x
 }) %}
 
 expr_primary
-    -> float {% x => track(x, { type: 'numeric', value: unbox(x[0]) }) %}
-    | int {% x => track(x, { type: 'integer', value: unbox(x[0]) }) %}
+    -> %float {% x => track(x, mkNumeric(x[0])) %}
+    | %int {% x => track(x, mkInteger(x[0])) %}
     | string {% x => track(x, { type: 'string', value: unbox(x[0]) }) %}
+    | %codeblock {% x => track(x, { type: 'string', value: x[0].value }) %}
     | %kw_true {% x => track(x, { type: 'boolean', value: true }) %}
     | %kw_false {% x => track(x, { type: 'boolean', value: false }) %}
     | %kw_null {% x => track(x, { type: 'null' }) %}
@@ -320,6 +375,7 @@ value_keyword
 
 expr_special_calls -> spe_overlay
                     | spe_substring
+                    | spe_position
 
 spe_overlay -> (word {% kw('overlay') %})
             (%lparen expr_nostar)
@@ -343,6 +399,16 @@ spe_substring -> (word {% kw('substring') %})
                 value: x[1][1],
                 ...x[2] && {from: x[2][1]},
                 ...x[3] && {for: x[3][1]},
+            }) %}
+
+# https://www.postgresql.org/docs/current/functions-string.html  position(substring in string)
+spe_position -> (word {% kw('position') %})
+            (%lparen expr_nostar)
+            (%kw_in expr_nostar)
+            %rparen {% x => track(x, {
+                type: 'position',
+                substring: x[1][1],
+                string: x[2][1],
             }) %}
 
 

@@ -62,9 +62,18 @@ describe('Drop', () => {
         names: [{ name: 'test' }],
     });
 
-    checkStatement([`DROP TRIGGER test`], {
+    checkStatement([`DROP TRIGGER test ON my_table`], {
         type: 'drop trigger',
-        names: [{ name: 'test' }],
+        name: { name: 'test' },
+        onTable: { name: 'my_table' },
+    });
+
+    checkStatement([`DROP TRIGGER IF EXISTS test ON pub.my_table CASCADE`], {
+        type: 'drop trigger',
+        ifExists: true,
+        name: { name: 'test' },
+        onTable: { name: 'my_table', schema: 'pub' },
+        cascade: 'cascade',
     });
 
     checkStatement([`drop index concurrently if exists test`], {

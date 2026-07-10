@@ -41,4 +41,18 @@ describe('Prepare', () => {
             columns: [{ expr: { type: 'ref', name: 'c' } }],
         },
     });
+
+    checkStatement(`execute st`, {
+        type: 'execute',
+        name: { name: 'st' },
+    });
+
+    checkStatement(`execute st(1, 'foo')`, {
+        type: 'execute',
+        name: { name: 'st' },
+        args: [
+            { type: 'integer', value: 1 },
+            { type: 'string', value: 'foo' },
+        ],
+    });
 });

@@ -73,6 +73,39 @@
         return flattenStr(e).join(join || '');
     }
 
+    function mkInteger(tok: any) {
+        const text = String(tok?.value ?? tok);
+        const n = parseInt(text, 10);
+        // preserve exact digits when the value can't be represented as a safe JS integer
+        return Number.isSafeInteger(n)
+            ? { type: 'integer', value: n }
+            : { type: 'integer', value: n, valueText: text };
+    }
+    function canonNumeric(text: string): string {
+        // canonical decimal form (equivalent literals -> same text), precision preserved
+        let t = text.trim();
+        if (/[eE]/.test(t)) {
+            return t; // leave exponent forms as-is
+        }
+        let sign = '';
+        if (t[0] === '+' || t[0] === '-') { sign = t[0] === '-' ? '-' : ''; t = t.slice(1); }
+        if (t.startsWith('.')) { t = '0' + t; }        // .5 -> 0.5
+        if (t.includes('.')) {
+            t = t.replace(/0+$/, '');                   // 1.50 -> 1.5, 42.0 -> 42.
+            // keep the trailing '.' so it re-parses as numeric (not integer)
+        }
+        return (sign && parseFloat(t) !== 0 ? sign : '') + t;
+    }
+    function mkNumeric(tok: any) {
+        const text = String(tok?.value ?? tok);
+        const n = parseFloat(text);
+        // a fractional/exponent literal may not round-trip through a JS double, so keep
+        // the exact (canonical) source text for arbitrary-precision numeric consumers
+        return /[.eE]/.test(text)
+            ? { type: 'numeric', value: n, valueText: canonNumeric(text) }
+            : { type: 'numeric', value: n };
+    }
+
     function fromEntries(vals: [string, any][]): any {
         const ret = {} as any;
         for (const [k, v] of vals) {
@@ -136,6 +169,8 @@ collist -> ident (comma ident {% last %}):* {% ([head, tail]) => {
 kw_between -> %word {% notReservedKw('between')  %}
 kw_conflict -> %word {% notReservedKw('conflict')  %}
 kw_nothing -> %word {% notReservedKw('nothing')  %}
+kw_merge -> %word {% notReservedKw('merge')  %}
+kw_matched -> %word {% notReservedKw('matched')  %}
 kw_begin -> %word {% notReservedKw('begin')  %}
 kw_if -> %word {% notReservedKw('if')  %}
 kw_exists -> %word {% notReservedKw('exists')  %}
@@ -157,6 +192,28 @@ kw_read -> %word {% notReservedKw('read')  %}
 kw_write -> %word {% notReservedKw('write')  %}
 kw_isolation -> %word {% notReservedKw('isolation')  %}
 kw_level -> %word {% notReservedKw('level')  %}
+kw_policy -> %word {% notReservedKw('policy')  %}
+kw_permissive -> %word {% notReservedKw('permissive')  %}
+kw_restrictive -> %word {% notReservedKw('restrictive')  %}
+kw_force -> %word {% notReservedKw('force')  %}
+kw_security -> %word {% notReservedKw('security')  %}
+kw_enable -> %word {% notReservedKw('enable')  %}
+kw_disable -> %word {% notReservedKw('disable')  %}
+kw_public -> %word {% notReservedKw('public')  %}
+kw_revoke -> %word {% notReservedKw('revoke')  %}
+kw_privileges -> %word {% notReservedKw('privileges')  %}
+kw_usage -> %word {% notReservedKw('usage')  %}
+kw_execute -> %word {% notReservedKw('execute')  %}
+kw_before -> %word {% notReservedKw('before')  %}
+kw_after -> %word {% notReservedKw('after')  %}
+kw_instead -> %word {% notReservedKw('instead')  %}
+kw_of -> %word {% notReservedKw('of')  %}
+kw_each -> %word {% notReservedKw('each')  %}
+kw_statement -> %word {% notReservedKw('statement')  %}
+kw_procedure -> %word {% notReservedKw('procedure')  %}
+kw_connect -> %word {% notReservedKw('connect')  %}
+kw_deferred -> %word {% notReservedKw('deferred')  %}
+kw_immediate -> %word {% notReservedKw('immediate')  %}
 kw_serializable -> %word {% notReservedKw('serializable')  %}
 kw_rollback -> %word {% notReservedKw('rollback')  %}
 kw_insert -> %word {% notReservedKw('insert')  %}
@@ -183,6 +240,7 @@ kw_minvalue -> %word {% notReservedKw('minvalue')  %}
 kw_maxvalue -> %word {% notReservedKw('maxvalue')  %}
 kw_data -> %word {% notReservedKw('data')  %}
 kw_type -> %word {% notReservedKw('type')  %}
+kw_domain -> %word {% notReservedKw('domain')  %}
 kw_trigger -> %word {% notReservedKw('trigger')  %}
 kw_delete -> %word {% notReservedKw('delete')  %}
 kw_cache -> %word {% notReservedKw('cache')  %}
@@ -192,6 +250,7 @@ kw_timestamp -> %word {% notReservedKw('timestamp')  %}
 kw_cycle -> %word {% notReservedKw('cycle')  %}
 kw_function -> %word {% notReservedKw('function')  %}
 kw_returns -> %word {% notReservedKw('returns')  %}
+kw_setof -> %word {% notReservedKw('setof')  %}
 kw_language -> %word {% notReservedKw('language')  %}
 kw_out -> %word {% notReservedKw('out')  %}
 kw_inout -> %word {% notReservedKw('inout')  %}
@@ -203,6 +262,29 @@ kw_increment -> %word {% notReservedKw('increment')  %}
 kw_by -> %word {% notReservedKw('by')  %}
 kw_row -> %word {% notReservedKw('row')  %}
 kw_rows -> %word {% notReservedKw('rows')  %}
+kw_savepoint -> %word {% notReservedKw('savepoint')  %}
+kw_release -> %word {% notReservedKw('release')  %}
+kw_role -> %word {% notReservedKw('role')  %}
+kw_reset -> %word {% notReservedKw('reset')  %}
+kw_login -> %word {% notReservedKw('login')  %}
+kw_nologin -> %word {% notReservedKw('nologin')  %}
+kw_superuser -> %word {% notReservedKw('superuser')  %}
+kw_nosuperuser -> %word {% notReservedKw('nosuperuser')  %}
+kw_bypassrls -> %word {% notReservedKw('bypassrls')  %}
+kw_nobypassrls -> %word {% notReservedKw('nobypassrls')  %}
+kw_password -> %word {% notReservedKw('password')  %}
+kw_createdb -> %word {% notReservedKw('createdb')  %}
+kw_nocreatedb -> %word {% notReservedKw('nocreatedb')  %}
+kw_createrole -> %word {% notReservedKw('createrole')  %}
+kw_nocreaterole -> %word {% notReservedKw('nocreaterole')  %}
+kw_inherit -> %word {% notReservedKw('inherit')  %}
+kw_noinherit -> %word {% notReservedKw('noinherit')  %}
+kw_range -> %word {% notReservedKw('range')  %}
+kw_groups -> %word {% notReservedKw('groups')  %}
+kw_unbounded -> %word {% notReservedKw('unbounded')  %}
+kw_preceding -> %word {% notReservedKw('preceding')  %}
+kw_following -> %word {% notReservedKw('following')  %}
+kw_current -> %word {% notReservedKw('current')  %}
 kw_next -> %word {% notReservedKw('next')  %}
 kw_match -> %word {% notReservedKw('match')  %}
 kw_replace -> %word {% notReservedKw('replace')  %}
@@ -216,6 +298,24 @@ kw_option -> %word {% notReservedKw('option')  %}
 kw_materialized -> %word {% notReservedKw('materialized')  %}
 kw_partial -> %word {% notReservedKw('partial')  %}
 kw_partition -> %word {% notReservedKw('partition')  %}
+kw_grouping -> %word {% notReservedKw('grouping')  %}
+kw_sets -> %word {% notReservedKw('sets')  %}
+kw_routine -> %word {% notReservedKw('routine')  %}
+kw_database -> %word {% notReservedKw('database')  %}
+kw_tables -> %word {% notReservedKw('tables')  %}
+kw_sequences -> %word {% notReservedKw('sequences')  %}
+kw_functions -> %word {% notReservedKw('functions')  %}
+kw_routines -> %word {% notReservedKw('routines')  %}
+kw_types -> %word {% notReservedKw('types')  %}
+kw_schemas -> %word {% notReservedKw('schemas')  %}
+kw_include -> %word {% notReservedKw('include')  %}
+kw_notify -> %word {% notReservedKw('notify')  %}
+kw_listen -> %word {% notReservedKw('listen')  %}
+kw_unlisten -> %word {% notReservedKw('unlisten')  %}
+kw_list -> %word {% notReservedKw('list')  %}
+kw_hash -> %word {% notReservedKw('hash')  %}
+kw_modulus -> %word {% notReservedKw('modulus')  %}
+kw_remainder -> %word {% notReservedKw('remainder')  %}
 kw_simple -> %word {% notReservedKw('simple')  %}
 kw_generated -> %word {% notReservedKw('generated')  %}
 kw_always -> %word {% notReservedKw('always')  %}

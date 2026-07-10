@@ -10,9 +10,14 @@ import {lexerAny} from '../lexer';
 @include "create-table.ne"
 @include "create-index.ne"
 @include "create-extension.ne"
+@include "create-role.ne"
+@include "policy.ne"
+@include "grant.ne"
+@include "create-trigger.ne"
 @include "simple-statements.ne"
 @include "insert.ne"
 @include "update.ne"
+@include "merge.ne"
 @include "alter-table.ne"
 @include "alter-index.ne"
 @include "delete.ne"
@@ -20,10 +25,12 @@ import {lexerAny} from '../lexer';
 @include "drop.ne"
 @include "with.ne"
 @include "create-type.ne"
+@include "create-domain.ne"
 @include "alter-type.ne"
 @include "union.ne"
 @include "prepare.ne"
 @include "deallocate.ne"
+@include "execute.ne"
 @include "create-view.ne"
 @include "refresh-materialized-view.ne"
 @include "functions.ne"
@@ -42,23 +49,34 @@ main -> statement_separator:* statement (statement_separator:+ statement):* stat
 statement_separator -> %semicolon
 
 
-statement -> statement_noprep | prepare | deallocate
+statement -> statement_noprep | prepare | deallocate | execute_statement
 
 statement_noprep
     -> selection
     | createtable_statement
     | createextension_statement
+    | createrole_statement
+    | alterrole_statement
+    | alterdefaultprivileges_statement
+    | createpolicy_statement
+    | droppolicy_statement
+    | grant_statement
+    | revoke_statement
+    | createtrigger_statement
     | createindex_statement
     | simplestatements_all
     | insert_statement
     | update_statement
+    | merge_statement
     | altertable_statement
     | alterindex_statement
     | delete_statement
     | create_sequence_statement
     | alter_sequence_statement
     | drop_statement
+    | drop_trigger_statement
     | createtype_statement
+    | createdomain_statement
     | altertype_statement
     | create_view_statements
     | refresh_view_statements

@@ -21,6 +21,15 @@ describe('Create index', () => {
         }],
     });
 
+    checkCreateIndex(['create index on test(a) INCLUDE (b, c)'], {
+        type: 'create index',
+        table: { name: 'test' },
+        expressions: [{
+            expression: { type: 'ref', name: 'a' },
+        }],
+        include: [{ name: 'b' }, { name: 'c' }],
+    });
+
     checkInvalid(`create index on test('a')`);
     checkInvalid('create index on test(a * 2)');
     checkInvalid('create index on test(a and b)');

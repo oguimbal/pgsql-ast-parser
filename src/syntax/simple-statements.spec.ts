@@ -18,6 +18,21 @@ describe('Simple statements', () => {
         type: 'rollback',
     });
 
+    checkStatement(['rollback to sp1', 'ROLLBACK TO SAVEPOINT sp1'], {
+        type: 'rollback',
+        to: { name: 'sp1' },
+    });
+
+    checkStatement(['savepoint sp1', 'SAVEPOINT "sp1"'], {
+        type: 'savepoint',
+        name: { name: 'sp1' },
+    });
+
+    checkStatement(['release savepoint sp1', 'RELEASE sp1'], {
+        type: 'release savepoint',
+        name: { name: 'sp1' },
+    });
+
 
     checkStatement(['show server_version', 'show SERVER_VERSION'], {
         type: 'show',

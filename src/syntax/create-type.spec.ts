@@ -29,4 +29,27 @@ describe('Create types', () => {
             },
         ],
     });
+
+    checkStatement([`create domain posint as int check (value > 0)`], {
+        type: 'create domain',
+        name: { name: 'posint' },
+        dataType: { name: 'int' },
+        constraints: [{
+            type: 'check',
+            expr: {
+                type: 'binary',
+                op: '>',
+                left: { type: 'ref', name: 'value' },
+                right: { type: 'integer', value: 0 },
+            },
+        }],
+    });
+
+    checkStatement([`create domain us_postal as text not null default '00000'`], {
+        type: 'create domain',
+        name: { name: 'us_postal' },
+        dataType: { name: 'text' },
+        constraints: [{ type: 'not null' }],
+        default: { type: 'string', value: '00000' },
+    });
 });

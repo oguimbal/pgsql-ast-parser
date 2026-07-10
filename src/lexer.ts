@@ -85,17 +85,18 @@ export const lexer = compile({
     op_compare: {
         // group other comparison operators
         // ... to add: "IN" and "NOT IN" that are matched by keywords
-        match: ['>', '>=', '<', '<=', '@>', '<@', '?', '?|', '?&', '#>>', '>>', '<<', '~', '~*', '!~', '!~*', '@@'],
+        match: ['>', '>=', '<', '<=', '@>', '<@', '?', '?|', '?&', '#>>', '#>', '>>', '<<', '~', '~*', '!~', '!~*', '@@'],
     },
     ops_others: {
         // referenced as (any other operator) in https://www.postgresql.org/docs/12/sql-syntax-lexical.html#SQL-PRECEDENCE
         // see also https://www.postgresql.org/docs/9.0/functions-math.html
         match: ['|', '&', '^', '#'],
     },
-    codeblock: {
-        match: /\$\$(?:.|[\s\t\n\v\f\r])*?\$\$/s,
-        lineBreaks: true,
-        value: (x: string) => x.substring(2, x.length - 2),
+    // opening of a dollar-quoted string: $$ or $tag$ (tag = optional identifier).
+    // The matching close is found in the lexer.next wrapper (a regex can't
+    // backreference the tag), which rewrites this into a single `codeblock` token.
+    dollarOpen: {
+        match: /\$(?:[a-zA-Z_][a-zA-Z0-9_]*)?\$/,
     },
 });
 
@@ -133,6 +134,33 @@ lexer.next = (next => () => {
                 commentFull.nested--;
             }
             continue;
+        }
+        if (tok.type === 'dollarOpen') {
+            // dollar-quoted string: $tag$ ... $tag$ (or $$ ... $$). Everything up to
+            // the matching close tag is opaque content — scan the raw buffer for it
+            // (Postgres does not nest identical tags) and emit one `codeblock` token.
+            const tag: string = tok.text;
+            const contentStart: number = (lexer as any).index;
+            const buffer: string = (lexer as any).buffer;
+            const close = buffer.indexOf(tag, contentStart);
+            if (close >= 0) {
+                const content = buffer.slice(contentStart, close);
+                const consumed = buffer.slice(contentStart, close + tag.length);
+                (lexer as any).index = close + tag.length;
+                // keep moo's line/col tracking consistent past the opaque span
+                const nl = consumed.split('\n').length - 1;
+                if (nl > 0) {
+                    (lexer as any).line += nl;
+                    (lexer as any).col = consumed.length - consumed.lastIndexOf('\n');
+                } else {
+                    (lexer as any).col += consumed.length;
+                }
+                (tok as any).type = 'codeblock';
+                (tok as any).text = tag + consumed;
+                (tok as any).value = content;
+            }
+            // if unterminated, fall through with type 'dollarOpen' so the parser errors
+            break;
         }
         if (tok.type === 'space') {
             continue;

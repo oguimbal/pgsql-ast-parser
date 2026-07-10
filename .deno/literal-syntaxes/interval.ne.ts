@@ -5,11 +5,15 @@
 function id(d: any[]): any { return d[0]; }
 declare var years: any;
 declare var months: any;
+declare var weeks: any;
 declare var days: any;
 declare var hours: any;
 declare var minutes: any;
 declare var seconds: any;
 declare var milliseconds: any;
+declare var decades: any;
+declare var centuries: any;
+declare var millenniums: any;
 declare var int: any;
 declare var neg: any;
 declare var dot: any;
@@ -69,11 +73,15 @@ const grammar: Grammar = {
         } },
     {"name": "unit", "symbols": [(lexerAny.has("years") ? {type: "years"} : years)]},
     {"name": "unit", "symbols": [(lexerAny.has("months") ? {type: "months"} : months)]},
+    {"name": "unit", "symbols": [(lexerAny.has("weeks") ? {type: "weeks"} : weeks)]},
     {"name": "unit", "symbols": [(lexerAny.has("days") ? {type: "days"} : days)]},
     {"name": "unit", "symbols": [(lexerAny.has("hours") ? {type: "hours"} : hours)]},
     {"name": "unit", "symbols": [(lexerAny.has("minutes") ? {type: "minutes"} : minutes)]},
     {"name": "unit", "symbols": [(lexerAny.has("seconds") ? {type: "seconds"} : seconds)]},
     {"name": "unit", "symbols": [(lexerAny.has("milliseconds") ? {type: "milliseconds"} : milliseconds)]},
+    {"name": "unit", "symbols": [(lexerAny.has("decades") ? {type: "decades"} : decades)]},
+    {"name": "unit", "symbols": [(lexerAny.has("centuries") ? {type: "centuries"} : centuries)]},
+    {"name": "unit", "symbols": [(lexerAny.has("millenniums") ? {type: "millenniums"} : millenniums)]},
     {"name": "num", "symbols": ["int"]},
     {"name": "num", "symbols": ["float"]},
     {"name": "uint", "symbols": [(lexerAny.has("int") ? {type: "int"} : int)], "postprocess": ([x]) => parseInt(x, 10)},

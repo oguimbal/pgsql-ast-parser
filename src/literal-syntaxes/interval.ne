@@ -29,7 +29,7 @@ elt -> time | num unit {% ([[n], u]) => {
 } %}
 
 
-unit -> %years | %months | %days | %hours | %minutes | %seconds | %milliseconds
+unit -> %years | %months | %weeks | %days | %hours | %minutes | %seconds | %milliseconds | %decades | %centuries | %millenniums
 
 num -> int | float
 uint -> %int {% ([x]) => parseInt(x, 10) %}

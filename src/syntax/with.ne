@@ -10,7 +10,7 @@ with_statement -> %kw_with with_statement_bindings with_statement_statement {% x
 
 with_recursive_statement -> (%kw_with kw_recursive)
     ident
-    collist_paren
+    collist_paren:?
     %kw_as
     lparen
     union_statement
@@ -18,7 +18,7 @@ with_recursive_statement -> (%kw_with kw_recursive)
     with_statement_statement {% x => track(x, {
             type: 'with recursive',
             alias: asName(x[1]),
-            columnNames: x[2].map(asName),
+            ...x[2] && { columnNames: x[2].map(asName) },
             bind: x[5],
             in: unwrap(x[7]),
         }) %}

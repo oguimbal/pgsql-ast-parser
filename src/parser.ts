@@ -6,7 +6,7 @@ import geometricGrammar from './literal-syntaxes/geometric.ne';
 import intervalTextGrammar from './literal-syntaxes/interval.ne';
 import intervalIsoGrammar from './literal-syntaxes/interval-iso.ne';
 import { buildInterval } from './literal-syntaxes/interval-builder';
-import { tracking, trackingComments } from './lexer';
+import { tracking, trackingComments, lexer } from './lexer';
 
 let sqlCompiled: Grammar;
 let arrayCompiled: Grammar;
@@ -52,6 +52,11 @@ export function parse(sql: string, optEntry?: string | ParseOptions): any {
         : optEntry?.entry;
     const opts = typeof optEntry === 'string' ? null : optEntry;
 
+    // Tolerate comment-only / whitespace-only input for statement parsing:
+    // real Postgres accepts an empty command string and returns no results.
+    if (!entry && !hasMeaningfulTokens(sql)) {
+        return [];
+    }
 
     // parse sql
     const doParse = () => _parse(sql, sqlCompiled, entry);
@@ -64,6 +69,39 @@ export function parse(sql: string, optEntry?: string | ParseOptions): any {
         parsed = [parsed]
     }
     return parsed;
+}
+
+/** True if the SQL contains at least one token that is not whitespace or a comment. */
+function hasMeaningfulTokens(sql: string): boolean {
+    try {
+        lexer.reset(sql);
+        let inBlockComment = 0;
+        for (const tok of lexer as any) {
+            if (tok.type === 'commentFullOpen') {
+                inBlockComment++;
+                continue;
+            }
+            if (tok.type === 'commentFullClose') {
+                if (inBlockComment > 0) {
+                    inBlockComment--;
+                }
+                continue;
+            }
+            if (inBlockComment > 0) {
+                // content inside a block comment
+                continue;
+            }
+            if (tok.type === 'space' || tok.type === 'commentLine') {
+                continue;
+            }
+            return true;
+        }
+        return false;
+    } catch {
+        // lexer choked on something that isn't whitespace/comment: let the
+        // real parser run so it produces a proper error.
+        return true;
+    }
 }
 
 export function parseArrayLiteral(sql: string): string[] {

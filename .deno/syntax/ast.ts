@@ -17,12 +17,16 @@ export type Statement = SelectStatement
     | CommitStatement
     | InsertStatement
     | UpdateStatement
+    | MergeStatement
     | ShowStatement
     | PrepareStatement
     | DeallocateStatement
+    | ExecuteStatement
     | DeleteStatement
     | WithStatement
     | RollbackStatement
+    | SavepointStatement
+    | ReleaseSavepointStatement
     | TablespaceStatement
     | CreateViewStatement
     | CreateMaterializedViewStatement
@@ -33,11 +37,21 @@ export type Statement = SelectStatement
     | SetGlobalStatement
     | SetTimezone
     | SetNames
+    | CreateRoleStatement
+    | SetRoleStatement
+    | ResetStatement
+    | CreatePolicyStatement
+    | DropPolicyStatement
+    | CreateTriggerStatement
+    | GrantStatement
+    | RevokeStatement
     | CreateEnumType
     | CreateCompositeType
+    | CreateDomainStatement
     | AlterEnumType
     | TruncateTableStatement
     | DropStatement
+    | DropTriggerStatement
     | CommentStatement
     | CreateSchemaStatement
     | WithRecursiveStatement
@@ -78,6 +92,8 @@ export interface CreateFunctionStatement extends PGNode {
     language?: Name;
     arguments: FunctionArgument[];
     returns?: DataTypeDef | ReturnsTable;
+    /** RETURNS SETOF <type>: the function returns a set of `returns` */
+    setof?: boolean;
     purity?: 'immutable' | 'stable' | 'volatile';
     leakproof?: boolean;
     onNullInput?: 'call' | 'null' | 'strict';
@@ -156,6 +172,12 @@ export interface DeallocateStatement extends PGNode {
     target: Name | DeallocateStatementOpt;
 }
 
+export interface ExecuteStatement extends PGNode {
+    type: 'execute';
+    name: Name;
+    args?: Expr[];
+}
+
 export interface DeallocateStatementOpt extends PGNode {
     option: 'all';
 }
@@ -170,6 +192,34 @@ export interface CreateCompositeType extends PGNode {
     type: 'create composite type';
     name: QName;
     attributes: CompositeTypeAttribute[];
+}
+
+export interface CreateDomainStatement extends PGNode {
+    type: 'create domain';
+    name: QName;
+    dataType: DataTypeDef;
+    collate?: Name;
+    constraints?: DomainConstraint[];
+    default?: Expr;
+}
+
+export type DomainConstraint
+    = DomainConstraintNotNull
+    | DomainConstraintNull
+    | DomainConstraintCheck;
+
+export interface DomainConstraintNotNull extends PGNode {
+    type: 'not null';
+    constraintName?: Name;
+}
+export interface DomainConstraintNull extends PGNode {
+    type: 'null';
+    constraintName?: Name;
+}
+export interface DomainConstraintCheck extends PGNode {
+    type: 'check';
+    constraintName?: Name;
+    expr: Expr;
 }
 
 export interface AlterEnumType extends PGNode {
@@ -217,11 +267,19 @@ export interface TruncateTableStatement extends PGNode {
 }
 
 export interface DropStatement extends PGNode {
-    type: 'drop table' | 'drop sequence' | 'drop index' | 'drop type' | 'drop trigger';
+    type: 'drop table' | 'drop sequence' | 'drop index' | 'drop type' | 'drop role';
     names: QName[];
     ifExists?: boolean;
     cascade?: 'cascade' | 'restrict';
     concurrently?: boolean;
+}
+
+export interface DropTriggerStatement extends PGNode {
+    type: 'drop trigger';
+    name: Name;
+    onTable: QName;
+    ifExists?: boolean;
+    cascade?: 'cascade' | 'restrict';
 }
 
 export interface NodeLocation {
@@ -239,6 +297,18 @@ export interface CommitStatement extends PGNode {
 }
 export interface RollbackStatement extends PGNode {
     type: 'rollback';
+    /** rollback to a savepoint */
+    to?: Name | nil;
+}
+
+export interface SavepointStatement extends PGNode {
+    type: 'savepoint';
+    name: Name;
+}
+
+export interface ReleaseSavepointStatement extends PGNode {
+    type: 'release savepoint';
+    name: Name;
 }
 
 export interface TablespaceStatement extends PGNode {
@@ -262,6 +332,42 @@ export interface InsertStatement extends PGNode {
     overriding?: 'system' | 'user';
     insert: SelectStatement;
     onConflict?: OnConflictAction | nil;
+}
+
+export interface MergeStatement extends PGNode {
+    type: 'merge';
+    target: QNameAliased;
+    source: From;
+    on: Expr;
+    actions: MergeAction[];
+}
+
+export interface MergeAction extends PGNode {
+    when: 'matched' | 'not matched';
+    /** additional predicate after AND (e.g. WHEN MATCHED AND x > 0 THEN ...) */
+    and?: Expr | nil;
+    then: MergeActionUpdate | MergeActionDelete | MergeActionInsert | MergeActionDoNothing;
+}
+
+export interface MergeActionUpdate extends PGNode {
+    type: 'update';
+    sets: SetStatement[];
+}
+
+export interface MergeActionDelete extends PGNode {
+    type: 'delete';
+}
+
+export interface MergeActionInsert extends PGNode {
+    type: 'insert';
+    columns?: Name[] | nil;
+    /** VALUES (...) expressions; absent means DEFAULT VALUES */
+    values?: Expr[] | nil;
+    overriding?: 'system' | 'user';
+}
+
+export interface MergeActionDoNothing extends PGNode {
+    type: 'do nothing';
 }
 
 export interface OnConflictAction extends PGNode {
@@ -366,11 +472,17 @@ export type TableAlteration = TableAlterationRename
     | TableAlterationAddConstraint
     | TableAlterationOwner
     | TableAlterationDropConstraint
+    | TableAlterationRowLevelSecurity
 
 
 export interface TableAlterationOwner extends PGNode {
     type: 'owner';
     to: Name;
+}
+
+export interface TableAlterationRowLevelSecurity extends PGNode {
+    type: 'row level security';
+    action: 'enable' | 'disable' | 'force' | 'no force';
 }
 
 export interface AlterColumnSetType extends PGNode {
@@ -503,6 +615,45 @@ export interface CreateTableStatement extends PGNode {
     /** Constraints not defined inline */
     constraints?: TableConstraint[];
     inherits?: QName[];
+    tablespace?: Name;
+    /** `PARTITION BY {RANGE|LIST|HASH} (cols)` — makes this a partitioned parent */
+    partitionBy?: PartitionBy;
+    /** `PARTITION OF parent FOR VALUES …` — makes this a partition of `parent` */
+    partitionOf?: PartitionOf;
+}
+
+export interface PartitionBy extends PGNode {
+    strategy: 'range' | 'list' | 'hash';
+    columns: Expr[];
+}
+
+export interface PartitionOf extends PGNode {
+    parent: QName;
+    bound: PartitionBound;
+}
+
+export type PartitionBound
+    = PartitionBoundRange
+    | PartitionBoundList
+    | PartitionBoundHash
+    | PartitionBoundDefault;
+
+export interface PartitionBoundRange extends PGNode {
+    type: 'range';
+    from: (Expr | 'minvalue' | 'maxvalue')[];
+    to: (Expr | 'minvalue' | 'maxvalue')[];
+}
+export interface PartitionBoundList extends PGNode {
+    type: 'list';
+    values: Expr[];
+}
+export interface PartitionBoundHash extends PGNode {
+    type: 'hash';
+    modulus: number;
+    remainder: number;
+}
+export interface PartitionBoundDefault extends PGNode {
+    type: 'default';
 }
 
 export interface CreateColumnsLikeTable extends PGNode {
@@ -594,6 +745,8 @@ export interface TableReference {
     onDelete?: ConstraintAction;
     onUpdate?: ConstraintAction;
     match?: 'full' | 'partial' | 'simple';
+    deferrable?: boolean;
+    initiallyDeferred?: boolean;
 }
 
 
@@ -640,7 +793,8 @@ export interface WithStatement extends PGNode {
 export interface WithRecursiveStatement extends PGNode {
     type: 'with recursive';
     alias: Name;
-    columnNames: Name[];
+    /** column names are optional (inferred from the seed query when absent) */
+    columnNames?: Name[] | nil;
     bind: SelectFromUnion;
     in: WithStatementBinding;
 }
@@ -665,8 +819,12 @@ export interface SelectFromStatement extends PGNode {
     skip?: SkipClause;
 }
 
+export type SetOperationType = 'union' | 'union all'
+    | 'intersect' | 'intersect all'
+    | 'except' | 'except all';
+
 export interface SelectFromUnion extends PGNode {
-    type: 'union' | 'union all',
+    type: SetOperationType,
     left: SelectStatement;
     right: SelectStatement;
 }
@@ -792,7 +950,8 @@ export type Expr = ExprRef
     | ExprConstant
     | ExprTernary
     | ExprOverlay
-    | ExprSubstring;
+    | ExprSubstring
+    | ExprPosition;
 
 
 /**
@@ -815,12 +974,19 @@ export interface ExprSubstring extends PGNode {
     for?: Expr | nil;
 }
 
+/** Handle special syntax: position('om' in 'Thomas') */
+export interface ExprPosition extends PGNode {
+    type: 'position';
+    substring: Expr;
+    string: Expr;
+}
+
 // === https://www.postgresql.org/docs/12/functions.html
 export type LogicOperator = 'OR' | 'AND';
-export type EqualityOperator = 'IN' | 'NOT IN' | 'LIKE' | 'NOT LIKE' | 'ILIKE' | 'NOT ILIKE' | '=' | '!=';
+export type EqualityOperator = 'IN' | 'NOT IN' | 'LIKE' | 'NOT LIKE' | 'ILIKE' | 'NOT ILIKE' | '=' | '!=' | 'IS DISTINCT FROM' | 'IS NOT DISTINCT FROM';
 // see https://www.postgresql.org/docs/12/functions-math.html
 export type MathOpsBinary = '|' | '&' | '>>' | '^' | '#' | '<<' | '>>';
-export type ComparisonOperator = '>' | '>=' | '<' | '<=' | '@>' | '<@' | '?' | '?|' | '?&' | '#>>' | '~' | '~*' | '!~' | '!~*' | '@@';
+export type ComparisonOperator = '>' | '>=' | '<' | '<=' | '@>' | '<@' | '?' | '?|' | '?&' | '#>' | '#>>' | '~' | '~*' | '!~' | '!~*' | '@@';
 export type AdditiveOperator = '||' | '-' | '#-' | '&&' | '+';
 export type MultiplicativeOperator = '*' | '%' | '/';
 export type ConstructOperator = 'AT TIME ZONE';
@@ -887,7 +1053,7 @@ export interface ExprParameter extends PGNode {
 export interface ExprMember extends PGNode {
     type: 'member';
     operand: Expr;
-    op: '->' | '->>';
+    op: '->' | '->>' | '.';   // '.' is composite-type field access: (expr).field
     member: string | number;
 }
 
@@ -936,6 +1102,19 @@ export interface ExprCall extends PGNode {
 export interface CallOver extends PGNode {
     orderBy?: OrderByStatement[] | nil;
     partitionBy?: Expr[] | nil;
+    frame?: CallOverFrame | nil;
+}
+
+export interface CallOverFrame extends PGNode {
+    unit: 'rows' | 'range' | 'groups';
+    start: FrameBound;
+    end?: FrameBound | nil;
+}
+
+export interface FrameBound extends PGNode {
+    type: 'unbounded preceding' | 'unbounded following' | 'current row' | 'preceding' | 'following';
+    /** only set for 'preceding' & 'following' bound types */
+    value?: Expr | nil;
 }
 
 
@@ -968,6 +1147,8 @@ export interface ExprNull extends PGNode {
 export interface ExprInteger extends PGNode {
     type: 'integer';
     value: number;
+    /** exact source digits, present only when `value` (a JS number) loses precision */
+    valueText?: string;
 }
 
 export interface ExprDefault extends PGNode {
@@ -977,6 +1158,8 @@ export interface ExprDefault extends PGNode {
 export interface ExprNumeric extends PGNode {
     type: 'numeric';
     value: number;
+    /** exact source text, present for fractional/exponent literals */
+    valueText?: string;
 }
 
 export interface ExprString extends PGNode {
@@ -1006,6 +1189,94 @@ export interface SetGlobalStatement extends PGNode {
     variable: Name;
     scope?: string;
     set: SetGlobalValue;
+}
+
+export interface RoleOptions {
+    superuser?: boolean;
+    login?: boolean;
+    bypassRls?: boolean;
+}
+
+export interface CreateRoleStatement extends PGNode {
+    type: 'create role';
+    name: Name;
+    options: RoleOptions;
+}
+
+export interface SetRoleStatement extends PGNode {
+    type: 'set role';
+    scope?: string;
+    /** absent means "NONE" (reset to the session role) */
+    role?: Name | nil;
+}
+
+export interface ResetStatement extends PGNode {
+    type: 'reset';
+    /** 'all', or the config parameter / 'role' being reset */
+    identifier: 'all' | Name;
+}
+
+export type PolicyCommand = 'all' | 'select' | 'insert' | 'update' | 'delete';
+
+export interface CreatePolicyStatement extends PGNode {
+    type: 'create policy';
+    name: Name;
+    table: QName;
+    /** true = PERMISSIVE (default), false = RESTRICTIVE */
+    permissive?: boolean;
+    for?: PolicyCommand;
+    roles?: Name[];
+    using?: Expr;
+    withCheck?: Expr;
+}
+
+export interface DropPolicyStatement extends PGNode {
+    type: 'drop policy';
+    name: Name;
+    table: QName;
+    ifExists?: boolean;
+}
+
+export interface TriggerEvent {
+    event: 'insert' | 'update' | 'delete' | 'truncate';
+    /** only for UPDATE OF (col, ...) */
+    columns?: Name[];
+}
+
+export interface CreateTriggerStatement extends PGNode {
+    type: 'create trigger';
+    name: Name;
+    constraint?: boolean;
+    timing: 'before' | 'after' | 'instead of';
+    events: TriggerEvent[];
+    table: QName;
+    forEach: 'row' | 'statement';
+    when?: Expr;
+    execute: {
+        function: QName;
+        arguments: Expr[];
+    };
+}
+
+export interface GrantOnTarget extends PGNode {
+    type: 'table';
+    names: QName[];
+}
+
+export interface GrantStatement extends PGNode {
+    type: 'grant';
+    privileges: 'all' | string[];
+    on: GrantOnTarget;
+    to: Name[];
+    withGrantOption?: boolean;
+}
+
+export interface RevokeStatement extends PGNode {
+    type: 'revoke';
+    privileges: 'all' | string[];
+    on: GrantOnTarget;
+    from: Name[];
+    grantOptionFor?: boolean;
 }
 export interface SetTimezone extends PGNode {
     type: 'set timezone',

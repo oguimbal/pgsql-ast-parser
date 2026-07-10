@@ -28,11 +28,18 @@ altertable_action
     | altertable_add_constraint
     | altertable_drop_constraint
     | altertable_owner
+    | altertable_row_security
 
 
 altertable_rename_table -> kw_rename %kw_to word {% x => track(x, {
     type: 'rename',
     to: asName(last(x)),
+}) %}
+
+altertable_row_security -> (kw_enable | kw_disable | kw_force | kw_no kw_force {% () => 'no force' %})
+            kw_row kw_level kw_security {% x => track(x, {
+    type: 'row level security',
+    action: (() => { const v = unwrap(x[0]); return typeof v === 'string' ? v : toStr(v); })(),
 }) %}
 
 altertable_rename_column -> kw_rename kw_column:? ident %kw_to ident {% x => track(x, {
@@ -70,7 +77,11 @@ altertable_alter_column
     }) %}
 
 altercol
-    ->  (kw_set kw_data):? kw_type data_type {% x => track(x, { type: 'set type', dataType: unwrap(last(x)) }) %}
+    ->  (kw_set kw_data):? kw_type data_type (%kw_collate qname {% last %}):? (%kw_using expr {% last %}):? {% x => track(x, {
+            type: 'set type',
+            dataType: unwrap(x[2]),
+            ...(x[4] ? { using: unwrap(x[4]) } : {}),
+        }) %}
     | kw_set %kw_default expr {% x => track(x, {type: 'set default', default: unwrap(last(x)) }) %}
     | kw_drop %kw_default {% x => track(x, {type: 'drop default' }) %}
     | (kw_set | kw_drop) kw_not_null {% x => track(x, {type: toStr(x, ' ') }) %}

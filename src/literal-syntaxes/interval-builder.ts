@@ -23,12 +23,23 @@ function* unwrap(k: K): IterableIterator<E> {
     }
 }
 
+// weeks/decades/centuries/millenniums are normalized to days/years, as Postgres does
+const unitConversions: { [k: string]: [keyof Interval, number] } = {
+    weeks: ['days', 7],
+    decades: ['years', 10],
+    centuries: ['years', 100],
+    millenniums: ['years', 1000],
+};
+
 export function buildInterval(orig: string, vals: 'invalid' | K): Interval {
     const ret: Interval = {};
     if (vals === 'invalid') {
         throw new Error(`invalid input syntax for type interval: "${orig}"`)
     }
-    for (const [k, v] of unwrap(vals)) {
+    for (const [k0, v0] of unwrap(vals)) {
+        const conv = unitConversions[k0 as string];
+        const k = conv ? conv[0] : k0;
+        const v = conv ? v0 * conv[1] : v0;
         ret[k] = (ret[k] ?? 0) + v;
     }
     return ret;

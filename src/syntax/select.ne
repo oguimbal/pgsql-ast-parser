@@ -166,7 +166,25 @@ select_distinct
 select_where -> %kw_where expr {% last %}
 
 
-select_groupby -> %kw_group kw_by expr_list_raw {% last %}
+select_groupby -> %kw_group kw_by group_by_list {% last %}
+
+group_by_list -> group_by_elt (comma group_by_elt {% last %}):* {% ([head, tail]) => [head, ...(tail || [])] %}
+
+group_by_elt -> grouping_sets_call {% unwrap %} | expr_list_item {% unwrap %}
+
+# GROUPING SETS ( element, ... ) where element is a parenthesized column group,
+# an empty group (grand total), or a bare expression
+grouping_sets_call -> kw_grouping kw_sets lparen grouping_set (comma grouping_set {% last %}):* rparen {% x => track(x, {
+    type: 'call',
+    function: { name: 'grouping sets' },
+    args: [x[3], ...(x[4] || [])],
+}) %}
+
+# a parenthesized group already parses as an expr ((a) -> a, (a,b) -> a list), so only
+# the empty group () needs a dedicated rule; this keeps the grammar unambiguous
+grouping_set
+    -> lparen rparen {% x => track(x, { type: 'list', expressions: [] }) %}
+    | expr {% unwrap %}
 
 select_having -> %kw_having expr {% last %}
 

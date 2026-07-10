@@ -19,6 +19,7 @@ createindex_statement
         lparen
         createindex_expressions
         rparen
+        createindex_include:?
         createindex_with:?
         createindex_tblspace:?
         createindex_predicate:?
@@ -31,10 +32,13 @@ createindex_statement
             table: x[7],
             ...x[8] && { using: asName(x[8]) },
             expressions: x[10],
-            ...x[12] && { with: x[12] },
-            ...x[13] && { tablespace: unwrap(x[13]) },
-            ...x[14] && { where: unwrap(x[14]) },
+            ...x[12] && { include: x[12] },
+            ...x[13] && { with: x[13] },
+            ...x[14] && { tablespace: unwrap(x[14]) },
+            ...x[15] && { where: unwrap(x[15]) },
         }) %}
+
+createindex_include -> kw_include lparen array_of[ident] rparen {% x => x[2].map(asName) %}
 
 createindex_expressions -> createindex_expression (comma createindex_expression {% last %}):* {% ([head, tail]) => {
     return [head, ...(tail || [])];

@@ -122,4 +122,28 @@ describe('Union statement', () => {
         left: {type: 'values', values: [[int(1)]]},
         right: {type: 'values', values: [[int(2)]]},
     });
+
+    checkSelect(`values (1) intersect values (2)`, {
+        type: 'intersect',
+        left: {type: 'values', values: [[int(1)]]},
+        right: {type: 'values', values: [[int(2)]]},
+    });
+
+    checkSelect(`values (1) intersect all values (2)`, {
+        type: 'intersect all',
+        left: {type: 'values', values: [[int(1)]]},
+        right: {type: 'values', values: [[int(2)]]},
+    });
+
+    checkSelect(`values (1) except values (2)`, {
+        type: 'except',
+        left: {type: 'values', values: [[int(1)]]},
+        right: {type: 'values', values: [[int(2)]]},
+    });
+
+    checkSelect(`values (1) except all values (2)`, {
+        type: 'except all',
+        left: {type: 'values', values: [[int(1)]]},
+        right: {type: 'values', values: [[int(2)]]},
+    });
 });

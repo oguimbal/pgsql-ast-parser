@@ -116,6 +116,42 @@ describe('With clause', () => {
     })
 
 
+    checkStatement(`WITH RECURSIVE t AS (
+        SELECT 1 AS n
+      UNION ALL
+        SELECT n+1 FROM t WHERE n < 100
+    )
+    SELECT sum(n) FROM t`, {
+        type: 'with recursive',
+        alias: name('t'),
+        bind: {
+            type: 'union all',
+            left: {
+                type: 'select',
+                columns: [{ expr: int(1), alias: name('n') }],
+            },
+            right: {
+                type: 'select',
+                from: [tbl('t')],
+                columns: [{
+                    expr: binary(ref('n'), '+', int(1))
+                }],
+                where: binary(ref('n'), '<', int(100)),
+            }
+        },
+        in: {
+            type: 'select',
+            from: [tbl('t')],
+            columns: [{
+                expr: {
+                    type: 'call',
+                    function: name('sum'),
+                    args: [ref('n')],
+                }
+            }],
+        }
+    })
+
     checkStatement(`WITH RECURSIVE t(n) AS (
         VALUES (1)
       UNION ALL

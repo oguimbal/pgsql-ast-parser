@@ -8,16 +8,35 @@ simplestatements_all
     -> simplestatements_start_transaction
     | simplestatements_commit
     | simplestatements_rollback
+    | simplestatements_savepoint
+    | simplestatements_release
     | simplestatements_tablespace
     | simplestatements_set
+    | simplestatements_set_role
+    | simplestatements_reset
     | simplestatements_show
     | simplestatements_begin
+    | simplestatements_notify
+    | simplestatements_listen
+    | simplestatements_unlisten
 
 
 array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
     return [unwrap(head), ...(tail.map(unwrap) || [])];
 } %}
 
+
+# NOTIFY / LISTEN / UNLISTEN — parsed; no-op in pg-mem (no async channels)
+simplestatements_notify -> kw_notify ident (comma string {% last %}):? {% x => track(x, {
+    type: 'notify',
+    channel: asName(x[1]),
+    ...(x[2] ? { payload: unbox(x[2]) } : {}),
+}) %}
+simplestatements_listen -> kw_listen ident {% x => track(x, { type: 'listen', channel: asName(x[1]) }) %}
+simplestatements_unlisten -> kw_unlisten (ident {% x => asName(x[0]) %} | %star {% () => '*' %}) {% x => track(x, {
+    type: 'unlisten',
+    channel: unwrap(x[1]),
+}) %}
 
 # https://www.postgresql.org/docs/12/sql-start-transaction.html
 simplestatements_start_transaction -> (kw_start kw_transaction) {% x => track(x, { type: 'start transaction' }) %}
@@ -26,7 +45,21 @@ simplestatements_start_transaction -> (kw_start kw_transaction) {% x => track(x,
 simplestatements_commit -> kw_commit {% x => track(x, { type: 'commit' }) %}
 
 # https://www.postgresql.org/docs/12/sql-rollback.html
-simplestatements_rollback -> kw_rollback {% x => track(x, { type: 'rollback' }) %}
+simplestatements_rollback -> kw_rollback (%kw_to kw_savepoint:? ident {% last %}):? {% x => track(x, {
+    type: 'rollback',
+    ...x[1] && { to: asName(unwrap(x[1])) },
+}) %}
+
+# https://www.postgresql.org/docs/current/sql-savepoint.html
+simplestatements_savepoint -> kw_savepoint ident {% x => track(x, {
+    type: 'savepoint',
+    name: asName(x[1]),
+}) %}
+
+simplestatements_release -> kw_release kw_savepoint:? ident {% x => track(x, {
+    type: 'release savepoint',
+    name: asName(x[2]),
+}) %}
 
 simplestatements_tablespace -> kw_tablespace word {% x => track(x, {
     type: 'tablespace',
@@ -71,6 +104,24 @@ simplestatements_set_val_raw
 
 
 simplestatements_show -> kw_show ident {% x => track(x, { type: 'show', variable: asName(x[1]) }) %}
+
+# https://www.postgresql.org/docs/current/sql-set-role.html
+# unquoted "none" resets to the session role; anything else is a role name
+simplestatements_set_role -> kw_set (kw_session | kw_local):? kw_role ident {% x => {
+    const r = asName(x[3]);
+    return track(x, {
+        type: 'set role',
+        scope: unwrap(x[1])?.toLowerCase(),
+        ...(r.name.toLowerCase() === 'none' ? {} : { role: r }),
+    });
+} %}
+
+# https://www.postgresql.org/docs/current/sql-reset.html
+simplestatements_reset -> kw_reset (%kw_all {% () => 'all' %} | ident) {% x => track(x, {
+    type: 'reset',
+    identifier: unwrap(x[1]) === 'all' ? 'all' : asName(unwrap(x[1])),
+}) %}
+
 
 
 # https://www.postgresql.org/docs/current/sql-createschema.html
@@ -118,7 +169,7 @@ comment_statement -> kw_comment %kw_on comment_what %kw_is string {% x => track(
         on: unwrap(x[2]),
     }) %}
 
-comment_what -> comment_what_col | comment_what_nm
+comment_what -> comment_what_col | comment_what_nm | comment_what_policy | comment_what_function
 
 comment_what_nm -> (%kw_table
                     | kw_materialized kw_view
@@ -131,6 +182,17 @@ comment_what_nm -> (%kw_table
 comment_what_col -> kw_column qcolumn {% x => track(x, {
                 type: 'column',
                 column: last(x),
+            }) %}
+
+comment_what_policy -> kw_policy ident %kw_on qualified_name {% x => track(x, {
+                type: 'policy',
+                policy: asName(x[1]),
+                name: x[3],
+            }) %}
+
+comment_what_function -> (kw_function | kw_procedure | kw_routine) grant_func {% x => track(x, {
+                type: 'function',
+                name: x[1],
             }) %}
 
 

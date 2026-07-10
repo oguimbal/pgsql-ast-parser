@@ -43,16 +43,19 @@ describe('Expressions', () => {
         checkTreeExpr(['0.5', '.5'], {
             type: 'numeric',
             value: 0.5,
+            valueText: '0.5',
         });
 
         checkTreeExpr(['-0.5', '-.5'], {
             type: 'numeric',
             value: -0.5,
+            valueText: '-0.5',
         });
 
         checkTreeExpr(['-42.', '-42.0'], {
             type: 'numeric',
             value: -42,
+            valueText: '-42.',
         });
 
         checkInvalidExpr('42. 51');
@@ -356,6 +359,19 @@ line`,
             },
         });
 
+        checkTreeExpr(`a#>b`, {
+            type: 'binary',
+            op: '#>',
+            left: {
+                type: 'ref',
+                name: 'a',
+            },
+            right: {
+                type: 'ref',
+                name: 'b',
+            },
+        });
+
         checkTreeExpr(`a->>-1`, {
             type: 'member',
             op: '->>',
@@ -380,11 +396,13 @@ line`,
         checkTreeExpr(['42.', '42.0'], {
             type: 'numeric',
             value: 42,
+            valueText: '42.',
         });
 
         checkTreeExpr(['.42', '0.42'], {
             type: 'numeric',
             value: .42,
+            valueText: '0.42',
         });
 
         checkTreeExpr(['42+51', '42 + 51'], {
@@ -489,15 +507,18 @@ line`,
                 left: {
                     type: 'numeric',
                     value: 2,
+                    valueText: '2.',
                 },
                 right: {
                     type: 'numeric',
                     value: 0.3,
+                    valueText: '0.3',
                 }
             },
             right: {
                 type: 'numeric',
                 value: 4.5,
+                valueText: '4.5',
             },
         });
 
@@ -1079,6 +1100,12 @@ line`,
                 type: 'integer', value: 3
             },
         });
+        checkTreeExpr(`position('om' in 'Thomas')`, {
+            type: 'position',
+            substring: { type: 'string', value: 'om' },
+            string: { type: 'string', value: 'Thomas' },
+        });
+
         checkTreeExpr(`substring('val' from 2)`, {
             type: 'substring',
             value: { type: 'string', value: 'val' },
@@ -1166,6 +1193,25 @@ line`,
                 left: { type: 'ref', name: 'c' },
                 right: { type: 'integer', value: 2 },
             }
+        })
+
+        checkTreeExpr(['a[1:3]', '"a"[1 : 3]'], {
+            type: 'arraySlice',
+            array: { type: 'ref', name: 'a' },
+            from: { type: 'integer', value: 1 },
+            to: { type: 'integer', value: 3 },
+        })
+
+        checkTreeExpr(['a[:3]'], {
+            type: 'arraySlice',
+            array: { type: 'ref', name: 'a' },
+            to: { type: 'integer', value: 3 },
+        })
+
+        checkTreeExpr(['a[2:]'], {
+            type: 'arraySlice',
+            array: { type: 'ref', name: 'a' },
+            from: { type: 'integer', value: 2 },
         })
     });
 
@@ -1461,6 +1507,20 @@ line`,
                 columns: [{ expr: { type: 'integer', value: 1 } }],
             },
         })
+
+        checkTreeExpr(['a is distinct from b'], {
+            type: 'binary',
+            op: 'IS DISTINCT FROM',
+            left: { type: 'ref', name: 'a' },
+            right: { type: 'ref', name: 'b' },
+        });
+
+        checkTreeExpr(['a is not distinct from b'], {
+            type: 'binary',
+            op: 'IS NOT DISTINCT FROM',
+            left: { type: 'ref', name: 'a' },
+            right: { type: 'ref', name: 'b' },
+        });
     });
 
 
@@ -1557,6 +1617,62 @@ line`,
                 orderBy: [{ by: ref('b'), order: 'DESC' }],
             }
         })
+
+        checkTreeExpr(`SUM(v) OVER (ORDER BY v ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)`, {
+            type: 'call',
+            args: [ref('v')],
+            function: { name: 'sum' },
+            over: {
+                orderBy: [{ by: ref('v') }],
+                frame: {
+                    unit: 'rows',
+                    start: { type: 'unbounded preceding' },
+                    end: { type: 'current row' },
+                },
+            }
+        })
+
+        checkTreeExpr(`SUM(v) OVER (ORDER BY v ROWS 2 PRECEDING)`, {
+            type: 'call',
+            args: [ref('v')],
+            function: { name: 'sum' },
+            over: {
+                orderBy: [{ by: ref('v') }],
+                frame: {
+                    unit: 'rows',
+                    start: { type: 'preceding', value: { type: 'integer', value: 2 } },
+                },
+            }
+        })
+
+        checkTreeExpr(`SUM(v) OVER (PARTITION BY g RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING)`, {
+            type: 'call',
+            args: [ref('v')],
+            function: { name: 'sum' },
+            over: {
+                partitionBy: [ref('g')],
+                frame: {
+                    unit: 'range',
+                    start: { type: 'current row' },
+                    end: { type: 'unbounded following' },
+                },
+            }
+        })
+
+        checkTreeExpr(`SUM(v) OVER (GROUPS BETWEEN $1 PRECEDING AND 1 FOLLOWING)`, {
+            type: 'call',
+            args: [ref('v')],
+            function: { name: 'sum' },
+            over: {
+                frame: {
+                    unit: 'groups',
+                    start: { type: 'preceding', value: { type: 'parameter', name: '$1' } },
+                    end: { type: 'following', value: { type: 'integer', value: 1 } },
+                },
+            }
+        })
+
+        checkInvalidExpr(`SUM(v) OVER (ROWS BETWEEN UNBOUNDED PRECEDING)`);
 
         checkTreeExpr(`pg_catalog.count(*) filter (where val)`, {
             type: 'call',

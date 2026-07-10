@@ -6,6 +6,7 @@ import { nil, NotSupported, trimNullish } from './utils.ts';
 export interface IAstPartialMapper {
     statement?: (val: a.Statement) => a.Statement | nil;
     update?: (val: a.UpdateStatement) => a.Statement | nil
+    merge?: (val: a.MergeStatement) => a.Statement | nil
     insert?: (val: a.InsertStatement) => a.Statement | nil
     delete?: (val: a.DeleteStatement) => a.Statement | nil
     comment?: (val: a.CommentStatement) => a.Statement | nil
@@ -17,7 +18,9 @@ export interface IAstPartialMapper {
     createEnum?(val: a.CreateEnumType): a.Statement | nil
     alterEnum?(val: a.AlterEnumType): a.Statement | nil
     createCompositeType?(val: a.CreateCompositeType): a.Statement | nil
+    createDomain?(val: a.CreateDomainStatement): a.Statement | nil
     drop?: (val: a.DropStatement) => a.Statement | nil
+    dropTrigger?: (val: a.DropTriggerStatement) => a.Statement | nil
     show?: (val: a.ShowStatement) => a.Statement | nil
     createTable?: (val: a.CreateTableStatement) => a.Statement | nil
     truncateTable?: (val: a.TruncateTableStatement) => a.Statement | nil
@@ -26,9 +29,10 @@ export interface IAstPartialMapper {
     dataType?: (dataType: a.DataTypeDef) => a.DataTypeDef
     prepare?: (st: a.PrepareStatement) => a.Statement | nil
     deallocate?: (st: a.DeallocateStatement) => a.Statement | nil
+    execute?: (st: a.ExecuteStatement) => a.Statement | nil
     parameter?: (st: a.ExprParameter) => a.Expr | nil
     tableRef?: (st: a.QNameAliased) => a.QNameAliased | nil
-    transaction?: (val: a.CommitStatement | a.RollbackStatement | a.StartTransactionStatement) => a.Statement | nil
+    transaction?: (val: a.CommitStatement | a.RollbackStatement | a.StartTransactionStatement | a.SavepointStatement | a.ReleaseSavepointStatement) => a.Statement | nil
     createIndex?: (val: a.CreateIndexStatement) => a.Statement | nil
     alterTable?: (st: a.AlterTableStatement) => a.Statement | nil
     alterIndex?: (st: a.AlterIndexStatement) => a.Statement | nil
@@ -37,6 +41,7 @@ export interface IAstPartialMapper {
     dropConstraint?: (change: a.TableAlterationDropConstraint, table: a.QNameAliased) => a.TableAlteration | nil
     renameConstraint?: (change: a.TableAlterationRenameConstraint, table: a.QNameAliased) => a.TableAlteration | nil
     setTableOwner?: (change: a.TableAlterationOwner, table: a.QNameAliased) => a.TableAlteration | nil
+    setRowLevelSecurity?: (change: a.TableAlterationRowLevelSecurity, table: a.QNameAliased) => a.TableAlteration | nil
     renameColumn?: (change: a.TableAlterationRenameColumn, table: a.QNameAliased) => a.TableAlteration | nil
     renameTable?: (change: a.TableAlterationRename, table: a.QNameAliased) => a.TableAlteration | nil
     alterColumn?: (change: a.TableAlterationAlterColumn, inTable: a.QNameAliased) => a.TableAlteration | nil
@@ -72,6 +77,7 @@ export interface IAstPartialMapper {
     cast?: (val: a.ExprCast) => a.Expr | nil
     call?: (val: a.ExprCall) => a.Expr | nil
     callSubstring?: (val: a.ExprSubstring) => a.Expr | nil
+    callPosition?: (val: a.ExprPosition) => a.Expr | nil
     callOverlay?: (val: a.ExprOverlay) => a.Expr | nil
     array?: (val: a.ExprList) => a.Expr | nil
     constant?: (value: a.ExprLiteral) => a.Expr | nil
@@ -83,6 +89,14 @@ export interface IAstPartialMapper {
     constraint?: (constraint: a.ColumnConstraint) => a.ColumnConstraint | nil
     valueKeyword?(val: a.ExprValueKeyword): a.Expr | nil
     tablespace?(val: a.TablespaceStatement): a.Statement | nil
+    createRole?(val: a.CreateRoleStatement): a.Statement | nil
+    setRole?(val: a.SetRoleStatement): a.Statement | nil
+    reset?(val: a.ResetStatement): a.Statement | nil
+    createPolicy?(val: a.CreatePolicyStatement): a.Statement | nil
+    dropPolicy?(val: a.DropPolicyStatement): a.Statement | nil
+    createTrigger?(val: a.CreateTriggerStatement): a.Statement | nil
+    grant?(val: a.GrantStatement): a.Statement | nil
+    revoke?(val: a.RevokeStatement): a.Statement | nil
     setGlobal?(val: a.SetGlobalStatement): a.Statement | nil
     setTimezone?(val: a.SetTimezone): a.Statement | nil
     setNames?(val: a.SetNames): a.Statement | nil
@@ -192,6 +206,10 @@ function withAccepts(val: a.Statement | nil): val is a.WithStatementBinding {
         case 'update':
         case 'union':
         case 'union all':
+        case 'intersect':
+        case 'intersect all':
+        case 'except':
+        case 'except all':
         case 'with':
             return true;
         default:
@@ -224,6 +242,8 @@ export class AstDefaultMapper implements IAstMapper {
             case 'commit':
             case 'start transaction':
             case 'rollback':
+            case 'savepoint':
+            case 'release savepoint':
                 return this.transaction(val);
             case 'create index':
                 return this.createIndex(val);
@@ -243,6 +263,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.selection(val);
             case 'update':
                 return this.update(val);
+            case 'merge':
+                return this.merge(val);
             case 'create extension':
                 return this.createExtension(val);
             case 'tablespace':
@@ -253,6 +275,22 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.setTimezone(val);
             case 'set names':
                 return this.setNames(val);
+            case 'create role':
+                return this.createRole(val);
+            case 'set role':
+                return this.setRole(val);
+            case 'reset':
+                return this.reset(val);
+            case 'create policy':
+                return this.createPolicy(val);
+            case 'drop policy':
+                return this.dropPolicy(val);
+            case 'create trigger':
+                return this.createTrigger(val);
+            case 'grant':
+                return this.grant(val);
+            case 'revoke':
+                return this.revoke(val);
             case 'create sequence':
                 return this.createSequence(val);
             case 'alter sequence':
@@ -263,16 +301,24 @@ export class AstDefaultMapper implements IAstMapper {
             case 'drop index':
             case 'drop sequence':
             case 'drop type':
-            case 'drop trigger':
+            case 'drop role':
                 return this.drop(val);
+            case 'drop trigger':
+                return this.dropTrigger(val);
             case 'create enum':
                 return this.createEnum(val);
             case 'alter enum':
                 return this.alterEnum(val);
             case 'create composite type':
                 return this.createCompositeType(val);
+            case 'create domain':
+                return this.createDomain(val);
             case 'union':
             case 'union all':
+            case 'intersect':
+            case 'intersect all':
+            case 'except':
+            case 'except all':
                 return this.union(val);
             case 'show':
                 return this.show(val);
@@ -280,6 +326,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.prepare(val);
             case 'deallocate':
                 return this.deallocate(val);
+            case 'execute':
+                return this.execute(val);
             case 'create view':
                 return this.createView(val);
             case 'create materialized view':
@@ -398,6 +446,42 @@ export class AstDefaultMapper implements IAstMapper {
         return val;
     }
 
+    createRole(val: a.CreateRoleStatement): a.Statement | nil {
+        return val;
+    }
+
+    setRole(val: a.SetRoleStatement): a.Statement | nil {
+        return val;
+    }
+
+    reset(val: a.ResetStatement): a.Statement | nil {
+        return val;
+    }
+
+    createPolicy(val: a.CreatePolicyStatement): a.Statement | nil {
+        const using = this.expr(val.using);
+        const withCheck = this.expr(val.withCheck);
+        return assignChanged(val, { using, withCheck });
+    }
+
+    dropPolicy(val: a.DropPolicyStatement): a.Statement | nil {
+        return val;
+    }
+
+    createTrigger(val: a.CreateTriggerStatement): a.Statement | nil {
+        const when = this.expr(val.when);
+        const args = arrayNilMap(val.execute.arguments, a => this.expr(a));
+        return assignChanged(val, { when, execute: assignChanged(val.execute, { arguments: args }) });
+    }
+
+    grant(val: a.GrantStatement): a.Statement | nil {
+        return val;
+    }
+
+    revoke(val: a.RevokeStatement): a.Statement | nil {
+        return val;
+    }
+
     createEnum(val: a.CreateEnumType): a.Statement | nil {
         return val;
     }
@@ -413,8 +497,20 @@ export class AstDefaultMapper implements IAstMapper {
         return assignChanged(val, { attributes });
     }
 
+    createDomain(val: a.CreateDomainStatement): a.Statement | nil {
+        const dataType = this.dataType(val.dataType);
+        const def = val.default && this.expr(val.default);
+        const constraints = arrayNilMap(val.constraints, c =>
+            c.type === 'check' ? assignChanged(c, { expr: this.expr(c.expr) }) : c);
+        return assignChanged(val, { dataType, default: def, constraints });
+    }
+
 
     drop(val: a.DropStatement): a.Statement | nil {
+        return val;
+    }
+
+    dropTrigger(val: a.DropTriggerStatement): a.Statement | nil {
         return val;
     }
 
@@ -479,6 +575,41 @@ export class AstDefaultMapper implements IAstMapper {
             sets,
             from,
             returning,
+        });
+    }
+
+
+    merge(val: a.MergeStatement): a.Statement | nil {
+        const target = this.tableRef(val.target);
+        if (!target) {
+            return null; // nowhere to merge into
+        }
+        const source = this.from(val.source);
+        if (!source) {
+            return null; // nothing to merge from
+        }
+        const on = val.on && this.expr(val.on);
+        const actions = arrayNilMap(val.actions, a => {
+            const and = a.and && this.expr(a.and);
+            const then = a.then;
+            let newThen = then;
+            if (then.type === 'update') {
+                const sets = arrayNilMap(then.sets, x => this.set(x));
+                if (!sets?.length) {
+                    return null; // drop an update with no sets
+                }
+                newThen = assignChanged(then, { sets });
+            } else if (then.type === 'insert' && then.values) {
+                const values = arrayNilMap(then.values, e => this.expr(e));
+                newThen = assignChanged(then, { values });
+            }
+            return assignChanged(a, { and, then: newThen });
+        });
+        return assignChanged(val, {
+            target,
+            source,
+            on,
+            actions,
         });
     }
 
@@ -577,11 +708,11 @@ export class AstDefaultMapper implements IAstMapper {
                     throw NotSupported.never(col);
             }
         })
-        if (!columns?.length) {
+        if (!columns?.length && !val.partitionOf) {
             return null; // no column to create
         }
         return assignChanged(val, {
-            columns,
+            columns: columns ?? [],
         });
     }
 
@@ -673,7 +804,7 @@ export class AstDefaultMapper implements IAstMapper {
         return st;
     }
 
-    transaction(val: a.CommitStatement | a.RollbackStatement | a.StartTransactionStatement): a.Statement | nil {
+    transaction(val: a.CommitStatement | a.RollbackStatement | a.StartTransactionStatement | a.SavepointStatement | a.ReleaseSavepointStatement): a.Statement | nil {
         return val;
     }
 
@@ -716,6 +847,12 @@ export class AstDefaultMapper implements IAstMapper {
 
     deallocate(st: a.DeallocateStatement): a.Statement | nil {
         return st;
+    }
+
+    execute(st: a.ExecuteStatement): a.Statement | nil {
+        return assignChanged(st, {
+            args: arrayNilMap(st.args, a => this.expr(a)),
+        });
     }
 
     // =========================================
@@ -784,6 +921,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.dropConstraint(change, table);
             case 'owner':
                 return this.setTableOwner(change, table);
+            case 'row level security':
+                return this.setRowLevelSecurity(change, table);
             default:
                 throw NotSupported.never(change);
         }
@@ -798,6 +937,10 @@ export class AstDefaultMapper implements IAstMapper {
     }
 
     setTableOwner(change: a.TableAlterationOwner, table: a.QNameAliased): a.TableAlteration | nil {
+        return change;
+    }
+
+    setRowLevelSecurity(change: a.TableAlterationRowLevelSecurity, table: a.QNameAliased): a.TableAlteration | nil {
         return change;
     }
 
@@ -907,6 +1050,10 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.selection(val);
             case 'union':
             case 'union all':
+            case 'intersect':
+            case 'intersect all':
+            case 'except':
+            case 'except all':
                 return this.union(val);
             case 'with':
                 return this.with(val);
@@ -1131,6 +1278,10 @@ export class AstDefaultMapper implements IAstMapper {
             case 'select':
             case 'union':
             case 'union all':
+            case 'intersect':
+            case 'intersect all':
+            case 'except':
+            case 'except all':
             case 'with':
             case 'with recursive':
                 return this.select(val);
@@ -1144,6 +1295,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.callOverlay(val);
             case 'substring':
                 return this.callSubstring(val);
+            case 'position':
+                return this.callPosition(val);
             case 'values':
                 return this.values(val);
             case 'default':
@@ -1271,6 +1424,13 @@ export class AstDefaultMapper implements IAstMapper {
             value: this.expr(val.value),
             from: this.expr(val.from),
             for: this.expr(val.for),
+        })
+    }
+
+    callPosition(val: a.ExprPosition): a.Expr | nil {
+        return assignChanged(val, {
+            substring: this.expr(val.substring),
+            string: this.expr(val.string),
         })
     }
     callOverlay(val: a.ExprOverlay): a.Expr | nil {

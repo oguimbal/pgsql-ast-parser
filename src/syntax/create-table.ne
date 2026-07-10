@@ -1,5 +1,17 @@
 @lexer lexerAny
 @include "base.ne"
+@include "expr.ne"
+
+@{%
+// bare `minvalue`/`maxvalue` in a range partition bound parse as column refs;
+// convert them to the special sentinel strings.
+function partitionBoundVal(e: any) {
+    if (e && e.type === 'ref' && !e.table && (e.name === 'minvalue' || e.name === 'maxvalue')) {
+        return e.name;
+    }
+    return e;
+}
+%}
 
 
 array_of[EXP] -> $EXP (%comma $EXP {% last %}):* {% ([head, tail]) => {
@@ -15,7 +27,9 @@ createtable_statement -> %kw_create
         lparen
             createtable_declarationlist
         rparen
+        createtable_partitionby:?
         createtable_opts:?
+        createtable_tablespace:?
      {% x => {
 
         const cols = x[6].filter((v: any) => 'kind' in v);
@@ -28,9 +42,50 @@ createtable_statement -> %kw_create
             columns: cols,
             ...unwrap(x[1]),
             ...constraints.length ? { constraints } : {},
-            ...last(x),
+            ...x[8] ? { partitionBy: x[8] } : {},
+            ...x[9],
+            ...x[10] ? { tablespace: x[10] } : {},
         });
     } %}
+
+# `CREATE TABLE child PARTITION OF parent FOR VALUES ...`
+createtable_statement -> %kw_create
+        createtable_modifiers:?
+        %kw_table
+        kw_ifnotexists:?
+        qname
+        kw_partition kw_of qname
+        createtable_partition_bound
+        createtable_partitionby:?
+     {% x => track(x, {
+        type: 'create table',
+        ... !!x[3] ? { ifNotExists: true } : {},
+        name: x[4],
+        columns: [],
+        ...unwrap(x[1]),
+        partitionOf: track(x, { parent: x[7], bound: x[8] }),
+        ...x[9] ? { partitionBy: x[9] } : {},
+    }) %}
+
+createtable_partitionby
+    -> kw_partition kw_by createtable_partition_strategy lparen array_of[expr] rparen
+        {% x => track(x, { strategy: x[2], columns: x[4] }) %}
+
+createtable_partition_strategy
+    -> kw_range {% () => 'range' %}
+    | kw_list {% () => 'list' %}
+    | kw_hash {% () => 'hash' %}
+
+createtable_partition_bound
+    -> %kw_for kw_values %kw_from lparen expr_list_raw rparen %kw_to lparen expr_list_raw rparen
+        {% x => track(x, { type: 'range', from: x[4].map(partitionBoundVal), to: x[8].map(partitionBoundVal) }) %}
+    | %kw_for kw_values %kw_in lparen expr_list_raw rparen
+        {% x => track(x, { type: 'list', values: x[4] }) %}
+    | %kw_for kw_values %kw_with lparen kw_modulus int comma kw_remainder int rparen
+        {% x => track(x, { type: 'hash', modulus: unbox(x[5]), remainder: unbox(x[8]) }) %}
+    | %kw_default {% x => track(x, { type: 'default' }) %}
+
+createtable_tablespace -> kw_tablespace ident {% x => asName(last(x)) %}
 
 
 createtable_modifiers
@@ -106,6 +161,8 @@ createtable_constraint_foreignkey_onsometing
      -> %kw_on kw_delete createtable_constraint_on_action {% x => track(x, {onDelete:  last(x)}) %}
      | %kw_on kw_update createtable_constraint_on_action {% x => track(x, {onUpdate: last(x)}) %}
      | kw_match (%kw_full | kw_partial | kw_simple) {% x => track(x, {match: toStr(last(x))}) %}
+     | %kw_not:? %kw_deferrable {% x => track(x, {deferrable: !x[0]}) %}
+     | %kw_initially (kw_deferred | kw_immediate) {% x => track(x, {initiallyDeferred: toStr(last(x)).toLowerCase() === 'deferred'}) %}
 
 createtable_constraint_on_action
     -> (kw_cascade

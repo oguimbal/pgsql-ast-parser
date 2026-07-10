@@ -66,10 +66,16 @@ func_spec -> kw_language word {% x => track(x, { language: asName(last(x)) }) %}
          | func_purity {% x => track(x, {purity: toStr(x)}) %}
          | %kw_as (%codeblock | string) {% x =>({code: toStr(last(x))}) %}
          | %kw_not:? (word {% kw('leakproof') %}) {% x => track(x, { leakproof: !x[0] })%}
-         | func_returns {% x => track(x, { returns: unwrap(x) }) %}
+         | func_returns {% x => {
+                const r = unwrap(x);
+                return r && r.__setof
+                    ? track(x, { returns: r.__setof, setof: true })
+                    : track(x, { returns: r });
+            } %}
          | (word {%kw('called')%}) oninp {% () => ({ onNullInput: 'call' }) %}
          | (word {%kw('returns')%}) %kw_null oninp {% () => ({ onNullInput: 'null' }) %}
          | (word {%kw('strict')%})  {% () => ({ onNullInput: 'strict' }) %}
+         | (word {%kw('external')%}):? (word {%kw('security')%}) (word {%kw('definer')%} | word {%kw('invoker')%}) {% x => track(x, { security: toStr(last(x)) }) %}
 
 func_purity -> word {%kw('immutable')%}
             |  word {%kw('stable')%}
@@ -78,6 +84,7 @@ func_purity -> word {%kw('immutable')%}
 oninp -> %kw_on %kw_null (word {%kw('input')%})
 
 func_returns -> kw_returns data_type {% last %}
+                | kw_returns kw_setof data_type {% x => ({ __setof: last(x) }) %}
                 | kw_returns %kw_table lparen array_of[func_ret_table_col] rparen {% x => track(x, {
                     kind: 'table',
                     columns: x[3],
