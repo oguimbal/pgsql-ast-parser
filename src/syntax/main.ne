@@ -47,6 +47,7 @@ statement -> statement_noprep | prepare | deallocate
 statement_noprep
     -> selection
     | createtable_statement
+    | createtableas_statement
     | createextension_statement
     | createindex_statement
     | simplestatements_all

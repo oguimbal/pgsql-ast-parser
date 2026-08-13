@@ -998,6 +998,29 @@ const visitor = astVisitor<IAstFullVisitor>(m => ({
         }
     },
 
+    createTableAs: t => {
+        ret.push('CREATE ');
+        if (t.locality) {
+            ret.push(t.locality.toUpperCase(), ' ');
+        }
+        if (t.temporary) {
+            ret.push('TEMPORARY ');
+        }
+        if (t.unlogged) {
+            ret.push('UNLOGGED ');
+        }
+        ret.push(t.ifNotExists ? 'TABLE IF NOT EXISTS ' : 'TABLE ');
+        m.tableRef(t.name);
+        if (t.columnNames) {
+            list(t.columnNames, c => ret.push(name(c)), true);
+        }
+        ret.push(' AS ');
+        m.select(t.query);
+        if (t.withData !== undefined) {
+            ret.push(t.withData ? ' WITH DATA' : ' WITH NO DATA');
+        }
+    },
+
     likeTable: l => {
         ret.push(' LIKE ');
         m.tableRef(l.like);

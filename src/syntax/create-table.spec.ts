@@ -1,6 +1,6 @@
 import 'mocha';
 import 'chai';
-import { checkCreateTable, checkCreateTableLoc, checkInvalid } from './spec-utils';
+import { checkCreateTable, checkCreateTableLoc, checkCreateTableAs, checkCreateTableAsLoc, checkInvalid } from './spec-utils';
 
 
 describe('Create table', () => {
@@ -758,4 +758,93 @@ describe('Create table', () => {
             },
         ]
     })
+
+    checkCreateTableAs(['create table foo as select * from bar', 'CREATE TABLE foo AS SELECT * FROM bar'], {
+        type: 'create table as',
+        name: { name: 'foo' },
+        query: {
+            type: 'select',
+            columns: [{ expr: { type: 'ref', name: '*' } }],
+            from: [{ type: 'table', name: { name: 'bar' } }],
+        },
+    });
+
+    checkCreateTableAsLoc(['CREATE TABLE foo AS SELECT * FROM bar'], {
+        _location: { start: 0, end: 37 },
+        type: 'create table as',
+        name: {
+            _location: { start: 13, end: 16 },
+            name: 'foo',
+        },
+        query: {
+            _location: { start: 20, end: 37 },
+            type: 'select',
+            columns: [{
+                _location: { start: 27, end: 28 },
+                expr: {
+                    _location: { start: 27, end: 28 },
+                    type: 'ref',
+                    name: '*',
+                },
+            }],
+            from: [{
+                _location: { start: 34, end: 37 },
+                type: 'table',
+                name: {
+                    _location: { start: 34, end: 37 },
+                    name: 'bar',
+                },
+            }],
+        },
+    });
+
+    checkCreateTableAs(['CREATE TABLE public.foo AS SELECT * FROM bar'], {
+        type: 'create table as',
+        name: { name: 'foo', schema: 'public' },
+        query: {
+            type: 'select',
+            columns: [{ expr: { type: 'ref', name: '*' } }],
+            from: [{ type: 'table', name: { name: 'bar' } }],
+        },
+    });
+
+    // typed column definitions are not valid in a "CREATE TABLE ... AS" column list
+    //   (this also guards against the grammar becoming ambiguous between "CREATE TABLE" and "CREATE TABLE AS")
+    checkInvalid('CREATE TABLE foo (a text, b text) AS SELECT 1');
+
+    checkCreateTableAs(['CREATE TABLE IF NOT EXISTS foo (a, b) AS SELECT x, y FROM bar WITH NO DATA'], {
+        type: 'create table as',
+        ifNotExists: true,
+        name: { name: 'foo' },
+        columnNames: [{ name: 'a' }, { name: 'b' }],
+        query: {
+            type: 'select',
+            columns: [{ expr: { type: 'ref', name: 'x' } }, { expr: { type: 'ref', name: 'y' } }],
+            from: [{ type: 'table', name: { name: 'bar' } }],
+        },
+        withData: false,
+    });
+
+    checkCreateTableAs(['CREATE TEMPORARY TABLE foo AS SELECT * FROM bar WITH DATA'], {
+        type: 'create table as',
+        temporary: true,
+        name: { name: 'foo' },
+        query: {
+            type: 'select',
+            columns: [{ expr: { type: 'ref', name: '*' } }],
+            from: [{ type: 'table', name: { name: 'bar' } }],
+        },
+        withData: true,
+    });
+
+    // ensure that statement is still parsed as a regular "CREATE TABLE" when there is no "as"
+    checkCreateTable(['CREATE TABLE foo (a text)'], {
+        type: 'create table',
+        name: { name: 'foo' },
+        columns: [{
+            kind: 'column',
+            name: { name: 'a' },
+            dataType: { name: 'text' },
+        }],
+    });
 });
