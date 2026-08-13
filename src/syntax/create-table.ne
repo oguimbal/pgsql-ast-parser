@@ -33,6 +33,29 @@ createtable_statement -> %kw_create
     } %}
 
 
+# https://www.postgresql.org/docs/current/sql-createtableas.html
+createtableas_statement -> %kw_create
+        createtable_modifiers:?
+        %kw_table
+        kw_ifnotexists:?
+        qname
+        (lparen array_of[ident] rparen {% get(1) %}):?
+        %kw_as
+        selection
+        (%kw_with kw_no:? kw_data):?
+     {% x => {
+
+        return track(x, {
+            type: 'create table as',
+            ... !!x[3] ? { ifNotExists: true } : {},
+            name: x[4],
+            ... x[5] && { columnNames: x[5].map(asName) },
+            ...unwrap(x[1]),
+            query: x[7],
+            ... x[8] && { withData: toStr(x[8][1]) !== 'no' },
+        });
+    } %}
+
 createtable_modifiers
     -> kw_unlogged {% x => x[0] ? { unlogged: true } : {} %}
     | m_locglob

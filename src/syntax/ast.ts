@@ -11,6 +11,7 @@ export function locationOf(node: PGNode): NodeLocation {
 
 export type Statement = SelectStatement
     | CreateTableStatement
+    | CreateTableAsStatement
     | CreateSequenceStatement
     | CreateIndexStatement
     | CreateExtensionStatement
@@ -503,6 +504,18 @@ export interface CreateTableStatement extends PGNode {
     /** Constraints not defined inline */
     constraints?: TableConstraint[];
     inherits?: QName[];
+}
+
+export interface CreateTableAsStatement extends PGNode {
+    type: 'create table as';
+    name: QName;
+    temporary?: boolean;
+    unlogged?: boolean;
+    locality?: 'global' | 'local';
+    ifNotExists?: true;
+    columnNames?: Name[];
+    query: SelectStatement;
+    withData?: boolean;
 }
 
 export interface CreateColumnsLikeTable extends PGNode {

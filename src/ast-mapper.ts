@@ -20,6 +20,7 @@ export interface IAstPartialMapper {
     drop?: (val: a.DropStatement) => a.Statement | nil
     show?: (val: a.ShowStatement) => a.Statement | nil
     createTable?: (val: a.CreateTableStatement) => a.Statement | nil
+    createTableAs?: (val: a.CreateTableAsStatement) => a.Statement | nil
     truncateTable?: (val: a.TruncateTableStatement) => a.Statement | nil
     createExtension?: (val: a.CreateExtensionStatement) => a.Statement | nil
     set?: (st: a.SetStatement) => a.SetStatement | nil
@@ -229,6 +230,8 @@ export class AstDefaultMapper implements IAstMapper {
                 return this.createIndex(val);
             case 'create table':
                 return this.createTable(val);
+            case 'create table as':
+                return this.createTableAs(val);
             case 'truncate table':
                 return this.truncateTable(val);
             case 'delete':
@@ -582,6 +585,21 @@ export class AstDefaultMapper implements IAstMapper {
         }
         return assignChanged(val, {
             columns,
+        });
+    }
+
+    createTableAs(val: a.CreateTableAsStatement): a.Statement | nil {
+        const query = this.select(val.query);
+        if (!query) {
+            return null;
+        }
+        const ref = this.tableRef(val.name);
+        if (!ref) {
+            return null;
+        }
+        return assignChanged(val, {
+            query,
+            name: ref,
         });
     }
 
